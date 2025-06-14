@@ -15,9 +15,12 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Zoom Client ID from env:', zoomClientId ? 'Present' : 'Missing');
+    
     if (!zoomClientId) {
+      console.error('ZOOM_CLIENT_ID environment variable is not set');
       return new Response(
-        JSON.stringify({ error: 'Zoom Client ID not configured' }),
+        JSON.stringify({ error: 'Zoom Client ID not configured. Please set ZOOM_CLIENT_ID in Supabase secrets.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -25,6 +28,9 @@ serve(async (req) => {
     // Get the origin from the request headers
     const origin = req.headers.get('origin') || 'http://localhost:5173';
     const redirectUri = `${origin}/zoom-callback`;
+    
+    console.log('Generated redirect URI:', redirectUri);
+    console.log('Using Client ID:', zoomClientId.substring(0, 5) + '...');
     
     const authUrl = `https://zoom.us/oauth/authorize?response_type=code&client_id=${zoomClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=meeting:read+recording:read`;
 
