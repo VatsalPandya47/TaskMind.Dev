@@ -15,8 +15,8 @@ const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 // Helper function to wait/delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Retry function for OpenAI API calls
-async function retryOpenAICall(prompt: string, maxRetries = 3) {
+// Enhanced retry function for OpenAI API calls with exponential backoff
+async function retryOpenAICall(prompt: string, maxRetries = 5) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(`OpenAI API attempt ${attempt}/${maxRetries}`);
@@ -28,7 +28,7 @@ async function retryOpenAICall(prompt: string, maxRetries = 3) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o',
+          model: 'gpt-4o-mini', // Switch to mini for lower rate limits
           messages: [
             {
               role: 'system',
@@ -40,7 +40,7 @@ async function retryOpenAICall(prompt: string, maxRetries = 3) {
             }
           ],
           temperature: 0.3,
-          max_tokens: 2000,
+          max_tokens: 1500, // Reduced to lower cost
         }),
       });
 
@@ -52,7 +52,9 @@ async function retryOpenAICall(prompt: string, maxRetries = 3) {
       // Handle rate limiting specifically
       if (response.status === 429) {
         const retryAfter = response.headers.get('retry-after');
-        const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
+        // Use exponential backoff with longer delays
+        const baseDelay = Math.pow(2, attempt) * 2000; // Start at 4s, then 8s, 16s, etc.
+        const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : baseDelay;
         
         console.log(`Rate limited. Waiting ${waitTime}ms before retry ${attempt}/${maxRetries}`);
         
@@ -60,13 +62,31 @@ async function retryOpenAICall(prompt: string, maxRetries = 3) {
           await delay(waitTime);
           continue;
         } else {
-          throw new Error('OpenAI API rate limit exceeded. Please try again in a few minutes.');
+          throw new Error('OpenAI API rate limit exceeded after multiple retries. Please wait a few minutes and try again.');
         }
       }
 
       // Handle other errors
       const errorText = await response.text();
-      throw new Error(`OpenAI API error (${response.status}): ${errorText}`);
+      console.error(`OpenAI API error (${response.status}):`, errorText);
+      
+      if (response.status === 401) {
+        throw new Error('Invalid OpenAI API key. Please check your API key configuration.');
+      } else if (response.status === 403) {
+        throw new Error('OpenAI API access forbidden. Please check your API key permissions.');
+      } else if (response.status >= 500) {
+        // Server errors - retry with exponential backoff
+        if (attempt < maxRetries) {
+          const waitTime = Math.pow(2, attempt) * 1000;
+          console.log(`Server error, retrying in ${waitTime}ms`);
+          await delay(waitTime);
+          continue;
+        } else {
+          throw new Error('OpenAI API server error. Please try again later.');
+        }
+      } else {
+        throw new Error(`OpenAI API error (${response.status}): ${errorText}`);
+      }
 
     } catch (error) {
       console.error(`Attempt ${attempt} failed:`, error.message);
@@ -125,22 +145,12 @@ serve(async (req) => {
       throw new Error('Meeting not found or unauthorized');
     }
 
-    // Prepare the prompt for GPT-4o
+    // Prepare a more concise prompt for better performance
     const prompt = `
-You are an AI assistant that extracts actionable tasks from meeting transcripts. 
-
-Analyze the following meeting transcript and extract all action items, tasks, and follow-ups. For each task, identify:
-
-1. TASK: Clear, actionable description of what needs to be done
-2. ASSIGNEE: Person responsible (if mentioned, otherwise use "Unassigned")
-3. DUE_DATE: Deadline or timeframe (if mentioned, format as YYYY-MM-DD, otherwise leave empty)
-4. PRIORITY: High/Medium/Low based on urgency and importance mentioned
-5. CONTEXT: Brief context from the meeting
-
-Return ONLY a valid JSON array with this exact structure:
+Extract actionable tasks from this meeting transcript. Return ONLY a JSON array with this structure:
 [
   {
-    "task": "Task description",
+    "task": "Clear task description",
     "assignee": "Person name or Unassigned",
     "due_date": "YYYY-MM-DD or null",
     "priority": "High|Medium|Low",
@@ -148,18 +158,18 @@ Return ONLY a valid JSON array with this exact structure:
   }
 ]
 
-Meeting Transcript:
+Transcript:
 ${transcript}
 
-Important: Return ONLY the JSON array, no other text or formatting.
+Return ONLY the JSON array, no other text.
 `;
 
-    // Call OpenAI GPT-4o with retry logic
-    console.log('Calling OpenAI API with retry logic...');
+    // Call OpenAI GPT-4o-mini with enhanced retry logic
+    console.log('Calling OpenAI API with enhanced retry logic...');
     const openAIData = await retryOpenAICall(prompt);
     
     const extractedContent = openAIData.choices[0].message.content;
-    console.log('GPT-4o response:', extractedContent);
+    console.log('GPT-4o-mini response:', extractedContent);
 
     // Parse extracted tasks
     let extractedTasks;
@@ -226,7 +236,7 @@ Important: Return ONLY the JSON array, no other text or formatting.
     let errorMessage = 'An unexpected error occurred while processing the transcript.';
     
     if (error.message.includes('rate limit')) {
-      errorMessage = 'OpenAI API rate limit reached. Please wait a few minutes and try again.';
+      errorMessage = 'OpenAI API is currently busy. Please wait a few minutes and try again.';
     } else if (error.message.includes('API key')) {
       errorMessage = 'OpenAI API configuration issue. Please check your API key.';
     } else if (error.message.includes('Unauthorized')) {
@@ -235,6 +245,8 @@ Important: Return ONLY the JSON array, no other text or formatting.
       errorMessage = 'Meeting not found or you do not have access to it.';
     } else if (error.message.includes('parse')) {
       errorMessage = 'Could not extract tasks from transcript. Please ensure the transcript contains clear action items.';
+    } else if (error.message.includes('server error')) {
+      errorMessage = 'OpenAI service is temporarily unavailable. Please try again in a few minutes.';
     }
 
     return new Response(
