@@ -9,23 +9,43 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Video, RefreshCw, Download, ExternalLink, Unlink } from "lucide-react";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const ZoomIntegration = () => {
   const { isConnected, disconnectZoom } = useZoomAuth();
   const { zoomMeetings, isLoading, syncMeetings, extractTranscript } = useZoomMeetings();
   const [isConnecting, setIsConnecting] = useState(false);
+  const { toast } = useToast();
 
-  const handleZoomConnect = () => {
+  const handleZoomConnect = async () => {
     setIsConnecting(true);
-    // Generate state parameter for security
-    const state = Math.random().toString(36).substring(2, 15);
-    localStorage.setItem('zoom_oauth_state', state);
-    
-    // Correct: The redirect URI must point to a page in our frontend app.
-    const redirectUri = `${window.location.origin}/zoom-callback`;
-    const zoomAuthUrl = `https://zoom.us/oauth/authorize?response_type=code&client_id=QDIacm2fW7sxi8Wsgw1jOGfwVYE2GsLU&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=meeting:read+recording:read`;
-    
-    window.location.href = zoomAuthUrl;
+    try {
+      // Get the client ID from the backend
+      const { data, error } = await supabase.functions.invoke('get-zoom-auth-url');
+      
+      if (error) throw error;
+      
+      if (data.authUrl) {
+        // Generate state parameter for security
+        const state = Math.random().toString(36).substring(2, 15);
+        localStorage.setItem('zoom_oauth_state', state);
+        
+        // Add state to the auth URL
+        const authUrlWithState = `${data.authUrl}&state=${state}`;
+        window.location.href = authUrlWithState;
+      } else {
+        throw new Error('Failed to get authorization URL');
+      }
+    } catch (error: any) {
+      console.error('Failed to initiate Zoom connection:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to connect to Zoom",
+        variant: "destructive",
+      });
+      setIsConnecting(false);
+    }
   };
 
   return (
