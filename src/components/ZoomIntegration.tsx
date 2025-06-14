@@ -21,7 +21,9 @@ const ZoomIntegration = () => {
     const state = Math.random().toString(36).substring(2, 15);
     localStorage.setItem('zoom_oauth_state', state);
     
-    const zoomAuthUrl = `https://zoom.us/oauth/authorize?response_type=code&client_id=QDIacm2fW7sxi8Wsgw1jOGfwVYE2GsLU&redirect_uri=${encodeURIComponent('https://jsxupnogyvfynjgkwdyj.supabase.co/functions/v1/zoom-oauth-callback')}&state=${state}&scope=meeting:read+recording:read`;
+    // Correct: The redirect URI must point to a page in our frontend app.
+    const redirectUri = `${window.location.origin}/zoom-callback`;
+    const zoomAuthUrl = `https://zoom.us/oauth/authorize?response_type=code&client_id=QDIacm2fW7sxi8Wsgw1jOGfwVYE2GsLU&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=meeting:read+recording:read`;
     
     window.location.href = zoomAuthUrl;
   };

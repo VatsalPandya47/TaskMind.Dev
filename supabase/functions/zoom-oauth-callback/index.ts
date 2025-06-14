@@ -19,13 +19,18 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const code = url.searchParams.get('code');
-    const state = url.searchParams.get('state');
+    const { code, redirect_uri } = await req.json();
 
     if (!code) {
       return new Response(
         JSON.stringify({ error: 'Authorization code is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (!redirect_uri) {
+      return new Response(
+        JSON.stringify({ error: 'Redirect URI is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -47,7 +52,7 @@ serve(async (req) => {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code: code,
-        redirect_uri: `${url.origin}/zoom-callback`,
+        redirect_uri: redirect_uri,
       }),
     });
 

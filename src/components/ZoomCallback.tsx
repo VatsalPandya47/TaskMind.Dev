@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useZoomAuth } from "@/hooks/useZoomAuth";
@@ -50,12 +49,13 @@ const ZoomCallback = () => {
       }
 
       try {
+        const redirectUri = `${window.location.origin}/zoom-callback`;
+
         // Call the edge function to exchange code for tokens
         const { data, error } = await supabase.functions.invoke('zoom-oauth-callback', {
           body: { 
             code,
-            state,
-            redirect_uri: 'https://jsxupnogyvfynjgkwdyj.supabase.co/functions/v1/zoom-oauth-callback'
+            redirect_uri: redirectUri
           },
         });
 
