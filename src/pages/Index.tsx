@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, Mic, FileText, Users, Calendar, AlertTriangle } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabase } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 
 // This defines the structure of the AI's output
@@ -53,6 +52,19 @@ const Index = () => {
     setError(null);
     setIsLoading(true);
     setResult(null);
+
+    const supabase = getSupabase();
+    if (!supabase) {
+      const dbError = "Supabase client is not available. Please ensure your Supabase integration is correctly configured.";
+      setError(dbError);
+      toast({
+        title: "Configuration Error",
+        description: dbError,
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
 
     // Simulate AI processing time
     await new Promise(resolve => setTimeout(resolve, 2000));
