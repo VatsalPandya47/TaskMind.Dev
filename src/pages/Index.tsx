@@ -5,6 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, Mic, FileText, Users, Calendar, AlertTriangle } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+import { useToast } from "@/hooks/use-toast";
 
 // This defines the structure of the AI's output
 interface SummaryResult {
@@ -41,6 +43,7 @@ const Index = () => {
   const [result, setResult] = useState<SummaryResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleGenerateSummary = async () => {
     if (!transcript.trim()) {
@@ -53,11 +56,59 @@ const Index = () => {
 
     // Simulate AI processing time
     await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // In a real app, an API call to an AI backend would happen here.
+    // For now, we'll use the sample data.
+    const newResult = sampleData;
+    setResult(newResult);
 
-    // In a real app, you would make an API call here to your AI backend.
-    // For now, we'll just use the sample data.
-    setResult(sampleData);
-    setIsLoading(false);
+    try {
+      // Insert into 'meetings' table
+      const { data: meetingData, error: meetingError } = await supabase
+        .from('meetings')
+        .insert({
+          summary: newResult.Summary,
+          decisions: newResult.Decisions,
+          participants: newResult.Participants,
+          transcript: transcript,
+        })
+        .select()
+        .single();
+
+      if (meetingError) throw meetingError;
+      if (!meetingData) throw new Error("Failed to save meeting.");
+
+      // Insert into 'action_items' table
+      const actionItemsToInsert = newResult.ActionItems.map(item => ({
+        meeting_id: meetingData.id,
+        task: item.Task,
+        assignee: item.Assignee,
+        due_date: item.DueDate,
+        priority: item.Priority,
+      }));
+
+      const { error: actionItemsError } = await supabase
+        .from('action_items')
+        .insert(actionItemsToInsert);
+
+      if (actionItemsError) throw actionItemsError;
+      
+      toast({
+        title: "Success!",
+        description: "Meeting summary has been saved to your database.",
+      });
+
+    } catch (error: any) {
+      console.error("Error saving to Supabase:", error);
+      toast({
+        title: "Database Error",
+        description: "Could not save summary. Please check the console for details.",
+        variant: "destructive",
+      });
+      setError(`Database Error: ${error.message}. Please ensure 'meetings' and 'action_items' tables are set up correctly in Supabase.`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getPriorityClass = (priority: "High" | "Medium" | "Low") => {
