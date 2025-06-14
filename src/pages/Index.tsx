@@ -16,6 +16,7 @@ interface SummaryResult {
     DueDate: string;
     Priority: "High" | "Medium" | "Low";
   }[];
+  Participants: string[];
 }
 
 // Sample data to show what the output will look like
@@ -32,6 +33,7 @@ const sampleData: SummaryResult = {
     { Task: "Prepare the slide deck for the stakeholder update.", Assignee: "Charlie", DueDate: "2025-06-25", Priority: "Medium" },
     { Task: "Investigate competitor 'Project X' and report findings.", Assignee: "Alice", DueDate: "2025-07-01", Priority: "Low" },
   ],
+  Participants: ["Alice", "Bob", "Charlie", "Diana", "Edward"],
 };
 
 const Index = () => {
@@ -153,46 +155,67 @@ const Index = () => {
 
               <Card className="shadow-sm">
                 <CardHeader>
-                  <CardTitle>Action Items</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-primary" />
+                    Participants
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Task</TableHead>
-                        <TableHead>Assignee</TableHead>
-                        <TableHead>Due Date</TableHead>
-                        <TableHead>Priority</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {result.ActionItems.map((item, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">{item.Task}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Users className="w-4 h-4 text-muted-foreground" />
-                              {item.Assignee}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                               <Calendar className="w-4 h-4 text-muted-foreground" />
-                               {item.DueDate}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getPriorityClass(item.Priority)}`}>
-                              {item.Priority}
-                            </span>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <ul className="space-y-3">
+                    {result.Participants.map((name, index) => (
+                      <li key={index} className="flex items-center gap-3 text-base">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-muted-foreground font-semibold">
+                          {name.charAt(0)}
+                        </div>
+                        <span>{name}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </CardContent>
               </Card>
             </div>
+
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Action Items</CardTitle>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Task</TableHead>
+                      <TableHead>Assignee</TableHead>
+                      <TableHead>Due Date</TableHead>
+                      <TableHead>Priority</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {result.ActionItems.map((item, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">{item.Task}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4 text-muted-foreground" />
+                            {item.Assignee}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                             <Calendar className="w-4 h-4 text-muted-foreground" />
+                             {item.DueDate}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getPriorityClass(item.Priority)}`}>
+                            {item.Priority}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </div>
         )}
       </main>
@@ -201,4 +224,3 @@ const Index = () => {
 };
 
 export default Index;
-
