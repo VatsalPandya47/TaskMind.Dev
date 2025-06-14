@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useZoomAuth } from "@/hooks/useZoomAuth";
 import { useZoomMeetings } from "@/hooks/useZoomMeetings";
@@ -21,7 +20,7 @@ const ZoomIntegration = () => {
     const state = Math.random().toString(36).substring(2, 15);
     localStorage.setItem('zoom_oauth_state', state);
     
-    const zoomAuthUrl = `https://zoom.us/oauth/authorize?response_type=code&client_id=YOUR_ZOOM_CLIENT_ID&redirect_uri=${encodeURIComponent(window.location.origin + '/zoom-callback')}&state=${state}&scope=meeting:read+recording:read`;
+    const zoomAuthUrl = `https://zoom.us/oauth/authorize?response_type=code&client_id=QDIacm2fW7sxi8Wsgw1jOGfwVYE2GsLU&redirect_uri=${encodeURIComponent(window.location.origin + '/zoom-callback')}&state=${state}&scope=meeting:read+recording:read`;
     
     window.location.href = zoomAuthUrl;
   };
