@@ -1,8 +1,8 @@
 
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { FileText, CheckSquare, Calendar, Settings, Menu, X } from "lucide-react";
+import { Brain, Calendar, CheckSquare, Settings, BarChart3, LogOut, Menu, X } from "lucide-react";
 
 interface NavigationProps {
   activeTab: string;
@@ -10,78 +10,91 @@ interface NavigationProps {
 }
 
 const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
+  const { signOut, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { id: "dashboard", label: "Dashboard", icon: FileText },
+    { id: "dashboard", label: "Dashboard", icon: BarChart3 },
     { id: "meetings", label: "Meetings", icon: Calendar },
-    { id: "tasks", label: "Action Items", icon: CheckSquare },
+    { id: "tasks", label: "Tasks", icon: CheckSquare },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   return (
     <>
-      {/* Mobile Header */}
-      <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">TaskMind.ai</h1>
+      {/* Mobile header */}
+      <div className="lg:hidden flex items-center justify-between p-4 bg-white border-b">
+        <div className="flex items-center space-x-2">
+          <Brain className="h-8 w-8 text-blue-600" />
+          <span className="text-xl font-bold text-gray-900">TaskMind.ai</span>
+        </div>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
-          {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </Button>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile menu overlay */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)}>
-          <Card className="absolute left-0 top-0 h-full w-64 bg-white">
-            <div className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Navigation</h2>
-              <nav className="space-y-2">
-                {navItems.map((item) => (
-                  <Button
-                    key={item.id}
-                    variant={activeTab === item.id ? "default" : "ghost"}
-                    className="w-full justify-start"
-                    onClick={() => {
-                      onTabChange(item.id);
-                      setIsMobileMenuOpen(false);
-                    }}
-                  >
-                    <item.icon className="mr-2 h-4 w-4" />
-                    {item.label}
-                  </Button>
-                ))}
-              </nav>
-            </div>
-          </Card>
-        </div>
+        <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)} />
       )}
 
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
-        <Card className="flex-1 flex flex-col min-h-0 bg-white border-r">
-          <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-            <div className="flex items-center flex-shrink-0 px-4">
-              <h1 className="text-xl font-bold text-gray-900">TaskMind.ai</h1>
-            </div>
-            <nav className="mt-8 flex-1 px-2 space-y-1">
-              {navItems.map((item) => (
-                <Button
-                  key={item.id}
-                  variant={activeTab === item.id ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => onTabChange(item.id)}
-                >
-                  <item.icon className="mr-3 h-5 w-5" />
-                  {item.label}
-                </Button>
-              ))}
-            </nav>
+      {/* Sidebar */}
+      <div className={`fixed left-0 top-0 h-full w-64 bg-white border-r transform transition-transform duration-200 ease-in-out z-50 ${
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+      } lg:translate-x-0`}>
+        <div className="p-6">
+          <div className="flex items-center space-x-2 mb-8">
+            <Brain className="h-8 w-8 text-blue-600" />
+            <span className="text-xl font-bold text-gray-900">TaskMind.ai</span>
           </div>
-        </Card>
+
+          <nav className="space-y-2">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    onTabChange(item.id);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                    activeTab === item.id
+                      ? "bg-blue-50 text-blue-600 border border-blue-200"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        <div className="absolute bottom-0 left-0 right-0 p-6 border-t">
+          <div className="mb-4">
+            <p className="text-sm text-gray-600">Signed in as</p>
+            <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSignOut}
+            className="w-full flex items-center space-x-2"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Sign Out</span>
+          </Button>
+        </div>
       </div>
     </>
   );

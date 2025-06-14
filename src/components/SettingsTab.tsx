@@ -1,169 +1,194 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Settings, Video, Calendar, User, Bell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const SettingsTab = () => {
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [autoProcessing, setAutoProcessing] = useState(false);
-  const [zoomConnected, setZoomConnected] = useState(false);
-  const [googleConnected, setGoogleConnected] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
+  const [profile, setProfile] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleConnectZoom = () => {
-    // In a real app, this would redirect to Zoom OAuth
-    setZoomConnected(true);
-    toast({
-      title: "Zoom Connected",
-      description: "Your Zoom account has been successfully connected.",
-    });
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    if (error) {
+      console.error("Error fetching profile:", error);
+    } else if (data) {
+      setProfile({
+        first_name: data.first_name || "",
+        last_name: data.last_name || "",
+        email: data.email || user.email || "",
+      });
+    }
   };
 
-  const handleConnectGoogle = () => {
-    // In a real app, this would redirect to Google OAuth
-    setGoogleConnected(true);
-    toast({
-      title: "Google Calendar Connected",
-      description: "Your Google Calendar has been successfully connected.",
-    });
-  };
+  const updateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
 
-  const handleSaveSettings = () => {
-    toast({
-      title: "Settings Saved",
-      description: "Your preferences have been updated.",
-    });
+    setIsLoading(true);
+    
+    const { error } = await supabase
+      .from("profiles")
+      .upsert({
+        id: user.id,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        email: profile.email,
+        updated_at: new Date().toISOString(),
+      });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      });
+    }
+
+    setIsLoading(false);
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-6">
-        <Settings className="w-6 h-6" />
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+        <p className="text-gray-600">Manage your account settings and preferences</p>
       </div>
 
-      {/* Account Settings */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5" />
-            Account Settings
-          </CardTitle>
+          <CardTitle>Profile Information</CardTitle>
+          <CardDescription>
+            Update your personal information and account details
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={updateProfile} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="first_name">First Name</Label>
+                <Input
+                  id="first_name"
+                  value={profile.first_name}
+                  onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
+                  placeholder="Enter your first name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="last_name">Last Name</Label>
+                <Input
+                  id="last_name"
+                  value={profile.last_name}
+                  onChange={(e) => setProfile({ ...profile, last_name: e.target.value })}
+                  placeholder="Enter your last name"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={profile.email}
+                onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                placeholder="Enter your email"
+              />
+            </div>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Updating..." : "Update Profile"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Account Information</CardTitle>
+          <CardDescription>
+            Your account details and subscription status
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="firstName">First Name</Label>
-              <Input id="firstName" defaultValue="John" />
+              <Label className="text-sm font-medium text-gray-500">User ID</Label>
+              <p className="text-sm text-gray-900 font-mono">{user?.id}</p>
             </div>
             <div>
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input id="lastName" defaultValue="Doe" />
-            </div>
-          </div>
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" defaultValue="john.doe@example.com" />
-          </div>
-          <Button onClick={handleSaveSettings}>Save Changes</Button>
-        </CardContent>
-      </Card>
-
-      {/* Integrations */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Integrations</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <Video className="w-6 h-6 text-blue-600" />
-              <div>
-                <h3 className="font-medium">Zoom</h3>
-                <p className="text-sm text-gray-600">Connect your Zoom account to automatically process meeting recordings</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {zoomConnected && (
-                <span className="text-sm text-green-600 font-medium">Connected</span>
-              )}
-              <Button 
-                variant={zoomConnected ? "outline" : "default"}
-                onClick={handleConnectZoom}
-                disabled={zoomConnected}
-              >
-                {zoomConnected ? "Disconnect" : "Connect"}
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <Calendar className="w-6 h-6 text-red-600" />
-              <div>
-                <h3 className="font-medium">Google Calendar</h3>
-                <p className="text-sm text-gray-600">Sync your calendar to automatically detect meetings</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {googleConnected && (
-                <span className="text-sm text-green-600 font-medium">Connected</span>
-              )}
-              <Button 
-                variant={googleConnected ? "outline" : "default"}
-                onClick={handleConnectGoogle}
-                disabled={googleConnected}
-              >
-                {googleConnected ? "Disconnect" : "Connect"}
-              </Button>
+              <Label className="text-sm font-medium text-gray-500">Account Created</Label>
+              <p className="text-sm text-gray-900">
+                {user?.created_at ? new Date(user.created_at).toLocaleDateString() : "N/A"}
+              </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Preferences */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="w-5 h-5" />
-            Preferences
-          </CardTitle>
+          <CardTitle>Preferences</CardTitle>
+          <CardDescription>
+            Customize your TaskMind.ai experience
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="email-notifications" className="text-base font-medium">
-                Email Notifications
-              </Label>
-              <p className="text-sm text-gray-600">Receive email notifications for new action items</p>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div>
+                <p className="font-medium">Email Notifications</p>
+                <p className="text-sm text-gray-600">Receive updates about your tasks and meetings</p>
+              </div>
+              <Button variant="outline" size="sm">
+                Configure
+              </Button>
             </div>
-            <Switch
-              id="email-notifications"
-              checked={emailNotifications}
-              onCheckedChange={setEmailNotifications}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="auto-processing" className="text-base font-medium">
-                Auto-Processing
-              </Label>
-              <p className="text-sm text-gray-600">Automatically process new meeting recordings</p>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div>
+                <p className="font-medium">AI Insights</p>
+                <p className="text-sm text-gray-600">Enable AI-powered meeting analysis</p>
+              </div>
+              <Button variant="outline" size="sm">
+                Enable
+              </Button>
             </div>
-            <Switch
-              id="auto-processing"
-              checked={autoProcessing}
-              onCheckedChange={setAutoProcessing}
-            />
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div>
+                <p className="font-medium">Data Export</p>
+                <p className="text-sm text-gray-600">Download your meetings and tasks data</p>
+              </div>
+              <Button variant="outline" size="sm">
+                Export
+              </Button>
+            </div>
           </div>
-
-          <Button onClick={handleSaveSettings}>Save Preferences</Button>
         </CardContent>
       </Card>
     </div>

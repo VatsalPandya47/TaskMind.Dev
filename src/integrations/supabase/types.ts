@@ -9,7 +9,122 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      meetings: {
+        Row: {
+          created_at: string
+          date: string
+          duration: string | null
+          has_recording: boolean | null
+          id: string
+          participants: string[] | null
+          summary: string | null
+          title: string
+          transcript: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          duration?: string | null
+          has_recording?: boolean | null
+          id?: string
+          participants?: string[] | null
+          summary?: string | null
+          title: string
+          transcript?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          duration?: string | null
+          has_recording?: boolean | null
+          id?: string
+          participants?: string[] | null
+          summary?: string | null
+          title?: string
+          transcript?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          assignee: string
+          completed: boolean | null
+          created_at: string
+          due_date: string | null
+          id: string
+          meeting_id: string | null
+          priority: string | null
+          task: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assignee: string
+          completed?: boolean | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          meeting_id?: string | null
+          priority?: string | null
+          task: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assignee?: string
+          completed?: boolean | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          meeting_id?: string | null
+          priority?: string | null
+          task?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

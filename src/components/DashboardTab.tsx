@@ -1,146 +1,140 @@
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { FileText, CheckSquare, Calendar, TrendingUp, Upload } from "lucide-react";
-import { useState } from "react";
+import { useMeetings } from "@/hooks/useMeetings";
+import { useTasks } from "@/hooks/useTasks";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, CheckSquare, Clock, Users } from "lucide-react";
 
 const DashboardTab = () => {
-  const [transcript, setTranscript] = useState("");
+  const { meetings, isLoading: meetingsLoading } = useMeetings();
+  const { tasks, isLoading: tasksLoading } = useTasks();
 
-  const stats = [
-    {
-      title: "Total Meetings",
-      value: "12",
-      change: "+2 this week",
-      icon: Calendar,
-      color: "bg-blue-100 text-blue-600"
-    },
-    {
-      title: "Action Items",
-      value: "34",
-      change: "+8 pending",
-      icon: CheckSquare,
-      color: "bg-green-100 text-green-600"
-    },
-    {
-      title: "Completed Tasks",
-      value: "26",
-      change: "76% completion rate",
-      icon: TrendingUp,
-      color: "bg-purple-100 text-purple-600"
-    }
-  ];
+  if (meetingsLoading || tasksLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
-  const recentMeetings = [
-    { title: "Q3 Product Planning", date: "2025-06-10", tasks: 3 },
-    { title: "Marketing Strategy Review", date: "2025-06-08", tasks: 2 },
-    { title: "Team Standup", date: "2025-06-07", tasks: 0 }
-  ];
-
-  const urgentTasks = [
-    { task: "Finalize marketing brief", assignee: "Alice", dueDate: "2025-06-21", priority: "High" },
-    { task: "Update project timeline", assignee: "Bob", dueDate: "2025-06-18", priority: "Medium" }
-  ];
+  const completedTasks = tasks.filter(task => task.completed).length;
+  const pendingTasks = tasks.filter(task => !task.completed).length;
+  const recentMeetings = meetings.slice(0, 5);
+  const totalParticipants = meetings.reduce((acc, meeting) => acc + (meeting.participants?.length || 0), 0);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Welcome back! Here's your meeting intelligence overview.</p>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600">Welcome back! Here's your meeting insights overview.</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat, index) => (
-          <Card key={index}>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-lg ${stat.color}`}>
-                  <stat.icon className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                  <p className="text-sm text-gray-500">{stat.change}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Meetings</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{meetings.length}</div>
+            <p className="text-xs text-muted-foreground">All time meetings</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Tasks</CardTitle>
+            <CheckSquare className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{pendingTasks}</div>
+            <p className="text-xs text-muted-foreground">{completedTasks} completed</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Participants</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalParticipants}</div>
+            <p className="text-xs text-muted-foreground">Across all meetings</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg. Duration</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {meetings.length > 0 ? "45m" : "0m"}
+            </div>
+            <p className="text-xs text-muted-foreground">Per meeting</p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="w-5 h-5" />
-            Quick Process Meeting
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Textarea
-            placeholder="Paste your meeting transcript here for instant AI processing..."
-            className="min-h-[120px]"
-            value={transcript}
-            onChange={(e) => setTranscript(e.target.value)}
-          />
-          <Button className="w-full sm:w-auto">
-            <FileText className="w-4 h-4 mr-2" />
-            Process Meeting
-          </Button>
-        </CardContent>
-      </Card>
-
+      {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Meetings */}
         <Card>
           <CardHeader>
             <CardTitle>Recent Meetings</CardTitle>
+            <CardDescription>Your latest meeting activity</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {recentMeetings.map((meeting, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">{meeting.title}</p>
-                    <p className="text-sm text-gray-600">{meeting.date}</p>
+            <div className="space-y-4">
+              {recentMeetings.length > 0 ? (
+                recentMeetings.map((meeting) => (
+                  <div key={meeting.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium">{meeting.title}</p>
+                      <p className="text-sm text-gray-600">
+                        {new Date(meeting.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {meeting.participants?.length || 0} participants
+                    </div>
                   </div>
-                  <div className="text-sm">
-                    <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
-                      {meeting.tasks} tasks
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-gray-500 text-center py-4">No meetings yet. Create your first meeting!</p>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Urgent Tasks */}
         <Card>
           <CardHeader>
-            <CardTitle>Urgent Action Items</CardTitle>
+            <CardTitle>Active Tasks</CardTitle>
+            <CardDescription>Tasks that need your attention</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {urgentTasks.map((task, index) => (
-                <div key={index} className="p-3 border border-orange-200 bg-orange-50 rounded-lg">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{task.task}</p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        Assigned to {task.assignee} • Due {task.dueDate}
-                      </p>
+            <div className="space-y-4">
+              {tasks.filter(task => !task.completed).slice(0, 5).length > 0 ? (
+                tasks.filter(task => !task.completed).slice(0, 5).map((task) => (
+                  <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium">{task.task}</p>
+                      <p className="text-sm text-gray-600">Assigned to: {task.assignee}</p>
                     </div>
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      task.priority === "High" ? "bg-red-100 text-red-600" : "bg-yellow-100 text-yellow-600"
-                    }`}>
-                      {task.priority}
-                    </span>
+                    <div className="text-sm">
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        task.priority === 'High' ? 'bg-red-100 text-red-800' :
+                        task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {task.priority}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-gray-500 text-center py-4">No active tasks. Great job!</p>
+              )}
             </div>
           </CardContent>
         </Card>

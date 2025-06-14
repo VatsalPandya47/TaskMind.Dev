@@ -1,248 +1,260 @@
 
 import { useState } from "react";
+import { useTasks } from "@/hooks/useTasks";
+import { useMeetings } from "@/hooks/useMeetings";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckSquare, Clock, Search, User, AlertTriangle } from "lucide-react";
-
-interface Task {
-  id: string;
-  task: string;
-  assignee: string;
-  dueDate: string;
-  priority: "High" | "Medium" | "Low";
-  completed: boolean;
-  meetingTitle: string;
-}
-
-const mockTasks: Task[] = [
-  {
-    id: "1",
-    task: "Finalize the marketing brief for the new campaign",
-    assignee: "Alice",
-    dueDate: "2025-06-21",
-    priority: "High",
-    completed: false,
-    meetingTitle: "Q3 Product Planning"
-  },
-  {
-    id: "2",
-    task: "Update the project timeline in the internal tracker",
-    assignee: "Bob",
-    dueDate: "2025-06-18",
-    priority: "Medium",
-    completed: true,
-    meetingTitle: "Q3 Product Planning"
-  },
-  {
-    id: "3",
-    task: "Prepare the slide deck for the stakeholder update",
-    assignee: "Charlie",
-    dueDate: "2025-06-25",
-    priority: "Medium",
-    completed: false,
-    meetingTitle: "Marketing Strategy Review"
-  },
-  {
-    id: "4",
-    task: "Investigate competitor activities and report findings",
-    assignee: "Alice",
-    dueDate: "2025-07-01",
-    priority: "Low",
-    completed: false,
-    meetingTitle: "Marketing Strategy Review"
-  }
-];
+import { Plus, CheckSquare, Trash2 } from "lucide-react";
+import { format } from "date-fns";
 
 const TasksTab = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState<"all" | "pending" | "completed">("all");
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
-
-  const toggleTaskCompletion = (taskId: string) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    ));
-  };
-
-  const getPriorityClass = (priority: "High" | "Medium" | "Low") => {
-    switch (priority) {
-      case "High": return "text-red-600 bg-red-100";
-      case "Medium": return "text-yellow-600 bg-yellow-100";
-      case "Low": return "text-green-600 bg-green-100";
-      default: return "text-gray-600 bg-gray-100";
-    }
-  };
-
-  const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.task.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.assignee.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filter === "all" || 
-                         (filter === "pending" && !task.completed) ||
-                         (filter === "completed" && task.completed);
-    return matchesSearch && matchesFilter;
+  const { tasks, isLoading, createTask, updateTask, deleteTask } = useTasks();
+  const { meetings } = useMeetings();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newTask, setNewTask] = useState({
+    task: "",
+    assignee: "",
+    due_date: "",
+    priority: "Medium",
+    meeting_id: "",
   });
 
-  const pendingCount = tasks.filter(t => !t.completed).length;
-  const completedCount = tasks.filter(t => t.completed).length;
-  const overdueCount = tasks.filter(t => !t.completed && new Date(t.dueDate) < new Date()).length;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    await createTask.mutateAsync({
+      task: newTask.task,
+      assignee: newTask.assignee,
+      due_date: newTask.due_date || null,
+      priority: newTask.priority as "High" | "Medium" | "Low",
+      meeting_id: newTask.meeting_id || null,
+    });
+
+    setNewTask({
+      task: "",
+      assignee: "",
+      due_date: "",
+      priority: "Medium",
+      meeting_id: "",
+    });
+    setIsDialogOpen(false);
+  };
+
+  const toggleTaskCompletion = async (taskId: string, completed: boolean) => {
+    await updateTask.mutateAsync({
+      id: taskId,
+      completed: !completed,
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  const completedTasks = tasks.filter(task => task.completed);
+  const pendingTasks = tasks.filter(task => !task.completed);
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Action Items</h1>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Tasks</h1>
+          <p className="text-gray-600">Manage action items and follow-ups from meetings</p>
+        </div>
+        
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              New Task
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Create New Task</DialogTitle>
+              <DialogDescription>
+                Add a new task or action item to track progress.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit}>
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="task">Task Description</Label>
+                  <Input
+                    id="task"
+                    value={newTask.task}
+                    onChange={(e) => setNewTask({ ...newTask, task: e.target.value })}
+                    placeholder="Enter task description"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="assignee">Assignee</Label>
+                  <Input
+                    id="assignee"
+                    value={newTask.assignee}
+                    onChange={(e) => setNewTask({ ...newTask, assignee: e.target.value })}
+                    placeholder="Who is responsible?"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="due_date">Due Date</Label>
+                  <Input
+                    id="due_date"
+                    type="date"
+                    value={newTask.due_date}
+                    onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select value={newTask.priority} onValueChange={(value) => setNewTask({ ...newTask, priority: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="meeting">Related Meeting (Optional)</Label>
+                  <Select value={newTask.meeting_id} onValueChange={(value) => setNewTask({ ...newTask, meeting_id: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select meeting" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">No meeting</SelectItem>
+                      {meetings.map((meeting) => (
+                        <SelectItem key={meeting.id} value={meeting.id}>
+                          {meeting.title} - {format(new Date(meeting.date), "MMM d, yyyy")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit" disabled={createTask.isPending}>
+                  {createTask.isPending ? "Creating..." : "Create Task"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Task Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <CheckSquare className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Total Tasks</p>
-                <p className="text-2xl font-bold">{tasks.length}</p>
-              </div>
-            </div>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Total Tasks</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{tasks.length}</div>
           </CardContent>
         </Card>
-        
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Clock className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Pending</p>
-                <p className="text-2xl font-bold">{pendingCount}</p>
-              </div>
-            </div>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Pending</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-orange-600">{pendingTasks.length}</div>
           </CardContent>
         </Card>
-        
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckSquare className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Completed</p>
-                <p className="text-2xl font-bold">{completedCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Overdue</p>
-                <p className="text-2xl font-bold">{overdueCount}</p>
-              </div>
-            </div>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Completed</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">{completedTasks.length}</div>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>All Action Items</CardTitle>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search tasks..."
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant={filter === "all" ? "default" : "outline"}
-                onClick={() => setFilter("all")}
-                size="sm"
-              >
-                All
-              </Button>
-              <Button
-                variant={filter === "pending" ? "default" : "outline"}
-                onClick={() => setFilter("pending")}
-                size="sm"
-              >
-                Pending
-              </Button>
-              <Button
-                variant={filter === "completed" ? "default" : "outline"}
-                onClick={() => setFilter("completed")}
-                size="sm"
-              >
-                Completed
-              </Button>
-            </div>
-          </div>
+          <CardTitle>Task List</CardTitle>
+          <CardDescription>
+            Track and manage your action items
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">Status</TableHead>
-                <TableHead>Task</TableHead>
-                <TableHead>Assignee</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>From Meeting</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredTasks.map((task) => (
-                <TableRow key={task.id} className={task.completed ? "opacity-60" : ""}>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleTaskCompletion(task.id)}
-                      className="p-1"
-                    >
-                      <CheckSquare className={`w-5 h-5 ${task.completed ? "text-green-600" : "text-gray-400"}`} />
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <span className={task.completed ? "line-through" : ""}>{task.task}</span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-gray-400" />
-                      {task.assignee}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-gray-400" />
-                      {task.dueDate}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getPriorityClass(task.priority)}`}>
-                      {task.priority}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-gray-600">{task.meetingTitle}</span>
-                  </TableCell>
+          {tasks.length === 0 ? (
+            <div className="text-center py-8">
+              <CheckSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks yet</h3>
+              <p className="text-gray-600 mb-4">Create your first task to get started.</p>
+              <Button onClick={() => setIsDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Task
+              </Button>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">Done</TableHead>
+                  <TableHead>Task</TableHead>
+                  <TableHead>Assignee</TableHead>
+                  <TableHead>Priority</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {tasks.map((task) => (
+                  <TableRow key={task.id} className={task.completed ? "opacity-60" : ""}>
+                    <TableCell>
+                      <Checkbox
+                        checked={task.completed || false}
+                        onCheckedChange={() => toggleTaskCompletion(task.id, task.completed || false)}
+                      />
+                    </TableCell>
+                    <TableCell className={task.completed ? "line-through" : ""}>{task.task}</TableCell>
+                    <TableCell>{task.assignee}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          task.priority === "High" ? "destructive" :
+                          task.priority === "Medium" ? "default" : "secondary"
+                        }
+                      >
+                        {task.priority}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {task.due_date ? format(new Date(task.due_date), "MMM d, yyyy") : "No due date"}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteTask.mutate(task.id)}
+                        disabled={deleteTask.isPending}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
