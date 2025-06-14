@@ -22,6 +22,8 @@ export type Database = {
           transcript: string | null
           updated_at: string
           user_id: string
+          zoom_meeting_id: string | null
+          zoom_uuid: string | null
         }
         Insert: {
           created_at?: string
@@ -35,6 +37,8 @@ export type Database = {
           transcript?: string | null
           updated_at?: string
           user_id: string
+          zoom_meeting_id?: string | null
+          zoom_uuid?: string | null
         }
         Update: {
           created_at?: string
@@ -48,6 +52,8 @@ export type Database = {
           transcript?: string | null
           updated_at?: string
           user_id?: string
+          zoom_meeting_id?: string | null
+          zoom_uuid?: string | null
         }
         Relationships: []
       }
@@ -124,6 +130,92 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      zoom_meetings: {
+        Row: {
+          created_at: string
+          duration: number | null
+          id: string
+          meeting_id: string | null
+          recording_files: Json | null
+          start_time: string | null
+          topic: string | null
+          transcript_file_url: string | null
+          updated_at: string
+          user_id: string
+          zoom_meeting_id: string
+          zoom_uuid: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration?: number | null
+          id?: string
+          meeting_id?: string | null
+          recording_files?: Json | null
+          start_time?: string | null
+          topic?: string | null
+          transcript_file_url?: string | null
+          updated_at?: string
+          user_id: string
+          zoom_meeting_id: string
+          zoom_uuid?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration?: number | null
+          id?: string
+          meeting_id?: string | null
+          recording_files?: Json | null
+          start_time?: string | null
+          topic?: string | null
+          transcript_file_url?: string | null
+          updated_at?: string
+          user_id?: string
+          zoom_meeting_id?: string
+          zoom_uuid?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zoom_meetings_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      zoom_tokens: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string
+          id: string
+          refresh_token: string | null
+          scope: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          refresh_token?: string | null
+          scope?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          refresh_token?: string | null
+          scope?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

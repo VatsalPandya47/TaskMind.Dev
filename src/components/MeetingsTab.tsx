@@ -9,9 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Calendar, Brain, FileText, Trash2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Calendar, Brain, FileText, Trash2, Video } from "lucide-react";
 import { format } from "date-fns";
 import TranscriptProcessor from "./TranscriptProcessor";
+import ZoomIntegration from "./ZoomIntegration";
 
 const MeetingsTab = () => {
   const { meetings, isLoading, createMeeting, deleteMeeting } = useMeetings();
@@ -156,7 +158,7 @@ const MeetingsTab = () => {
             AI-Powered Task Extraction
           </CardTitle>
           <CardDescription>
-            Upload meeting transcripts to automatically extract actionable tasks, assignees, and deadlines using AI.
+            Upload meeting transcripts or connect Zoom to automatically extract actionable tasks, assignees, and deadlines using AI.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -177,91 +179,114 @@ const MeetingsTab = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Meeting History</CardTitle>
-          <CardDescription>
-            View and manage your meeting records. Process transcripts to extract tasks automatically.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {meetings.length === 0 ? (
-            <div className="text-center py-8">
-              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No meetings yet</h3>
-              <p className="text-gray-600 mb-4">Get started by creating your first meeting.</p>
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Meeting
-              </Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Participants</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {meetings.map((meeting) => (
-                  <TableRow key={meeting.id}>
-                    <TableCell className="font-medium">{meeting.title}</TableCell>
-                    <TableCell>{format(new Date(meeting.date), "PPP")}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {meeting.participants?.map((participant, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {participant}
-                          </Badge>
-                        )) || <span className="text-gray-500">No participants</span>}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {meeting.transcript ? (
-                        <Badge variant="default" className="bg-green-100 text-green-800">
-                          <FileText className="h-3 w-3 mr-1" />
-                          Processed
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">
-                          Not Processed
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        {!meeting.transcript && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleProcessTranscript(meeting.id)}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            <Brain className="h-4 w-4 mr-1" />
-                            Process
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteMeeting.mutate(meeting.id)}
-                          disabled={deleteMeeting.isPending}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="meetings" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="meetings">Meeting History</TabsTrigger>
+          <TabsTrigger value="zoom">
+            <Video className="h-4 w-4 mr-2" />
+            Zoom Integration
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="meetings">
+          <Card>
+            <CardHeader>
+              <CardTitle>Meeting History</CardTitle>
+              <CardDescription>
+                View and manage your meeting records. Process transcripts to extract tasks automatically.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {meetings.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No meetings yet</h3>
+                  <p className="text-gray-600 mb-4">Get started by creating your first meeting.</p>
+                  <Button onClick={() => setIsDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Meeting
+                  </Button>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Participants</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {meetings.map((meeting) => (
+                      <TableRow key={meeting.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {meeting.zoom_meeting_id && (
+                              <Video className="h-4 w-4 text-blue-600" />
+                            )}
+                            {meeting.title}
+                          </div>
+                        </TableCell>
+                        <TableCell>{format(new Date(meeting.date), "PPP")}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {meeting.participants?.map((participant, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {participant}
+                              </Badge>
+                            )) || <span className="text-gray-500">No participants</span>}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {meeting.transcript ? (
+                            <Badge variant="default" className="bg-green-100 text-green-800">
+                              <FileText className="h-3 w-3 mr-1" />
+                              Processed
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline">
+                              Not Processed
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            {!meeting.transcript && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleProcessTranscript(meeting.id)}
+                                className="text-blue-600 hover:text-blue-800"
+                              >
+                                <Brain className="h-4 w-4 mr-1" />
+                                Process
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => deleteMeeting.mutate(meeting.id)}
+                              disabled={deleteMeeting.isPending}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="zoom">
+          <ZoomIntegration />
+        </TabsContent>
+      </Tabs>
 
       {/* Transcript Processor Dialog */}
       {selectedMeetingId && (
