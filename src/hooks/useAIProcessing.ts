@@ -25,15 +25,36 @@ export const useAIProcessing = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["meetings"] });
-      toast({
-        title: "Success",
-        description: `AI extracted ${data.tasksCount} tasks from the transcript`,
-      });
+      
+      if (data.success) {
+        toast({
+          title: "Success! 🎉",
+          description: `AI extracted ${data.tasksCount} tasks from the transcript`,
+        });
+      } else {
+        throw new Error(data.error || "Processing failed");
+      }
     },
     onError: (error: any) => {
+      console.error("AI Processing Error:", error);
+      
+      let errorMessage = "Failed to process transcript";
+      
+      if (error.message?.includes("rate limit")) {
+        errorMessage = "OpenAI API rate limit reached. Please wait a few minutes and try again.";
+      } else if (error.message?.includes("API key")) {
+        errorMessage = "OpenAI API configuration issue. Please contact support.";
+      } else if (error.message?.includes("Unauthorized")) {
+        errorMessage = "Please log in again to continue.";
+      } else if (error.message?.includes("parse")) {
+        errorMessage = "Could not extract tasks. Please ensure your transcript contains clear action items.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
-        title: "Error",
-        description: error.message || "Failed to process transcript",
+        title: "Processing Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     },
