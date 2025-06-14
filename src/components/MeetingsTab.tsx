@@ -9,12 +9,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Calendar, Users, Clock, FileText, Trash2 } from "lucide-react";
+import { Plus, Calendar, Brain, FileText, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import TranscriptProcessor from "./TranscriptProcessor";
 
 const MeetingsTab = () => {
   const { meetings, isLoading, createMeeting, deleteMeeting } = useMeetings();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(null);
+  const [isTranscriptDialogOpen, setIsTranscriptDialogOpen] = useState(false);
   const [newMeeting, setNewMeeting] = useState({
     title: "",
     date: "",
@@ -49,6 +52,11 @@ const MeetingsTab = () => {
     setIsDialogOpen(false);
   };
 
+  const handleProcessTranscript = (meetingId: string) => {
+    setSelectedMeetingId(meetingId);
+    setIsTranscriptDialogOpen(true);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -62,7 +70,7 @@ const MeetingsTab = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Meetings</h1>
-          <p className="text-gray-600">Manage your meetings and their insights</p>
+          <p className="text-gray-600">Manage your meetings and extract tasks with AI</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -140,11 +148,40 @@ const MeetingsTab = () => {
         </Dialog>
       </div>
 
+      {/* AI Processing Stats */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-blue-600" />
+            AI-Powered Task Extraction
+          </CardTitle>
+          <CardDescription>
+            Upload meeting transcripts to automatically extract actionable tasks, assignees, and deadlines using AI.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{meetings.filter(m => m.transcript).length}</div>
+              <div className="text-sm text-gray-600">Transcripts Processed</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-indigo-600">{meetings.length}</div>
+              <div className="text-sm text-gray-600">Total Meetings</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">GPT-4o</div>
+              <div className="text-sm text-gray-600">AI Model</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Meeting History</CardTitle>
           <CardDescription>
-            View and manage your meeting records
+            View and manage your meeting records. Process transcripts to extract tasks automatically.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -165,7 +202,7 @@ const MeetingsTab = () => {
                   <TableHead>Title</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Participants</TableHead>
-                  <TableHead>Duration</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -183,16 +220,40 @@ const MeetingsTab = () => {
                         )) || <span className="text-gray-500">No participants</span>}
                       </div>
                     </TableCell>
-                    <TableCell>{meeting.duration || "Not specified"}</TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteMeeting.mutate(meeting.id)}
-                        disabled={deleteMeeting.isPending}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {meeting.transcript ? (
+                        <Badge variant="default" className="bg-green-100 text-green-800">
+                          <FileText className="h-3 w-3 mr-1" />
+                          Processed
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">
+                          Not Processed
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        {!meeting.transcript && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleProcessTranscript(meeting.id)}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <Brain className="h-4 w-4 mr-1" />
+                            Process
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteMeeting.mutate(meeting.id)}
+                          disabled={deleteMeeting.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -201,6 +262,18 @@ const MeetingsTab = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Transcript Processor Dialog */}
+      {selectedMeetingId && (
+        <TranscriptProcessor
+          meetingId={selectedMeetingId}
+          isOpen={isTranscriptDialogOpen}
+          onClose={() => {
+            setIsTranscriptDialogOpen(false);
+            setSelectedMeetingId(null);
+          }}
+        />
+      )}
     </div>
   );
 };
