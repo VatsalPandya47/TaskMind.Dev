@@ -16,7 +16,7 @@ const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Enhanced retry function for OpenAI API calls with exponential backoff
-async function retryOpenAICall(prompt: string, maxRetries = 5) {
+async function retryOpenAICall(prompt: string, maxRetries = 3) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(`OpenAI API attempt ${attempt}/${maxRetries}`);
@@ -28,7 +28,7 @@ async function retryOpenAICall(prompt: string, maxRetries = 5) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini', // Switch to mini for lower rate limits
+          model: 'gpt-4o-mini',
           messages: [
             {
               role: 'system',
@@ -40,7 +40,7 @@ async function retryOpenAICall(prompt: string, maxRetries = 5) {
             }
           ],
           temperature: 0.3,
-          max_tokens: 1500, // Reduced to lower cost
+          max_tokens: 1000,
         }),
       });
 
@@ -52,8 +52,7 @@ async function retryOpenAICall(prompt: string, maxRetries = 5) {
       // Handle rate limiting specifically
       if (response.status === 429) {
         const retryAfter = response.headers.get('retry-after');
-        // Use exponential backoff with longer delays
-        const baseDelay = Math.pow(2, attempt) * 2000; // Start at 4s, then 8s, 16s, etc.
+        const baseDelay = Math.min(Math.pow(2, attempt) * 5000, 30000); // Cap at 30s
         const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : baseDelay;
         
         console.log(`Rate limited. Waiting ${waitTime}ms before retry ${attempt}/${maxRetries}`);
@@ -62,7 +61,8 @@ async function retryOpenAICall(prompt: string, maxRetries = 5) {
           await delay(waitTime);
           continue;
         } else {
-          throw new Error('OpenAI API rate limit exceeded after multiple retries. Please wait a few minutes and try again.');
+          // Return a specific error for rate limiting
+          throw new Error('RATE_LIMITED');
         }
       }
 
@@ -71,21 +71,21 @@ async function retryOpenAICall(prompt: string, maxRetries = 5) {
       console.error(`OpenAI API error (${response.status}):`, errorText);
       
       if (response.status === 401) {
-        throw new Error('Invalid OpenAI API key. Please check your API key configuration.');
+        throw new Error('INVALID_API_KEY');
       } else if (response.status === 403) {
-        throw new Error('OpenAI API access forbidden. Please check your API key permissions.');
+        throw new Error('FORBIDDEN');
       } else if (response.status >= 500) {
         // Server errors - retry with exponential backoff
         if (attempt < maxRetries) {
-          const waitTime = Math.pow(2, attempt) * 1000;
+          const waitTime = Math.pow(2, attempt) * 2000;
           console.log(`Server error, retrying in ${waitTime}ms`);
           await delay(waitTime);
           continue;
         } else {
-          throw new Error('OpenAI API server error. Please try again later.');
+          throw new Error('SERVER_ERROR');
         }
       } else {
-        throw new Error(`OpenAI API error (${response.status}): ${errorText}`);
+        throw new Error(`API_ERROR_${response.status}`);
       }
 
     } catch (error) {
@@ -96,8 +96,8 @@ async function retryOpenAICall(prompt: string, maxRetries = 5) {
       }
       
       // Wait before retrying for non-rate-limit errors
-      if (!error.message.includes('rate limit')) {
-        await delay(1000 * attempt);
+      if (!error.message.includes('RATE_LIMITED')) {
+        await delay(2000 * attempt);
       }
     }
   }
@@ -112,11 +112,29 @@ serve(async (req) => {
     const { meetingId, transcript } = await req.json();
 
     if (!meetingId || !transcript) {
-      throw new Error('Meeting ID and transcript are required');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Meeting ID and transcript are required',
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'OpenAI API key not configured',
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     console.log(`Processing transcript for meeting: ${meetingId}`);
@@ -130,7 +148,16 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
     if (authError || !user) {
-      throw new Error('Unauthorized');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Unauthorized',
+        }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Verify meeting belongs to user
@@ -142,10 +169,19 @@ serve(async (req) => {
       .single();
 
     if (meetingError || !meeting) {
-      throw new Error('Meeting not found or unauthorized');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Meeting not found or unauthorized',
+        }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
-    // Prepare a more concise prompt for better performance
+    // Prepare a concise prompt for better performance
     const prompt = `
 Extract actionable tasks from this meeting transcript. Return ONLY a JSON array with this structure:
 [
@@ -164,12 +200,56 @@ ${transcript}
 Return ONLY the JSON array, no other text.
 `;
 
-    // Call OpenAI GPT-4o-mini with enhanced retry logic
-    console.log('Calling OpenAI API with enhanced retry logic...');
-    const openAIData = await retryOpenAICall(prompt);
+    // Call OpenAI with retry logic
+    console.log('Calling OpenAI API...');
+    let openAIData;
+    try {
+      openAIData = await retryOpenAICall(prompt);
+    } catch (error) {
+      console.error('OpenAI API failed after retries:', error.message);
+      
+      // Handle specific error types
+      if (error.message === 'RATE_LIMITED') {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'OpenAI API is currently busy with too many requests. Please wait a few minutes and try again.',
+            code: 'RATE_LIMITED'
+          }),
+          {
+            status: 429,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      } else if (error.message === 'INVALID_API_KEY') {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Invalid OpenAI API key configuration.',
+            code: 'INVALID_API_KEY'
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      } else {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'AI service is temporarily unavailable. Please try again in a few minutes.',
+            code: 'SERVICE_ERROR'
+          }),
+          {
+            status: 503,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+    }
     
     const extractedContent = openAIData.choices[0].message.content;
-    console.log('GPT-4o-mini response:', extractedContent);
+    console.log('GPT response received successfully');
 
     // Parse extracted tasks
     let extractedTasks;
@@ -177,11 +257,31 @@ Return ONLY the JSON array, no other text.
       extractedTasks = JSON.parse(extractedContent);
     } catch (parseError) {
       console.error('Failed to parse GPT response:', extractedContent);
-      throw new Error('AI response could not be parsed. Please try again with a clearer transcript.');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'AI response could not be parsed. Please try again with a clearer transcript.',
+          code: 'PARSE_ERROR'
+        }),
+        {
+          status: 422,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     if (!Array.isArray(extractedTasks)) {
-      throw new Error('AI response is not a valid task list. Please try again.');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'AI response is not a valid task list. Please try again.',
+          code: 'INVALID_FORMAT'
+        }),
+        {
+          status: 422,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Update meeting with transcript
@@ -191,12 +291,23 @@ Return ONLY the JSON array, no other text.
       .eq('id', meetingId);
 
     if (updateError) {
-      throw new Error(`Failed to update meeting: ${updateError.message}`);
+      console.error('Failed to update meeting:', updateError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Failed to save transcript to meeting.',
+          code: 'DB_ERROR'
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Insert extracted tasks into database
     const tasksToInsert = extractedTasks.map((task: any) => ({
-      task: task.task,
+      task: task.task || 'Untitled Task',
       assignee: task.assignee || 'Unassigned',
       due_date: task.due_date || null,
       priority: task.priority || 'Medium',
@@ -211,7 +322,18 @@ Return ONLY the JSON array, no other text.
       .select();
 
     if (insertError) {
-      throw new Error(`Failed to insert tasks: ${insertError.message}`);
+      console.error('Failed to insert tasks:', insertError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Failed to save extracted tasks.',
+          code: 'DB_ERROR'
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     console.log(`Successfully extracted and stored ${insertedTasks.length} tasks`);
@@ -230,29 +352,13 @@ Return ONLY the JSON array, no other text.
     );
 
   } catch (error) {
-    console.error('Error in process-transcript function:', error);
+    console.error('Unexpected error in process-transcript function:', error);
     
-    // Return user-friendly error messages
-    let errorMessage = 'An unexpected error occurred while processing the transcript.';
-    
-    if (error.message.includes('rate limit')) {
-      errorMessage = 'OpenAI API is currently busy. Please wait a few minutes and try again.';
-    } else if (error.message.includes('API key')) {
-      errorMessage = 'OpenAI API configuration issue. Please check your API key.';
-    } else if (error.message.includes('Unauthorized')) {
-      errorMessage = 'Authentication failed. Please log in again.';
-    } else if (error.message.includes('not found')) {
-      errorMessage = 'Meeting not found or you do not have access to it.';
-    } else if (error.message.includes('parse')) {
-      errorMessage = 'Could not extract tasks from transcript. Please ensure the transcript contains clear action items.';
-    } else if (error.message.includes('server error')) {
-      errorMessage = 'OpenAI service is temporarily unavailable. Please try again in a few minutes.';
-    }
-
     return new Response(
       JSON.stringify({
         success: false,
-        error: errorMessage,
+        error: 'An unexpected error occurred while processing the transcript.',
+        code: 'UNEXPECTED_ERROR',
         details: error.message,
       }),
       {
