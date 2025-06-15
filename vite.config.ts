@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => ({
       'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://lovable.dev; connect-src 'self' wss://*.supabase.co https://*.supabase.co; object-src 'none'; base-uri 'self';"
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://*.zoom.us; style-src 'self' 'unsafe-inline' https://*.zoom.us; img-src 'self' data: https://lovable.dev https://*.zoom.us; connect-src 'self' wss://*.supabase.co https://*.supabase.co https://*.zoom.us wss://*.zoom.us; frame-src 'self' https://*.zoom.us; frame-ancestors 'self' https://*.zoom.us; object-src 'none'; base-uri 'self';"
     }
   },
   plugins: [
