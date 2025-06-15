@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -64,7 +63,6 @@ const EarlyAccessForm = () => {
             type="submit"
             className="px-8 py-3 font-medium"
             disabled={submitted || loading}
-            isLoading={loading ? true : undefined}
           >
             {submitted ? "Submitted!" : loading ? "Submitting…" : "Request Early Access"}
           </Button>
