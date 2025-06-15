@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Brain, Calendar, CheckSquare, Settings, BarChart3, LogOut, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
+import { SlackIntegration } from "./SlackIntegration";
 
 interface NavigationProps {
   activeTab: string;
@@ -91,6 +92,9 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
             <Link to="/documentation" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Documentation</Link>
             <Link to="/privacy-policy" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Privacy Policy</Link>
             <Link to="/terms-of-use" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Terms of Use</Link>
+          </div>
+          <div className="mb-4">
+            <SlackIntegration />
           </div>
           <Button
             variant="outline"
