@@ -1,10 +1,8 @@
-
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Brain, Calendar, CheckSquare, Settings, BarChart3, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
-import { SlackIntegration } from "./SlackIntegration";
 import {
   Sidebar,
   SidebarContent,
@@ -83,9 +81,6 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
           <Link to="/documentation" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={handleLinkClick}>Documentation</Link>
           <Link to="/privacy-policy" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={handleLinkClick}>Privacy Policy</Link>
           <Link to="/terms-of-use" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={handleLinkClick}>Terms of Use</Link>
-        </div>
-        <div className="mb-4">
-          <SlackIntegration />
         </div>
         <Button
           variant="outline"

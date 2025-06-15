@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
@@ -35,7 +36,7 @@ export const useSlackAuth = () => {
 
       if (error) throw error
       if (data.authUrl) {
-        window.location.href = data.authUrl
+        window.top.location.href = data.authUrl
       }
     },
     onError: (error: Error) => {
