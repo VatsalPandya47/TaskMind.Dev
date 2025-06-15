@@ -1,13 +1,12 @@
+
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useZoomAuth } from "@/hooks/useZoomAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const ZoomCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { saveToken } = useZoomAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -15,6 +14,8 @@ const ZoomCallback = () => {
       const code = searchParams.get('code');
       const state = searchParams.get('state');
       const error = searchParams.get('error');
+
+      console.log('Zoom callback params:', { code: !!code, state, error });
 
       if (error) {
         toast({
@@ -39,6 +40,7 @@ const ZoomCallback = () => {
       // Verify state parameter
       const storedState = localStorage.getItem('zoom_oauth_state');
       if (state !== storedState) {
+        console.error('State mismatch:', { received: state, stored: storedState });
         toast({
           title: "Error",
           description: "Invalid state parameter. Possible security issue.",
@@ -50,6 +52,7 @@ const ZoomCallback = () => {
 
       try {
         const redirectUri = `${window.location.origin}/zoom-callback`;
+        console.log('Exchanging code for tokens with redirect URI:', redirectUri);
 
         // Call the edge function to exchange code for tokens
         const { data, error } = await supabase.functions.invoke('zoom-oauth-callback', {
@@ -58,6 +61,8 @@ const ZoomCallback = () => {
             redirect_uri: redirectUri
           },
         });
+
+        console.log('OAuth callback response:', { data, error });
 
         if (error) throw error;
 
@@ -83,11 +88,14 @@ const ZoomCallback = () => {
     };
 
     handleCallback();
-  }, [searchParams, navigate, saveToken, toast]);
+  }, [searchParams, navigate, toast]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Connecting your Zoom account...</p>
+      </div>
     </div>
   );
 };

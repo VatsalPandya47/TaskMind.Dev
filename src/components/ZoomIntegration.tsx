@@ -5,7 +5,6 @@ import { useZoomMeetings } from "@/hooks/useZoomMeetings";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Video, RefreshCw, Download, ExternalLink, Unlink } from "lucide-react";
 import { format } from "date-fns";
@@ -21,21 +20,28 @@ const ZoomIntegration = () => {
   const handleZoomConnect = async () => {
     setIsConnecting(true);
     try {
-      // Get the client ID from the backend
+      console.log('Initiating Zoom connection...');
+      
+      // Get the auth URL from the backend
       const { data, error } = await supabase.functions.invoke('get-zoom-auth-url');
+      
+      console.log('Auth URL response:', { data, error });
       
       if (error) throw error;
       
-      if (data.authUrl) {
+      if (data?.authUrl) {
         // Generate state parameter for security
         const state = Math.random().toString(36).substring(2, 15);
         localStorage.setItem('zoom_oauth_state', state);
+        console.log('Generated OAuth state:', state);
         
         // Add state to the auth URL
         const authUrlWithState = `${data.authUrl}&state=${state}`;
+        console.log('Redirecting to:', authUrlWithState);
+        
         window.location.href = authUrlWithState;
       } else {
-        throw new Error('Failed to get authorization URL');
+        throw new Error('Failed to get authorization URL from server');
       }
     } catch (error: any) {
       console.error('Failed to initiate Zoom connection:', error);
@@ -91,7 +97,7 @@ const ZoomIntegration = () => {
               ) : (
                 <Button onClick={handleZoomConnect} disabled={isConnecting}>
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  Connect Zoom
+                  {isConnecting ? 'Connecting...' : 'Connect Zoom'}
                 </Button>
               )}
             </div>
