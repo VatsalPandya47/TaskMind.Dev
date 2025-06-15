@@ -84,6 +84,42 @@ export type Database = {
         }
         Relationships: []
       }
+      slack_tokens: {
+        Row: {
+          access_token: string
+          created_at: string
+          id: string
+          scope: string | null
+          selected_channel_id: string | null
+          selected_channel_name: string | null
+          team_id: string | null
+          team_name: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          id?: string
+          scope?: string | null
+          selected_channel_id?: string | null
+          selected_channel_name?: string | null
+          team_id?: string | null
+          team_name?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          id?: string
+          scope?: string | null
+          selected_channel_id?: string | null
+          selected_channel_name?: string | null
+          team_id?: string | null
+          team_name?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assignee: string
