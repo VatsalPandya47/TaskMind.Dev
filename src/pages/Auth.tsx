@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -8,10 +7,16 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain } from "lucide-react";
+import SimpleCaptcha from "@/components/SimpleCaptcha";
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Add captcha state
+  const [captchaChecked, setCaptchaChecked] = useState(false);
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
+  const [tab, setTab] = useState("signin");
 
   // Redirect if already authenticated
   if (user && !loading) {
@@ -20,28 +25,45 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!captchaChecked) {
+      setCaptchaError("Please confirm you are not a robot.");
+      return;
+    }
+    setCaptchaError(null);
     setIsLoading(true);
-    
+
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    
+
     await signIn(email, password);
     setIsLoading(false);
   };
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!captchaChecked) {
+      setCaptchaError("Please confirm you are not a robot.");
+      return;
+    }
+    setCaptchaError(null);
     setIsLoading(true);
-    
+
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const firstName = formData.get("firstName") as string;
     const lastName = formData.get("lastName") as string;
-    
+
     await signUp(email, password, firstName, lastName);
     setIsLoading(false);
+  };
+
+  // Reset captcha and errors on tab change
+  const handleTabChange = (value: string) => {
+    setTab(value);
+    setCaptchaChecked(false);
+    setCaptchaError(null);
   };
 
   if (loading) {
@@ -61,6 +83,12 @@ const Auth = () => {
               <Brain className="h-8 w-8 text-white" />
             </div>
           </div>
+          {/* Insert CAPTCHA directly under the logo */}
+          <SimpleCaptcha
+            checked={captchaChecked}
+            setChecked={setCaptchaChecked}
+            error={captchaError}
+          />
           <h2 className="text-3xl font-bold text-gray-900">TaskMind.ai</h2>
           <p className="mt-2 text-gray-600">AI-powered meeting insights</p>
         </div>
@@ -73,7 +101,7 @@ const Auth = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
+            <Tabs value={tab} onValueChange={handleTabChange} defaultValue="signin" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
