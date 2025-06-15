@@ -19,7 +19,7 @@ const ZoomCallback = () => {
 
       if (error) {
         toast({
-          title: "Error",
+          title: "Authorization Error",
           description: `Zoom authorization failed: ${error}`,
           variant: "destructive",
         });
@@ -29,7 +29,7 @@ const ZoomCallback = () => {
 
       if (!code) {
         toast({
-          title: "Error",
+          title: "Missing Authorization Code",
           description: "No authorization code received from Zoom",
           variant: "destructive",
         });
@@ -37,12 +37,12 @@ const ZoomCallback = () => {
         return;
       }
 
-      // Verify state parameter
+      // Verify state parameter for security
       const storedState = localStorage.getItem('zoom_oauth_state');
       if (state !== storedState) {
         console.error('State mismatch:', { received: state, stored: storedState });
         toast({
-          title: "Error",
+          title: "Security Error",
           description: "Invalid state parameter. Possible security issue.",
           variant: "destructive",
         });
@@ -51,23 +51,33 @@ const ZoomCallback = () => {
       }
 
       try {
+        // Get current origin for redirect URI
         const redirectUri = `${window.location.origin}/zoom-callback`;
         console.log('Exchanging code for tokens with redirect URI:', redirectUri);
 
         // Call the edge function to exchange code for tokens
-        const { data, error } = await supabase.functions.invoke('zoom-oauth-callback', {
+        const { data, error: callbackError } = await supabase.functions.invoke('zoom-oauth-callback', {
           body: { 
             code,
             redirect_uri: redirectUri
           },
+          headers: {
+            'Content-Type': 'application/json',
+          }
         });
 
-        console.log('OAuth callback response:', { data, error });
+        console.log('OAuth callback response:', { data, error: callbackError });
 
-        if (error) throw error;
+        if (callbackError) {
+          throw new Error(callbackError.message || 'Failed to exchange authorization code');
+        }
+
+        if (!data?.success) {
+          throw new Error(data?.error || 'Unknown error occurred during authorization');
+        }
 
         toast({
-          title: "Success",
+          title: "Success! 🎉",
           description: "Zoom account connected successfully!",
         });
 
@@ -79,8 +89,8 @@ const ZoomCallback = () => {
       } catch (error: any) {
         console.error('OAuth callback error:', error);
         toast({
-          title: "Error",
-          description: error.message || "Failed to connect Zoom account",
+          title: "Connection Failed",
+          description: error.message || "Failed to connect Zoom account. Please try again.",
           variant: "destructive",
         });
         navigate('/');
@@ -91,10 +101,11 @@ const ZoomCallback = () => {
   }, [searchParams, navigate, toast]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="text-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
         <p className="mt-4 text-gray-600">Connecting your Zoom account...</p>
+        <p className="text-sm text-gray-500 mt-2">Please wait while we complete the authentication process.</p>
       </div>
     </div>
   );

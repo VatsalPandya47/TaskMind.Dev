@@ -24,11 +24,18 @@ const ZoomIntegration = () => {
       console.log('Initiating Zoom connection...');
       
       // Get the auth URL from the backend
-      const { data, error } = await supabase.functions.invoke('get-zoom-auth-url');
+      const { data, error } = await supabase.functions.invoke('get-zoom-auth-url', {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       
       console.log('Auth URL response:', { data, error });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error getting auth URL:', error);
+        throw new Error(error.message || 'Failed to get authorization URL');
+      }
       
       if (data?.authUrl) {
         // Generate state parameter for security
@@ -40,8 +47,14 @@ const ZoomIntegration = () => {
         const authUrlWithState = `${data.authUrl}&state=${state}`;
         console.log('Redirecting to:', authUrlWithState);
         
-        // Use window.top.location.href to break out of the iframe
-        window.top!.location.href = authUrlWithState;
+        // Use window.location.href for iframe compatibility
+        if (window.parent !== window) {
+          // We're in an iframe, use parent window
+          window.parent.location.href = authUrlWithState;
+        } else {
+          // We're in the main window
+          window.location.href = authUrlWithState;
+        }
       } else {
         throw new Error('Failed to get authorization URL from server');
       }
@@ -49,7 +62,7 @@ const ZoomIntegration = () => {
       console.error('Failed to initiate Zoom connection:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to connect to Zoom",
+        description: error.message || "Failed to connect to Zoom. Please try again.",
         variant: "destructive",
       });
       setIsConnecting(false);
@@ -62,20 +75,12 @@ const ZoomIntegration = () => {
     try {
       console.log('Starting transcript extraction and processing for meeting:', meetingId);
       
-      // First extract the transcript
+      // Extract the transcript and create tasks
       await extractTranscript.mutateAsync(meetingId);
       
-      toast({
-        title: "Success! 🎉",
-        description: "Transcript extracted and tasks created successfully",
-      });
     } catch (error: any) {
       console.error('Failed to extract and process transcript:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to extract transcript and create tasks",
-        variant: "destructive",
-      });
+      // Error is already handled by the mutation
     } finally {
       setProcessingMeetings(prev => {
         const newSet = new Set(prev);
@@ -159,8 +164,8 @@ const ZoomIntegration = () => {
                 <Video className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No meetings found</h3>
                 <p className="text-gray-600 mb-4">Sync your Zoom account to see meetings here.</p>
-                <Button onClick={() => syncMeetings.mutate()}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
+                <Button onClick={() => syncMeetings.mutate()} disabled={syncMeetings.isPending}>
+                  <RefreshCw className={`h-4 w-4 mr-2 ${syncMeetings.isPending ? 'animate-spin' : ''}`} />
                   Sync Now
                 </Button>
               </div>
