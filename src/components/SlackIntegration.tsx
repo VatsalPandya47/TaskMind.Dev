@@ -1,7 +1,7 @@
 
 import { useSlackAuth } from '@/hooks/useSlackAuth'
 import { Button } from '@/components/ui/button'
-import { Loader2, MessageSquare } from 'lucide-react'
+import { Loader2, MessageSquare, Check, ExternalLink } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import React from 'react'
 import { SlackChannelSelectDialog } from './SlackChannelSelectDialog'
@@ -37,46 +37,67 @@ export const SlackIntegration = () => {
   }, [toast])
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5 text-primary" />
+    <Card className="bg-white border border-slate-200/60 card-shadow">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-3 text-slate-900">
+          <div className="p-2 bg-green-100 rounded-lg">
+            <MessageSquare className="h-5 w-5 text-green-600" />
+          </div>
           Slack Integration
         </CardTitle>
-        <CardDescription>
-          Connect your Slack account to receive notifications and sync insights.
+        <CardDescription className="text-slate-600">
+          Connect your Slack workspace to receive notifications and sync insights seamlessly.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
         {isLoading && (
-          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Loading Slack status...</span>
+          <div className="flex items-center space-x-3 p-4 bg-slate-50 rounded-xl">
+            <Loader2 className="h-5 w-5 animate-spin text-purple-600" />
+            <span className="text-sm text-slate-600">Loading Slack status...</span>
           </div>
         )}
+        
         {!isLoading && isConnected && (
-          <div className="text-sm space-y-2">
-            <p className="text-muted-foreground">
-              Connected to Slack: <span className="font-medium text-foreground">{teamName}</span>
-            </p>
-            <div className="space-y-1">
-              <p className="text-muted-foreground">
-                Selected channel: <span className="font-medium text-foreground">{selectedChannelName || 'None'}</span>
+          <div className="space-y-4">
+            <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-1 bg-green-500 rounded-full">
+                  <Check className="h-3 w-3 text-white" />
+                </div>
+                <span className="font-medium text-green-800">Connected to Slack</span>
+              </div>
+              <p className="text-sm text-green-700">
+                Workspace: <span className="font-semibold">{teamName}</span>
               </p>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="p-3 bg-slate-50 rounded-lg">
+                <p className="text-sm text-slate-600 mb-1">Selected channel:</p>
+                <p className="font-medium text-slate-900">{selectedChannelName || 'None selected'}</p>
+              </div>
+              
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full"
+                className="w-full h-10 border-purple-200 text-purple-700 hover:bg-purple-50"
                 onClick={() => setSelectChannelOpen(true)}
                 disabled={isUpdatingChannel}
               >
                 {isUpdatingChannel ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {selectedChannelName ? 'Change Channel' : 'Select Channel'}
               </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full h-10 border-red-200 text-red-600 hover:bg-red-50" 
+                onClick={() => disconnect()}
+              >
+                Disconnect Slack
+              </Button>
             </div>
-            <Button variant="outline" size="sm" className="w-full" onClick={() => disconnect()}>
-              Disconnect Slack
-            </Button>
+            
             <SlackChannelSelectDialog
               open={isSelectChannelOpen}
               onOpenChange={setSelectChannelOpen}
@@ -85,11 +106,29 @@ export const SlackIntegration = () => {
             />
           </div>
         )}
+        
         {!isLoading && !isConnected && (
-          <div className="text-sm space-y-2">
-            <p className="text-muted-foreground">Connect to Slack to sync insights.</p>
-            <Button variant="outline" size="sm" className="w-full" onClick={() => connect()}>
-                Connect to Slack
+          <div className="space-y-4">
+            <div className="p-4 bg-slate-50 rounded-xl">
+              <p className="text-sm text-slate-600 mb-3">
+                Connect your Slack workspace to automatically sync meeting insights and receive notifications.
+              </p>
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <div className="w-2 h-2 bg-slate-300 rounded-full"></div>
+                <span>Real-time notifications</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                <div className="w-2 h-2 bg-slate-300 rounded-full"></div>
+                <span>Automated insights sharing</span>
+              </div>
+            </div>
+            
+            <Button 
+              className="w-full h-11 gradient-bg text-white font-medium rounded-xl shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 transition-all" 
+              onClick={() => connect()}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Connect to Slack
             </Button>
           </div>
         )}

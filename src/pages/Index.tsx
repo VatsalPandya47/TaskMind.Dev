@@ -27,15 +27,18 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-background flex w-full">
+      <div className="min-h-screen bg-slate-50 flex w-full">
         <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
-        <SidebarInset>
-            <header className="flex h-14 items-center gap-4 border-b bg-white px-4 lg:hidden">
-                <SidebarTrigger />
-            </header>
-            <main className="p-6 lg:p-8">
+        <SidebarInset className="flex-1">
+          <header className="flex h-16 items-center gap-4 border-b bg-white/80 backdrop-blur-sm px-6 lg:hidden sticky top-0 z-10">
+            <SidebarTrigger className="text-purple-600" />
+            <div className="flex-1" />
+          </header>
+          <main className="flex-1 p-6 lg:p-8 space-y-6">
+            <div className="bg-white rounded-xl card-shadow-lg p-6 border border-slate-200/60">
               {renderContent()}
-            </main>
+            </div>
+          </main>
         </SidebarInset>
       </div>
     </SidebarProvider>
