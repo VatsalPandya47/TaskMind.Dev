@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Brain, Calendar, CheckSquare, Settings, BarChart3, LogOut, Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface NavigationProps {
   activeTab: string;
@@ -84,6 +85,12 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
           <div className="mb-4">
             <p className="text-sm text-gray-600">Signed in as</p>
             <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
+          </div>
+          <div className="mb-4 text-sm space-y-1">
+            <Link to="/support" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Support</Link>
+            <Link to="/documentation" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Documentation</Link>
+            <Link to="/privacy-policy" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Privacy Policy</Link>
+            <Link to="/terms-of-use" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Terms of Use</Link>
           </div>
           <Button
             variant="outline"
