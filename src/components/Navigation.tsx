@@ -14,20 +14,11 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   const { signOut, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const mainNavItems = [
+  const navItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
     { id: "meetings", label: "Meetings", icon: Calendar },
     { id: "tasks", label: "Tasks", icon: CheckSquare },
     { id: "settings", label: "Settings", icon: Settings },
-  ];
-
-  // New pages (section navigation)
-  const sectionNavItems = [
-    { id: "how-it-works", label: "How it works", to: "/how-it-works" },
-    { id: "use-cases", label: "Use Cases", to: "/use-cases" },
-    { id: "help", label: "Help", to: "/help" },
-    { id: "careers", label: "Careers", to: "/careers" },
-    { id: "manifesto", label: "Manifesto", to: "/manifesto" },
   ];
 
   const handleSignOut = async () => {
@@ -67,7 +58,7 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
           </div>
 
           <nav className="space-y-2">
-            {mainNavItems.map((item) => {
+            {navItems.map((item) => {
               const Icon = item.icon;
               return (
                 <button
@@ -87,20 +78,6 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
                 </button>
               );
             })}
-
-            {/* Section navigation as buttons styled as links */}
-            <div className="pt-6 border-t space-y-1">
-              {sectionNavItems.map((item) => (
-                <Link
-                  key={item.id}
-                  to={item.to}
-                  className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-left transition-colors text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <span>{item.label}</span>
-                </Link>
-              ))}
-            </div>
           </nav>
         </div>
 
@@ -131,4 +108,3 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
 };
 
 export default Navigation;
-

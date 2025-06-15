@@ -14,12 +14,6 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
 import Support from "./pages/Support";
 import Documentation from "./pages/Documentation";
-// New pages
-import HowItWorks from "./pages/HowItWorks";
-import UseCases from "./pages/UseCases";
-import Help from "./pages/Help";
-import Careers from "./pages/Careers";
-import Manifesto from "./pages/Manifesto";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -37,11 +31,6 @@ const App = () => (
             <Route path="/terms-of-use" element={<TermsOfUse />} />
             <Route path="/support" element={<Support />} />
             <Route path="/documentation" element={<Documentation />} />
-            <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/use-cases" element={<UseCases />} />
-            <Route path="/help" element={<Help />} />
-            <Route path="/careers" element={<Careers />} />
-            <Route path="/manifesto" element={<Manifesto />} />
             <Route path="/zoom-callback" element={
               <ProtectedRoute>
                 <ZoomCallback />
