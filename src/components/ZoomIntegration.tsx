@@ -10,7 +10,6 @@ import { Video, RefreshCw, Download, ExternalLink, Unlink, Check } from "lucide-
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { SlackIntegration } from "./SlackIntegration";
 
 const ZoomIntegration = () => {
   const { isConnected, disconnectZoom } = useZoomAuth();
@@ -131,8 +130,6 @@ const ZoomIntegration = () => {
           </div>
         </CardContent>
       </Card>
-
-      <SlackIntegration />
 
       {isConnected && (
         <Card className="bg-white border border-slate-200/60 card-shadow">
