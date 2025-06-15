@@ -40,6 +40,8 @@ serve(async (req) => {
       );
     }
 
+    console.log('Processing Zoom meeting:', zoomMeetingId, 'for user:', user.id);
+
     // Get Zoom meeting data
     const { data: zoomMeeting, error: meetingError } = await supabase
       .from('zoom_meetings')
@@ -49,6 +51,7 @@ serve(async (req) => {
       .single();
 
     if (meetingError || !zoomMeeting) {
+      console.error('Zoom meeting not found:', meetingError);
       return new Response(
         JSON.stringify({ error: 'Zoom meeting not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -64,8 +67,16 @@ serve(async (req) => {
 
     if (tokenError || !zoomToken) {
       return new Response(
-        JSON.stringify({ error: 'Zoom account not connected' }),
+        JSON.stringify({ error: 'Zoom account not connected. Please reconnect your Zoom account.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if token is expired
+    if (new Date(zoomToken.expires_at) <= new Date()) {
+      return new Response(
+        JSON.stringify({ error: 'Zoom token expired. Please reconnect your Zoom account.' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -78,17 +89,23 @@ serve(async (req) => {
       );
     }
 
-    // Look for transcript file
+    console.log('Recording files found:', recordingFiles.length);
+
+    // Look for transcript file (VTT or transcript file)
     const transcriptFile = recordingFiles.find(file => 
-      file.file_type === 'TRANSCRIPT' || file.file_type === 'CC'
+      file.file_type === 'TRANSCRIPT' || 
+      file.file_type === 'CC' ||
+      file.file_extension === 'VTT'
     );
 
     if (!transcriptFile) {
       return new Response(
-        JSON.stringify({ error: 'No transcript file found in this recording' }),
+        JSON.stringify({ error: 'No transcript file found in this recording. Please ensure captions were enabled during the meeting.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('Found transcript file:', transcriptFile.file_type);
 
     // Download transcript content
     const transcriptResponse = await fetch(transcriptFile.download_url, {
@@ -98,13 +115,42 @@ serve(async (req) => {
     });
 
     if (!transcriptResponse.ok) {
+      console.error('Failed to download transcript:', transcriptResponse.status, await transcriptResponse.text());
       return new Response(
-        JSON.stringify({ error: 'Failed to download transcript file' }),
+        JSON.stringify({ error: 'Failed to download transcript file from Zoom' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const transcriptContent = await transcriptResponse.text();
+    console.log('Transcript content length:', transcriptContent.length);
+
+    // Process VTT format if needed
+    let cleanTranscript = transcriptContent;
+    if (transcriptFile.file_extension === 'VTT' || transcriptContent.includes('WEBVTT')) {
+      // Clean VTT format to extract only the text
+      cleanTranscript = transcriptContent
+        .split('\n')
+        .filter(line => {
+          // Remove VTT headers, timestamps, and empty lines
+          return line.trim() && 
+                 !line.includes('WEBVTT') && 
+                 !line.includes('-->') && 
+                 !line.match(/^\d+$/);
+        })
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    console.log('Cleaned transcript length:', cleanTranscript.length);
+
+    if (!cleanTranscript || cleanTranscript.length < 10) {
+      return new Response(
+        JSON.stringify({ error: 'Transcript appears to be empty or too short to process' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Update zoom meeting with transcript URL
     await supabase
@@ -116,6 +162,7 @@ serve(async (req) => {
     let meetingId = zoomMeeting.meeting_id;
     
     if (!meetingId) {
+      console.log('Creating new meeting record...');
       // Create new meeting record
       const { data: newMeeting, error: createError } = await supabase
         .from('meetings')
@@ -126,7 +173,7 @@ serve(async (req) => {
           duration: zoomMeeting.duration ? `${zoomMeeting.duration} minutes` : null,
           zoom_meeting_id: zoomMeeting.zoom_meeting_id,
           zoom_uuid: zoomMeeting.zoom_uuid,
-          transcript: transcriptContent,
+          transcript: cleanTranscript,
         })
         .select()
         .single();
@@ -147,16 +194,18 @@ serve(async (req) => {
         .update({ meeting_id: meetingId })
         .eq('id', zoomMeetingId);
     } else {
+      console.log('Updating existing meeting record...');
       // Update existing meeting with transcript
       await supabase
         .from('meetings')
-        .update({ transcript: transcriptContent })
+        .update({ transcript: cleanTranscript })
         .eq('id', meetingId);
     }
 
+    console.log('Processing transcript with AI...');
     // Now process the transcript to extract tasks
     const { data: processResult, error: processError } = await supabase.functions.invoke('process-transcript', {
-      body: { meetingId, transcript: transcriptContent },
+      body: { meetingId, transcript: cleanTranscript },
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -165,14 +214,26 @@ serve(async (req) => {
     if (processError) {
       console.error('Failed to process transcript:', processError);
       // Don't fail the entire operation if task extraction fails
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Transcript extracted but AI processing failed. You can manually process it later.',
+          meetingId,
+          tasksExtracted: 0,
+          warning: 'AI task extraction failed'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    console.log('AI processing completed:', processResult);
 
     return new Response(
       JSON.stringify({
         success: true,
         message: 'Transcript extracted and processed successfully',
         meetingId,
-        tasksExtracted: processResult?.success ? processResult.tasksCount : 0,
+        tasksExtracted: processResult?.tasksCount || 0,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -180,7 +241,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Extract transcript error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error: ' + error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

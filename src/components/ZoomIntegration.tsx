@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Video, RefreshCw, Download, ExternalLink, Unlink } from "lucide-react";
+import { Video, RefreshCw, Download, ExternalLink, Unlink, Brain } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,7 @@ const ZoomIntegration = () => {
   const { isConnected, disconnectZoom } = useZoomAuth();
   const { zoomMeetings, isLoading, syncMeetings, extractTranscript } = useZoomMeetings();
   const [isConnecting, setIsConnecting] = useState(false);
+  const [processingMeetings, setProcessingMeetings] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   const handleZoomConnect = async () => {
@@ -55,6 +56,35 @@ const ZoomIntegration = () => {
     }
   };
 
+  const handleExtractAndProcess = async (meetingId: string) => {
+    setProcessingMeetings(prev => new Set([...prev, meetingId]));
+    
+    try {
+      console.log('Starting transcript extraction and processing for meeting:', meetingId);
+      
+      // First extract the transcript
+      await extractTranscript.mutateAsync(meetingId);
+      
+      toast({
+        title: "Success! 🎉",
+        description: "Transcript extracted and tasks created successfully",
+      });
+    } catch (error: any) {
+      console.error('Failed to extract and process transcript:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to extract transcript and create tasks",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingMeetings(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(meetingId);
+        return newSet;
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -64,7 +94,7 @@ const ZoomIntegration = () => {
             Zoom Integration
           </CardTitle>
           <CardDescription>
-            Connect your Zoom account to automatically sync meetings and extract recordings
+            Connect your Zoom account to automatically sync meetings and extract actionable tasks from recordings
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -74,6 +104,11 @@ const ZoomIntegration = () => {
               <span className="font-medium">
                 {isConnected ? 'Connected to Zoom' : 'Not connected'}
               </span>
+              {isConnected && (
+                <Badge variant="outline" className="text-green-600">
+                  AI-Powered Task Extraction
+                </Badge>
+              )}
             </div>
             <div className="flex gap-2">
               {isConnected ? (
@@ -109,9 +144,9 @@ const ZoomIntegration = () => {
       {isConnected && (
         <Card>
           <CardHeader>
-            <CardTitle>Zoom Meetings</CardTitle>
+            <CardTitle>Zoom Meetings with AI Task Extraction</CardTitle>
             <CardDescription>
-              Your recent Zoom meetings with recordings and transcripts
+              Your recent Zoom meetings with recordings. Extract transcripts and automatically create tasks with AI.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -149,32 +184,53 @@ const ZoomIntegration = () => {
                       </TableCell>
                       <TableCell>{meeting.duration ? `${meeting.duration} min` : 'N/A'}</TableCell>
                       <TableCell>
-                        {meeting.transcript_file_url ? (
-                          <Badge variant="default" className="bg-green-100 text-green-800">
-                            Transcript Available
-                          </Badge>
-                        ) : meeting.recording_files ? (
-                          <Badge variant="outline" className="text-blue-600">
-                            Recording Available
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline">
-                            No Recording
-                          </Badge>
-                        )}
+                        <div className="flex flex-col gap-1">
+                          {meeting.meeting_id ? (
+                            <Badge variant="default" className="bg-green-100 text-green-800">
+                              Tasks Extracted
+                            </Badge>
+                          ) : meeting.transcript_file_url ? (
+                            <Badge variant="default" className="bg-blue-100 text-blue-800">
+                              Transcript Available
+                            </Badge>
+                          ) : meeting.recording_files ? (
+                            <Badge variant="outline" className="text-blue-600">
+                              Recording Available
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline">
+                              No Recording
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          {meeting.recording_files && !meeting.transcript_file_url && (
+                          {meeting.recording_files && !meeting.meeting_id && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => extractTranscript.mutate(meeting.id)}
-                              disabled={extractTranscript.isPending}
+                              onClick={() => handleExtractAndProcess(meeting.id)}
+                              disabled={processingMeetings.has(meeting.id) || extractTranscript.isPending}
+                              className="text-blue-600 hover:text-blue-800"
                             >
-                              <Download className="h-4 w-4 mr-1" />
-                              Extract
+                              {processingMeetings.has(meeting.id) ? (
+                                <>
+                                  <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <Brain className="h-4 w-4 mr-1" />
+                                  Extract & Create Tasks
+                                </>
+                              )}
                             </Button>
+                          )}
+                          {meeting.meeting_id && (
+                            <Badge variant="outline" className="text-green-600">
+                              ✅ Complete
+                            </Badge>
                           )}
                         </div>
                       </TableCell>

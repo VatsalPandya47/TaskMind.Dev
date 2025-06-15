@@ -29,19 +29,21 @@ export const useZoomMeetings = () => {
 
   const syncMeetings = useMutation({
     mutationFn: async () => {
+      console.log('Syncing Zoom meetings...');
       const { data, error } = await supabase.functions.invoke('sync-zoom-meetings');
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["zoom-meetings"] });
       queryClient.invalidateQueries({ queryKey: ["meetings"] });
       toast({
         title: "Success",
-        description: "Zoom meetings synced successfully",
+        description: `Synced ${data?.syncedCount || 0} meetings successfully`,
       });
     },
     onError: (error: any) => {
+      console.error('Sync meetings error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to sync Zoom meetings",
@@ -52,24 +54,39 @@ export const useZoomMeetings = () => {
 
   const extractTranscript = useMutation({
     mutationFn: async (zoomMeetingId: string) => {
+      console.log('Extracting transcript for meeting:', zoomMeetingId);
       const { data, error } = await supabase.functions.invoke('extract-zoom-transcript', {
         body: { zoomMeetingId },
       });
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Transcript extraction successful:', data);
       queryClient.invalidateQueries({ queryKey: ["zoom-meetings"] });
       queryClient.invalidateQueries({ queryKey: ["meetings"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      
       toast({
-        title: "Success",
-        description: "Transcript extracted and processed successfully",
+        title: "Success! 🎉",
+        description: `Transcript extracted and ${data?.tasksExtracted || 0} tasks created`,
       });
     },
     onError: (error: any) => {
+      console.error('Extract transcript error:', error);
+      
+      let errorMessage = "Failed to extract transcript";
+      if (error.message?.includes("No transcript file")) {
+        errorMessage = "No transcript available for this meeting recording";
+      } else if (error.message?.includes("rate limit")) {
+        errorMessage = "AI service is busy. Please try again in a few minutes.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error",
-        description: error.message || "Failed to extract transcript",
+        description: errorMessage,
         variant: "destructive",
       });
     },
