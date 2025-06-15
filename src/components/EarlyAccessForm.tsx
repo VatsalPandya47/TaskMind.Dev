@@ -2,14 +2,48 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
+
+const sendToEdgeFunction = async (email: string): Promise<{ success?: boolean; error?: string }> => {
+  try {
+    const res = await fetch("https://jsxupnogyvfynjgkwdyj.functions.supabase.co/send-early-access", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const json = await res.json();
+    return json;
+  } catch (err: any) {
+    return { error: "Failed to submit" };
+  }
+};
 
 const EarlyAccessForm = () => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true); // Dummy, no backend
+    setLoading(true);
+
+    const { success, error } = await sendToEdgeFunction(email);
+
+    setLoading(false);
+
+    if (success) {
+      setSubmitted(true);
+      toast({
+        title: "Success",
+        description: "Thanks! Your request has been sent. We'll be in touch soon.",
+      });
+    } else {
+      toast({
+        title: "Submission failed",
+        description: error || "Something went wrong. Please try again later.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -24,14 +58,15 @@ const EarlyAccessForm = () => {
             value={email}
             onChange={e => setEmail(e.target.value)}
             className="text-base"
-            disabled={submitted}
+            disabled={submitted || loading}
           />
           <Button
             type="submit"
             className="px-8 py-3 font-medium"
-            disabled={submitted}
+            disabled={submitted || loading}
+            isLoading={loading ? true : undefined}
           >
-            {submitted ? "Submitted!" : "Request Early Access"}
+            {submitted ? "Submitted!" : loading ? "Submitting…" : "Request Early Access"}
           </Button>
         </form>
         {submitted && (
