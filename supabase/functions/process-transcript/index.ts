@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -14,6 +13,13 @@ const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 // Helper function to wait/delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper: Save log for dry-run or failure (stub, you can adapt this to storage in production)
+async function saveEvalLog(obj: Record<string, unknown>) {
+  // In production, save to Supabase storage, S3, or table.
+  // Here, we just print to console for demo.
+  console.error("AI_PIPELINE_EVAL_LOG", JSON.stringify(obj));
+}
 
 // Enhanced retry function for OpenAI API calls with exponential backoff
 async function retryOpenAICall(prompt: string, maxRetries = 3) {
@@ -103,13 +109,47 @@ async function retryOpenAICall(prompt: string, maxRetries = 3) {
   }
 }
 
+// Enhanced retry logic for OpenAI (now accepts custom errorMessageOnFail)
+async function retryOpenAICallWithValidation(prompt: string, maxRetries = 2) {
+  let lastInvalidOutput = null;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    let openAIData;
+    try {
+      openAIData = await retryOpenAICall(prompt, 1); // single call per attempt
+      if (!openAIData?.choices?.[0]?.message?.content) throw new Error("NoOpenAIContent");
+
+      // NEW: validate JSON parse & type (must be array of objects)
+      let output;
+      try {
+        output = JSON.parse(openAIData.choices[0].message.content);
+        if (!Array.isArray(output)) throw new Error("NotArray");
+        if (
+          !output.every(
+            x => x && typeof x.task === "string" && "follow_up" in x
+          )
+        ) { throw new Error("InvalidTaskFormat"); }
+        return output; // valid
+      } catch (e) {
+        lastInvalidOutput = openAIData.choices[0].message.content;
+        if (attempt < maxRetries) continue; // retry
+        throw new Error("InvalidJSON");
+      }
+    } catch (err) {
+      if (attempt === maxRetries)
+        throw (lastInvalidOutput
+          ? Object.assign(new Error("InvalidJSONFinal"), { lastInvalidOutput })
+          : err);
+    }
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { meetingId, transcript } = await req.json();
+    const { meetingId, transcript, dry_run } = await req.json();
 
     if (!meetingId || !transcript) {
       return new Response(
@@ -200,14 +240,36 @@ ${transcript}
 Return ONLY the JSON array, no other text.
 `;
 
-    // Call OpenAI with retry logic
-    console.log('Calling OpenAI API...');
-    let openAIData;
+    // Call OpenAI with validation and retry
+    let extractedTasks;
+    let ai_raw_output = "";
     try {
-      openAIData = await retryOpenAICall(prompt);
-    } catch (error) {
-      console.error('OpenAI API failed after retries:', error.message);
-      
+      extractedTasks = await retryOpenAICallWithValidation(prompt, 2);
+      ai_raw_output = JSON.stringify(extractedTasks);
+    } catch (error: any) {
+      // Always save failed AI outputs for audit if possible
+      await saveEvalLog({
+        type: "gpt_extract_fail",
+        meetingId,
+        transcript_sample: transcript?.slice?.(0, 200),
+        error: error?.message,
+        ai_content: error?.lastInvalidOutput || "",
+        prompt_version: "extractor-v1.txt"
+      });
+      if (error.message === "InvalidJSONFinal") {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'AI response could not be parsed as valid JSON after retry.',
+            code: 'PARSE_ERROR',
+            raw_output: error.lastInvalidOutput,
+          }),
+          {
+            status: 422,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
       // Handle specific error types
       if (error.message === 'RATE_LIMITED') {
         return new Response(
@@ -247,29 +309,30 @@ Return ONLY the JSON array, no other text.
         );
       }
     }
-    
-    const extractedContent = openAIData.choices[0].message.content;
-    console.log('GPT response received successfully');
 
-    // Parse extracted tasks
-    let extractedTasks;
-    try {
-      extractedTasks = JSON.parse(extractedContent);
-    } catch (parseError) {
-      console.error('Failed to parse GPT response:', extractedContent);
+    // DRY RUN: for testing, don't save to DB, just return result and log (e.g. for internal validation)
+    if (dry_run) {
+      await saveEvalLog({
+        type: "dry_run",
+        meetingId,
+        transcript_sample: transcript?.slice?.(0, 200),
+        ai_output: extractedTasks,
+        prompt_version: "extractor-v1.txt"
+      });
       return new Response(
         JSON.stringify({
-          success: false,
-          error: 'AI response could not be parsed. Please try again with a clearer transcript.',
-          code: 'PARSE_ERROR'
+          success: true,
+          message: "Dry run: extracted tasks, not saved to DB.",
+          extractedTasks,
         }),
         {
-          status: 422,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
         }
       );
     }
 
+    // Parse extracted tasks
     if (!Array.isArray(extractedTasks)) {
       return new Response(
         JSON.stringify({
@@ -338,11 +401,12 @@ Return ONLY the JSON array, no other text.
 
     console.log(`Successfully extracted and stored ${insertedTasks.length} tasks`);
 
+    // When returning, always emit the tasks output for logging (logging handled above)
     return new Response(
       JSON.stringify({
         success: true,
         message: `Successfully extracted ${insertedTasks.length} tasks from transcript`,
-        extractedTasks: insertedTasks,
+        extractedTasks,
         tasksCount: insertedTasks.length,
       }),
       {
