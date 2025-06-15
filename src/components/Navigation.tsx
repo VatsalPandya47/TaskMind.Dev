@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -44,8 +45,8 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center space-x-2 p-2">
-          <Brain className="h-8 w-8 text-blue-600" />
-          <span className="text-xl font-bold text-gray-900">TaskMind.ai</span>
+          <Brain className="h-8 w-8 text-primary" />
+          <span className="text-xl font-bold text-foreground">TaskMind.ai</span>
         </div>
       </SidebarHeader>
 
@@ -73,14 +74,14 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
 
       <SidebarFooter>
         <div className="mb-4">
-          <p className="text-sm text-gray-600">Signed in as</p>
-          <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
+          <p className="text-sm text-muted-foreground">Signed in as</p>
+          <p className="text-sm font-medium text-foreground truncate">{user?.email}</p>
         </div>
         <div className="mb-4 text-sm space-y-1">
-          <Link to="/support" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={handleLinkClick}>Support</Link>
-          <Link to="/documentation" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={handleLinkClick}>Documentation</Link>
-          <Link to="/privacy-policy" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={handleLinkClick}>Privacy Policy</Link>
-          <Link to="/terms-of-use" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={handleLinkClick}>Terms of Use</Link>
+          <Link to="/support" className="block text-muted-foreground hover:text-foreground hover:underline" onClick={handleLinkClick}>Support</Link>
+          <Link to="/documentation" className="block text-muted-foreground hover:text-foreground hover:underline" onClick={handleLinkClick}>Documentation</Link>
+          <Link to="/privacy-policy" className="block text-muted-foreground hover:text-foreground hover:underline" onClick={handleLinkClick}>Privacy Policy</Link>
+          <Link to="/terms-of-use" className="block text-muted-foreground hover:text-foreground hover:underline" onClick={handleLinkClick}>Terms of Use</Link>
         </div>
         <Button
           variant="outline"

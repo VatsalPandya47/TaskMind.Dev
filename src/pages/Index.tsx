@@ -27,7 +27,7 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-gray-50 flex w-full">
+      <div className="min-h-screen bg-background flex w-full">
         <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
         <SidebarInset>
             <header className="flex h-14 items-center gap-4 border-b bg-white px-4 lg:hidden">

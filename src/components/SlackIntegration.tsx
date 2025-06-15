@@ -40,7 +40,7 @@ export const SlackIntegration = () => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5 text-purple-700" />
+          <MessageSquare className="h-5 w-5 text-primary" />
           Slack Integration
         </CardTitle>
         <CardDescription>
@@ -49,19 +49,19 @@ export const SlackIntegration = () => {
       </CardHeader>
       <CardContent>
         {isLoading && (
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span>Loading Slack status...</span>
           </div>
         )}
         {!isLoading && isConnected && (
           <div className="text-sm space-y-2">
-            <p className="text-gray-600">
-              Connected to Slack: <span className="font-medium text-gray-900">{teamName}</span>
+            <p className="text-muted-foreground">
+              Connected to Slack: <span className="font-medium text-foreground">{teamName}</span>
             </p>
             <div className="space-y-1">
-              <p className="text-gray-600">
-                Selected channel: <span className="font-medium text-gray-900">{selectedChannelName || 'None'}</span>
+              <p className="text-muted-foreground">
+                Selected channel: <span className="font-medium text-foreground">{selectedChannelName || 'None'}</span>
               </p>
               <Button
                 variant="outline"
@@ -87,7 +87,7 @@ export const SlackIntegration = () => {
         )}
         {!isLoading && !isConnected && (
           <div className="text-sm space-y-2">
-            <p className="text-gray-600">Connect to Slack to sync insights.</p>
+            <p className="text-muted-foreground">Connect to Slack to sync insights.</p>
             <Button variant="outline" size="sm" className="w-full" onClick={() => connect()}>
                 Connect to Slack
             </Button>
