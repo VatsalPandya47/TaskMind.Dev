@@ -1,5 +1,5 @@
 
-import { Check, Users, FileText, Calendar, Bell, Slack, Notion, Zap } from "lucide-react";
+import { Check, Users, FileText, Calendar, Bell, Slack, Option, Zap } from "lucide-react";
 
 const features = [
   {
