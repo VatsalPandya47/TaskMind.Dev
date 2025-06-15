@@ -10,6 +10,10 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ZoomCallback from "./components/ZoomCallback";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfUse from "./pages/TermsOfUse";
+import Support from "./pages/Support";
+import Documentation from "./pages/Documentation";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -23,6 +27,10 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-use" element={<TermsOfUse />} />
+            <Route path="/support" element={<Support />} />
+            <Route path="/documentation" element={<Documentation />} />
             <Route path="/zoom-callback" element={
               <ProtectedRoute>
                 <ZoomCallback />
