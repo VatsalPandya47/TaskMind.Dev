@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +13,11 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
 import Support from "./pages/Support";
 import Documentation from "./pages/Documentation";
+import HowItWorks from "./pages/HowItWorks";
+import UseCases from "./pages/UseCases";
+import Help from "./pages/Help";
+import Careers from "./pages/Careers";
+import Manifesto from "./pages/Manifesto";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -27,6 +31,11 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/use-cases" element={<UseCases />} />
+            <Route path="/help" element={<Help />} />
+            <Route path="/careers" element={<Careers />} />
+            <Route path="/manifesto" element={<Manifesto />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-use" element={<TermsOfUse />} />
             <Route path="/support" element={<Support />} />

@@ -87,6 +87,11 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
             <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
           </div>
           <div className="mb-4 text-sm space-y-1">
+            <Link to="/how-it-works" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>How It Works</Link>
+            <Link to="/use-cases" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Use Cases</Link>
+            <Link to="/help" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Help</Link>
+            <Link to="/careers" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Careers</Link>
+            <Link to="/manifesto" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Manifesto</Link>
             <Link to="/support" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Support</Link>
             <Link to="/documentation" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Documentation</Link>
             <Link to="/privacy-policy" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Privacy Policy</Link>
