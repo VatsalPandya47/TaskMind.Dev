@@ -4,10 +4,21 @@ import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import React from 'react'
+import { SlackChannelSelectDialog } from './SlackChannelSelectDialog'
 
 export const SlackIntegration = () => {
-  const { isConnected, isLoading, teamName, connect, disconnect } = useSlackAuth()
+  const {
+    isConnected,
+    isLoading,
+    teamName,
+    connect,
+    disconnect,
+    selectedChannelName,
+    setSelectedChannel,
+    isUpdatingChannel,
+  } = useSlackAuth()
   const { toast } = useToast()
+  const [isSelectChannelOpen, setSelectChannelOpen] = React.useState(false)
 
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
@@ -39,9 +50,30 @@ export const SlackIntegration = () => {
         <p className="text-gray-600">
           Connected to Slack: <span className="font-medium text-gray-900">{teamName}</span>
         </p>
+        <div className="space-y-1">
+          <p className="text-gray-600">
+            Selected channel: <span className="font-medium text-gray-900">{selectedChannelName || 'None'}</span>
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={() => setSelectChannelOpen(true)}
+            disabled={isUpdatingChannel}
+          >
+            {isUpdatingChannel ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {selectedChannelName ? 'Change Channel' : 'Select Channel'}
+          </Button>
+        </div>
         <Button variant="outline" size="sm" className="w-full" onClick={() => disconnect()}>
           Disconnect Slack
         </Button>
+        <SlackChannelSelectDialog
+          open={isSelectChannelOpen}
+          onOpenChange={setSelectChannelOpen}
+          onSelectChannel={(channel) => setSelectedChannel({ channelId: channel.id, channelName: channel.name })}
+          isUpdatingChannel={isUpdatingChannel}
+        />
       </div>
     )
   }

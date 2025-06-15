@@ -90,6 +90,8 @@ export type Database = {
           created_at: string
           id: string
           scope: string | null
+          selected_channel_id: string | null
+          selected_channel_name: string | null
           team_id: string | null
           team_name: string | null
           user_id: string
@@ -99,6 +101,8 @@ export type Database = {
           created_at?: string
           id?: string
           scope?: string | null
+          selected_channel_id?: string | null
+          selected_channel_name?: string | null
           team_id?: string | null
           team_name?: string | null
           user_id: string
@@ -108,6 +112,8 @@ export type Database = {
           created_at?: string
           id?: string
           scope?: string | null
+          selected_channel_id?: string | null
+          selected_channel_name?: string | null
           team_id?: string | null
           team_name?: string | null
           user_id?: string
