@@ -39,7 +39,8 @@ const ZoomIntegration = () => {
         const authUrlWithState = `${data.authUrl}&state=${state}`;
         console.log('Redirecting to:', authUrlWithState);
         
-        window.location.href = authUrlWithState;
+        // Use window.top.location.href to break out of the iframe
+        window.top.location.href = authUrlWithState;
       } else {
         throw new Error('Failed to get authorization URL from server');
       }
