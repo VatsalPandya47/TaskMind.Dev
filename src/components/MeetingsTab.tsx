@@ -14,6 +14,7 @@ import { Plus, Calendar, Brain, FileText, Trash2, Video } from "lucide-react";
 import { format } from "date-fns";
 import TranscriptProcessor from "./TranscriptProcessor";
 import ZoomIntegration from "./ZoomIntegration";
+import { MeetingSkeleton } from "./LoadingSkeleton";
 
 const MeetingsTab = () => {
   const { meetings, isLoading, createMeeting, deleteMeeting } = useMeetings();
@@ -59,10 +60,68 @@ const MeetingsTab = () => {
     setIsTranscriptDialogOpen(true);
   };
 
+  // Get today's date in YYYY-MM-DD format for date input max
+  const today = new Date().toISOString().split('T')[0];
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Meetings</h1>
+            <p className="text-gray-600">Manage your meetings and extract tasks with AI</p>
+          </div>
+          <Button disabled>
+            <Plus className="h-4 w-4 mr-2" />
+            New Meeting
+          </Button>
+        </div>
+        
+        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5 text-blue-600" />
+              AI-Powered Task Extraction
+            </CardTitle>
+            <CardDescription>
+              Upload meeting transcripts or connect Zoom to automatically extract actionable tasks, assignees, and deadlines using AI.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">-</div>
+                <div className="text-sm text-gray-600">Transcripts Processed</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-indigo-600">-</div>
+                <div className="text-sm text-gray-600">Total Meetings</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">GPT-4o</div>
+                <div className="text-sm text-gray-600">AI Model</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Tabs defaultValue="meetings" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="meetings">Meeting History</TabsTrigger>
+            <TabsTrigger value="zoom">
+              <Video className="h-4 w-4 mr-2" />
+              Zoom Integration
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="meetings">
+            <MeetingSkeleton />
+          </TabsContent>
+          
+          <TabsContent value="zoom">
+            <ZoomIntegration />
+          </TabsContent>
+        </Tabs>
       </div>
     );
   }
@@ -108,6 +167,7 @@ const MeetingsTab = () => {
                     type="date"
                     value={newMeeting.date}
                     onChange={(e) => setNewMeeting({ ...newMeeting, date: e.target.value })}
+                    max={today}
                     required
                   />
                 </div>
@@ -126,7 +186,7 @@ const MeetingsTab = () => {
                     id="duration"
                     value={newMeeting.duration}
                     onChange={(e) => setNewMeeting({ ...newMeeting, duration: e.target.value })}
-                    placeholder="e.g., 1 hour"
+                    placeholder="e.g., 1 hour, 30 minutes"
                   />
                 </div>
                 <div className="space-y-2">

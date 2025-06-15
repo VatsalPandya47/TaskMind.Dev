@@ -13,11 +13,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, CheckSquare, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import TaskFilter from "./TaskFilter";
+import { TaskSkeleton, StatsSkeleton } from "./LoadingSkeleton";
 
 const TasksTab = () => {
   const { tasks, isLoading, createTask, updateTask, deleteTask } = useTasks();
-  const { meetings } = useMeetings();
+  const { meetings, isLoading: meetingsLoading } = useMeetings();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [filteredTasks, setFilteredTasks] = useState(tasks);
   const [newTask, setNewTask] = useState({
     task: "",
     assignee: "",
@@ -25,6 +28,11 @@ const TasksTab = () => {
     priority: "Medium",
     meeting_id: "",
   });
+
+  // Update filtered tasks when tasks change
+  React.useEffect(() => {
+    setFilteredTasks(tasks);
+  }, [tasks]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,16 +62,27 @@ const TasksTab = () => {
     });
   };
 
-  if (isLoading) {
+  if (isLoading || meetingsLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Tasks</h1>
+            <p className="text-gray-600">Manage action items and follow-ups from meetings</p>
+          </div>
+          <Button disabled>
+            <Plus className="h-4 w-4 mr-2" />
+            New Task
+          </Button>
+        </div>
+        <StatsSkeleton />
+        <TaskSkeleton />
       </div>
     );
   }
 
-  const completedTasks = tasks.filter(task => task.completed);
-  const pendingTasks = tasks.filter(task => !task.completed);
+  const completedTasks = filteredTasks.filter(task => task.completed);
+  const pendingTasks = filteredTasks.filter(task => !task.completed);
 
   return (
     <div className="space-y-6">
@@ -186,23 +205,39 @@ const TasksTab = () => {
         </Card>
       </div>
 
+      {/* Search and Filters */}
+      <TaskFilter
+        tasks={tasks}
+        meetings={meetings}
+        onFilteredTasks={setFilteredTasks}
+      />
+
       <Card>
         <CardHeader>
           <CardTitle>Task List</CardTitle>
           <CardDescription>
-            Track and manage your action items
+            Track and manage your action items ({filteredTasks.length} of {tasks.length} tasks)
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {tasks.length === 0 ? (
+          {filteredTasks.length === 0 ? (
             <div className="text-center py-8">
               <CheckSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks yet</h3>
-              <p className="text-gray-600 mb-4">Create your first task to get started.</p>
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Task
-              </Button>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {tasks.length === 0 ? "No tasks yet" : "No matching tasks"}
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {tasks.length === 0 
+                  ? "Create your first task to get started." 
+                  : "Try adjusting your filters to see more tasks."
+                }
+              </p>
+              {tasks.length === 0 && (
+                <Button onClick={() => setIsDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Task
+                </Button>
+              )}
             </div>
           ) : (
             <Table>
@@ -217,7 +252,7 @@ const TasksTab = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tasks.map((task) => (
+                {filteredTasks.map((task) => (
                   <TableRow key={task.id} className={task.completed ? "opacity-60" : ""}>
                     <TableCell>
                       <Checkbox
