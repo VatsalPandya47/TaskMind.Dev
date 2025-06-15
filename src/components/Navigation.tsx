@@ -1,19 +1,9 @@
 
-import React from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Brain, Calendar, CheckSquare, Settings, BarChart3, LogOut, User } from "lucide-react";
+import { Brain, Calendar, CheckSquare, Settings, BarChart3, LogOut, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  useSidebar,
-} from "./ui/sidebar";
 
 interface NavigationProps {
   activeTab: string;
@@ -22,7 +12,7 @@ interface NavigationProps {
 
 const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   const { signOut, user } = useAuth();
-  const { isMobile, setOpenMobile } = useSidebar();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
@@ -35,84 +25,85 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
     await signOut();
   };
 
-  const handleLinkClick = () => {
-    if (isMobile) {
-      setOpenMobile(false);
-    }
-  };
-
   return (
-    <Sidebar className="border-r border-purple-200/50 bg-white/95 backdrop-blur-sm">
-      <SidebarHeader className="p-6 border-b border-purple-100">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 gradient-bg rounded-xl">
-            <Brain className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <span className="text-xl font-bold text-slate-900">TaskMind</span>
-            <span className="text-xl font-light text-purple-600">.ai</span>
-          </div>
+    <>
+      {/* Mobile header */}
+      <div className="lg:hidden flex items-center justify-between p-4 bg-white border-b">
+        <div className="flex items-center space-x-2">
+          <Brain className="h-8 w-8 text-blue-600" />
+          <span className="text-xl font-bold text-gray-900">TaskMind.ai</span>
         </div>
-      </SidebarHeader>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </Button>
+      </div>
 
-      <SidebarContent className="px-4 py-6">
-        <SidebarMenu className="space-y-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <SidebarMenuItem key={item.id}>
-                <SidebarMenuButton
+      {/* Mobile menu overlay */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)} />
+      )}
+
+      {/* Sidebar */}
+      <div className={`fixed left-0 top-0 h-full w-64 bg-white border-r transform transition-transform duration-200 ease-in-out z-50 ${
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+      } lg:translate-x-0`}>
+        <div className="p-6">
+          <div className="flex items-center space-x-2 mb-8">
+            <Brain className="h-8 w-8 text-blue-600" />
+            <span className="text-xl font-bold text-gray-900">TaskMind.ai</span>
+          </div>
+
+          <nav className="space-y-2">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
                   onClick={() => {
                     onTabChange(item.id);
-                    handleLinkClick();
+                    setIsMobileMenuOpen(false);
                   }}
-                  isActive={activeTab === item.id}
-                  className={`w-full h-12 px-4 rounded-xl transition-all duration-200 ${
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
                     activeTab === item.id
-                      ? 'gradient-bg text-white shadow-lg shadow-purple-500/25'
-                      : 'text-slate-600 hover:bg-purple-50 hover:text-purple-700'
+                      ? "bg-blue-50 text-blue-600 border border-blue-200"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                 >
                   <Icon className="h-5 w-5" />
                   <span className="font-medium">{item.label}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
-        </SidebarMenu>
-      </SidebarContent>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
 
-      <SidebarFooter className="p-4 border-t border-purple-100">
-        <div className="mb-4 p-3 bg-slate-50 rounded-xl">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <User className="h-4 w-4 text-purple-600" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900">Signed in as</p>
-              <p className="text-xs text-slate-600 truncate">{user?.email}</p>
-            </div>
+        <div className="absolute bottom-0 left-0 right-0 p-6 border-t">
+          <div className="mb-4">
+            <p className="text-sm text-gray-600">Signed in as</p>
+            <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
           </div>
+          <div className="mb-4 text-sm space-y-1">
+            <Link to="/support" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Support</Link>
+            <Link to="/documentation" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Documentation</Link>
+            <Link to="/privacy-policy" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Privacy Policy</Link>
+            <Link to="/terms-of-use" className="block text-gray-600 hover:text-gray-900 hover:underline" onClick={() => setIsMobileMenuOpen(false)}>Terms of Use</Link>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSignOut}
+            className="w-full flex items-center space-x-2"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Sign Out</span>
+          </Button>
         </div>
-        
-        <div className="mb-4 text-xs space-y-2">
-          <Link to="/support" className="block text-slate-500 hover:text-purple-600 hover:underline transition-colors" onClick={handleLinkClick}>Support</Link>
-          <Link to="/documentation" className="block text-slate-500 hover:text-purple-600 hover:underline transition-colors" onClick={handleLinkClick}>Documentation</Link>
-          <Link to="/privacy-policy" className="block text-slate-500 hover:text-purple-600 hover:underline transition-colors" onClick={handleLinkClick}>Privacy Policy</Link>
-          <Link to="/terms-of-use" className="block text-slate-500 hover:text-purple-600 hover:underline transition-colors" onClick={handleLinkClick}>Terms of Use</Link>
-        </div>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleSignOut}
-          className="w-full h-10 border-slate-200 text-slate-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all"
-        >
-          <LogOut className="h-4 w-4" />
-          <span>Sign Out</span>
-        </Button>
-      </SidebarFooter>
-    </Sidebar>
+      </div>
+    </>
   );
 };
 
