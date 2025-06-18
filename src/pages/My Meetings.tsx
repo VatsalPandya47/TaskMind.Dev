@@ -84,14 +84,17 @@ const MyMeetings = () => {
   };
 
   const handleEdit = (meeting) => {
-    setEditingMeeting(meeting);
+    setEditingMeeting({
+      ...meeting,
+      participants: meeting.participants?.join(", ") || ""
+    });
     setIsEditDialogOpen(true);
   };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     
-    const participantsArray = editingMeeting.participants
+    const participantsArray = (editingMeeting.participants || "")
       .split(",")
       .map(p => p.trim())
       .filter(p => p.length > 0);
@@ -511,7 +514,7 @@ const MyMeetings = () => {
                   <Label htmlFor="edit-participants">Participants</Label>
                   <Input
                     id="edit-participants"
-                    value={editingMeeting.participants}
+                    value={editingMeeting.participants || ""}
                     onChange={(e) => setEditingMeeting({ ...editingMeeting, participants: e.target.value })}
                     placeholder="Enter names separated by commas"
                   />
