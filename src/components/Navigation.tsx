@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Brain, Calendar, CheckSquare, Settings, BarChart3, LogOut, Menu, X } from "lucide-react";
+import { Brain, Calendar, CheckSquare, Settings, BarChart3, LogOut, Menu, X, CalendarDays } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface NavigationProps {
@@ -23,6 +22,7 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
 
   // New pages (section navigation)
   const sectionNavItems = [
+    { id: "my-meetings", label: "My Meetings", to: "/my-meetings", icon: CalendarDays },
     { id: "how-it-works", label: "How it works", to: "/how-it-works" },
     { id: "use-cases", label: "Use Cases", to: "/use-cases" },
     { id: "help", label: "Help", to: "/help" },
@@ -97,6 +97,7 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
                   className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-left transition-colors text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
+                  {item.icon && <item.icon className="h-4 w-4" />}
                   <span>{item.label}</span>
                 </Link>
               ))}
@@ -131,4 +132,3 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
 };
 
 export default Navigation;
-

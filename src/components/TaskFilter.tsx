@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -66,7 +65,7 @@ const TaskFilter = ({ tasks, meetings, onFilteredTasks }: TaskFilterProps) => {
   };
 
   // Apply filters whenever any filter changes
-  React.useEffect(() => {
+  useEffect(() => {
     applyFilters();
   }, [searchTerm, selectedAssignee, selectedMeeting, selectedStatus, tasks]);
 

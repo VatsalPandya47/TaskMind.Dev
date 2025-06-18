@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import MyMeetings from "./pages/My Meetings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ZoomCallback from "./components/ZoomCallback";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -45,6 +45,11 @@ const App = () => (
             <Route path="/zoom-callback" element={
               <ProtectedRoute>
                 <ZoomCallback />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-meetings" element={
+              <ProtectedRoute>
+                <MyMeetings />
               </ProtectedRoute>
             } />
             <Route
