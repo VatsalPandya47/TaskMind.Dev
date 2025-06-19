@@ -11,7 +11,6 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
 const TasksTab = () => {
-  console.log("TasksTab component rendering...");
   
   try {
     const [showCreateForm, setShowCreateForm] = useState(false);
@@ -27,18 +26,16 @@ const TasksTab = () => {
     // Use hooks with error boundaries
     const { 
       tasks = [], 
-      isLoading: tasksLoading = true, 
+      isLoading: tasksLoading, 
       createTask,
       error: tasksError 
     } = useTasks() || {};
 
     const { 
       meetings = [], 
-      isLoading: meetingsLoading = true,
+      isLoading: meetingsLoading,
       error: meetingsError 
     } = useMeetings() || {};
-
-    console.log("TasksTab data:", { tasks, tasksLoading, tasksError, meetings, meetingsLoading, meetingsError });
 
     const handleSubmit = async (e) => {
       e.preventDefault();
