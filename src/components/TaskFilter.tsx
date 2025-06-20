@@ -93,7 +93,7 @@ const TaskFilter = ({ tasks, meetings, onFilteredTasks }: TaskFilterProps) => {
               <SelectValue placeholder="Filter by assignee" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All assignees</SelectItem>
+              <SelectItem value="all">All assignees</SelectItem>
               {uniqueAssignees.map((assignee) => (
                 <SelectItem key={assignee} value={assignee}>
                   {assignee}
@@ -108,7 +108,7 @@ const TaskFilter = ({ tasks, meetings, onFilteredTasks }: TaskFilterProps) => {
               <SelectValue placeholder="Filter by meeting" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All meetings</SelectItem>
+              <SelectItem value="all">All meetings</SelectItem>
               {meetings.map((meeting) => (
                 <SelectItem key={meeting.id} value={meeting.id}>
                   {meeting.title}
@@ -123,7 +123,7 @@ const TaskFilter = ({ tasks, meetings, onFilteredTasks }: TaskFilterProps) => {
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All statuses</SelectItem>
+              <SelectItem value="all">All statuses</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
             </SelectContent>

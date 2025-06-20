@@ -280,7 +280,7 @@ const TasksTab = () => {
                       <SelectValue placeholder="Select meeting" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No meeting</SelectItem>
+                      <SelectItem value="all">No meeting</SelectItem>
                       {meetings && meetings.map && meetings.map((meeting) => (
                         <SelectItem key={meeting.id} value={meeting.id}>
                           {meeting.title} - {meeting.date ? format(new Date(meeting.date), "MMM d, yyyy") : 'No date'}
