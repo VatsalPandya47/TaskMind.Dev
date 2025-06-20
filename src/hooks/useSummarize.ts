@@ -102,18 +102,18 @@ export const useSummarize = () => {
 
   const summarizeTranscript = useMutation({
     mutationFn: async ({ 
-      meetingId, 
       transcript, 
-      dry_run = false 
+      dry_run = false,
+      audio_name
     }: { 
-      meetingId: string; 
       transcript: string; 
       dry_run?: boolean;
+      audio_name?: string;
     }) => {
       logger.info('Starting summarization request', { 
-        meetingId, 
         transcriptLength: transcript.length, 
-        dry_run 
+        dry_run,
+        audio_name 
       });
 
       // Get session and validate authentication
@@ -132,14 +132,14 @@ export const useSummarize = () => {
       for (let attempt = 1; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
         try {
           logger.info(`Attempt ${attempt}/${RETRY_CONFIG.maxRetries}`, { 
-            meetingId, 
-            dry_run 
+            dry_run,
+            audio_name 
           });
 
           const startTime = Date.now();
           
           const { data, error } = await supabase.functions.invoke('summarize', {
-            body: { meetingId, transcript, dry_run },
+            body: { transcript, dry_run, audio_name },
             headers: {
               Authorization: `Bearer ${session.access_token}`,
             },
@@ -216,15 +216,15 @@ export const useSummarize = () => {
     
     onSuccess: (data, variables) => {
       logger.success('Summarization mutation succeeded', { 
-        meetingId: variables.meetingId,
         dry_run: variables.dry_run,
+        audio_name: variables.audio_name,
         success: data.success 
       });
 
       // Only invalidate queries if it's not a dry run
       if (!data.dry_run) {
-        logger.debug('Invalidating meetings query cache');
-        queryClient.invalidateQueries({ queryKey: ["meetings"] });
+        logger.debug('Invalidating summaries query cache');
+        queryClient.invalidateQueries({ queryKey: ["summaries"] });
       } else {
         logger.debug('Skipping cache invalidation for dry run');
       }
@@ -255,8 +255,8 @@ export const useSummarize = () => {
       logger.error('Summarization mutation failed', {
         errorType,
         errorMessage,
-        meetingId: variables.meetingId,
         dry_run: variables.dry_run,
+        audio_name: variables.audio_name,
         error: error.message,
         stack: error.stack
       });
@@ -270,8 +270,8 @@ export const useSummarize = () => {
     
     onMutate: (variables) => {
       logger.info('Starting summarization mutation', { 
-        meetingId: variables.meetingId,
         dry_run: variables.dry_run,
+        audio_name: variables.audio_name,
         transcriptLength: variables.transcript.length 
       });
     },
@@ -280,8 +280,8 @@ export const useSummarize = () => {
       logger.info('Summarization mutation settled', {
         success: !!data,
         error: error?.message,
-        meetingId: variables.meetingId,
-        dry_run: variables.dry_run
+        dry_run: variables.dry_run,
+        audio_name: variables.audio_name
       });
     },
   });

@@ -9,11 +9,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { FileText, Loader2, TestTube, AlertCircle, CheckCircle, XCircle, Copy, Check } from "lucide-react";
+import AudioFileUpload from "./AudioFileUpload";
 
 interface TranscriptSummarizerProps {
-  meetingId: string;
   isOpen: boolean;
   onClose: () => void;
+  audio_name?: string;
 }
 
 // Utility function to parse and format the summary
@@ -125,12 +126,15 @@ const SummarySection = ({
   );
 };
 
-const TranscriptSummarizer = ({ meetingId, isOpen, onClose }: TranscriptSummarizerProps) => {
+const TranscriptSummarizer = ({ isOpen, onClose, audio_name }: TranscriptSummarizerProps) => {
   const [transcript, setTranscript] = useState("");
   const [dryRun, setDryRun] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [generatedSummary, setGeneratedSummary] = useState<string | null>(null);
+  const [selectedAudioFile, setSelectedAudioFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const { summarizeTranscript, isSummarizing } = useSummarize();
 
   // Reset states when dialog opens/closes
@@ -141,6 +145,9 @@ const TranscriptSummarizer = ({ meetingId, isOpen, onClose }: TranscriptSummariz
       setLocalError(null);
       setIsProcessing(false);
       setGeneratedSummary(null);
+      setSelectedAudioFile(null);
+      setUploadProgress(0);
+      setIsUploading(false);
     }
   }, [isOpen]);
 
@@ -148,6 +155,15 @@ const TranscriptSummarizer = ({ meetingId, isOpen, onClose }: TranscriptSummariz
   useEffect(() => {
     setIsProcessing(isSummarizing);
   }, [isSummarizing]);
+
+  const handleAudioFileSelect = (file: File, fileName: string) => {
+    setSelectedAudioFile(file);
+    setLocalError(null);
+  };
+
+  const handleAudioFileRemove = () => {
+    setSelectedAudioFile(null);
+  };
 
   const handleSummarize = async () => {
     if (!transcript.trim()) {
@@ -158,11 +174,14 @@ const TranscriptSummarizer = ({ meetingId, isOpen, onClose }: TranscriptSummariz
     setLocalError(null);
     setGeneratedSummary(null);
     
+    // Use the audio file name if available, otherwise use the prop
+    const audioFileName = selectedAudioFile ? selectedAudioFile.name : audio_name;
+    
     try {
       const result = await summarizeTranscript.mutateAsync({
-        meetingId,
         transcript: transcript.trim(),
         dry_run: dryRun,
+        audio_name: audioFileName,
       });
       
       // Set the generated summary for display
@@ -202,7 +221,7 @@ const TranscriptSummarizer = ({ meetingId, isOpen, onClose }: TranscriptSummariz
             AI Transcript Summarization
           </DialogTitle>
           <DialogDescription className="text-sm sm:text-base">
-            Generate comprehensive meeting summaries using AI. Test mode allows you to preview without saving.
+            Generate comprehensive meeting summaries using AI. Upload audio files or enter transcripts manually. Test mode allows you to preview without saving.
           </DialogDescription>
         </DialogHeader>
 
@@ -289,6 +308,16 @@ const TranscriptSummarizer = ({ meetingId, isOpen, onClose }: TranscriptSummariz
           {/* Input Form - Only show if no summary generated or in dry run mode */}
           {(!generatedSummary || dryRun) && (
             <>
+              {/* Audio File Upload */}
+              <AudioFileUpload
+                onFileSelect={handleAudioFileSelect}
+                onFileRemove={handleAudioFileRemove}
+                selectedFile={selectedAudioFile}
+                isUploading={isUploading}
+                uploadProgress={uploadProgress}
+                error={localError}
+              />
+
               <Card className="border-gray-200">
                 <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6">
                   <CardTitle className="text-base sm:text-lg flex items-center gap-2">

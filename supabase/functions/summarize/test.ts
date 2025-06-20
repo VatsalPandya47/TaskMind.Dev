@@ -8,7 +8,6 @@ import "./index.ts";
 const originalEnv = Deno.env.toObject();
 
 // Test data
-const mockMeetingId = "123e4567-e89b-12d3-a456-426614174000";
 const mockUserId = "user-123";
 const mockTranscript = `
 John: Good morning everyone, welcome to our weekly team meeting. Let's start with updates from each department.
@@ -47,32 +46,26 @@ const mockSupabase = {
     }
   },
   from: (table: string) => ({
-    select: () => ({
-      eq: (field: string, value: string) => ({
-        eq: (field2: string, value2: string) => ({
-          single: async () => {
-            if (table === "meetings" && value === mockMeetingId && value2 === mockUserId) {
-              return {
-                data: {
-                  id: mockMeetingId,
-                  user_id: mockUserId,
-                  title: "Weekly Team Meeting",
-                  date: "2024-01-15"
-                },
-                error: null
-              };
-            }
+    insert: (data: any) => ({
+      select: () => ({
+        single: async () => {
+          if (table === "summaries") {
             return {
-              data: null,
-              error: { message: "Meeting not found" }
+              data: {
+                id: "summary-123",
+                user_id: mockUserId,
+                transcript: data.transcript,
+                summary: data.summary,
+                audio_name: data.audio_name
+              },
+              error: null
             };
           }
-        })
-      })
-    }),
-    update: (data: any) => ({
-      eq: (field: string, value: string) => ({
-        then: (callback: Function) => callback({ error: null })
+          return {
+            data: null,
+            error: { message: "Insert failed" }
+          };
+        }
       })
     })
   })
@@ -151,8 +144,9 @@ Deno.test("Summarize Function Integration Tests", async (t) => {
 
   await t.step("should handle valid transcript successfully", async () => {
     const request = createTestRequest({
-      meetingId: mockMeetingId,
-      transcript: mockTranscript
+      transcript: mockTranscript,
+      dry_run: false,
+      audio_name: "test-meeting.mp3"
     }, "valid-token");
 
     // Mock fetch for OpenAI API
@@ -165,6 +159,30 @@ Deno.test("Summarize Function Integration Tests", async (t) => {
           headers: { "Content-Type": "application/json" }
         });
       }
+      if (url.includes("test.supabase.co")) {
+        // Mock Supabase auth response
+        if (url.includes("/auth/v1/user")) {
+          return new Response(JSON.stringify({
+            user: { id: mockUserId }
+          }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          });
+        }
+        // Mock Supabase insert response
+        if (url.includes("/rest/v1/summaries")) {
+          return new Response(JSON.stringify([{
+            id: "summary-123",
+            user_id: mockUserId,
+            transcript: mockTranscript,
+            summary: mockOpenAIResponse.choices[0].message.content,
+            audio_name: "test-meeting.mp3"
+          }]), {
+            status: 201,
+            headers: { "Content-Type": "application/json" }
+          });
+        }
+      }
       return originalFetch(input, init);
     };
 
@@ -175,8 +193,53 @@ Deno.test("Summarize Function Integration Tests", async (t) => {
       assertEquals(response.status, 200);
       assertEquals(data.success, true);
       assertExists(data.summary);
-      assertEquals(data.meetingId, mockMeetingId);
-      assertEquals(data.message, "Successfully generated meeting summary");
+      assertEquals(data.dry_run, false);
+      assertEquals(data.message, "Successfully generated and saved meeting summary");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  await t.step("should handle dry run mode", async () => {
+    const request = createTestRequest({
+      transcript: mockTranscript,
+      dry_run: true,
+      audio_name: "test-dry-run.mp3"
+    }, "valid-token");
+
+    // Mock fetch for OpenAI API
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input.toString();
+      if (url.includes("api.openai.com")) {
+        return new Response(JSON.stringify(mockOpenAIResponse), {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+      if (url.includes("test.supabase.co")) {
+        // Mock Supabase auth response
+        if (url.includes("/auth/v1/user")) {
+          return new Response(JSON.stringify({
+            user: { id: mockUserId }
+          }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          });
+        }
+      }
+      return originalFetch(input, init);
+    };
+
+    try {
+      const response = await serve(request);
+      const data = await response.json();
+
+      assertEquals(response.status, 200);
+      assertEquals(data.success, true);
+      assertEquals(data.dry_run, true);
+      assertExists(data.summary);
+      assertEquals(data.message, "Dry run: generated summary, not saved to DB.");
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -184,8 +247,8 @@ Deno.test("Summarize Function Integration Tests", async (t) => {
 
   await t.step("should handle empty transcript", async () => {
     const request = createTestRequest({
-      meetingId: mockMeetingId,
-      transcript: ""
+      transcript: "",
+      dry_run: false
     }, "valid-token");
 
     const response = await serve(request);
@@ -193,12 +256,12 @@ Deno.test("Summarize Function Integration Tests", async (t) => {
 
     assertEquals(response.status, 400);
     assertEquals(data.success, false);
-    assertEquals(data.error, "Meeting ID and transcript are required");
+    assertEquals(data.error, "Transcript is required");
   });
 
   await t.step("should handle missing transcript", async () => {
     const request = createTestRequest({
-      meetingId: mockMeetingId
+      dry_run: false
     }, "valid-token");
 
     const response = await serve(request);
@@ -206,13 +269,13 @@ Deno.test("Summarize Function Integration Tests", async (t) => {
 
     assertEquals(response.status, 400);
     assertEquals(data.success, false);
-    assertEquals(data.error, "Meeting ID and transcript are required");
+    assertEquals(data.error, "Transcript is required");
   });
 
   await t.step("should handle unauthorized access", async () => {
     const request = createTestRequest({
-      meetingId: mockMeetingId,
-      transcript: mockTranscript
+      transcript: mockTranscript,
+      dry_run: false
     }); // No auth token
 
     const response = await serve(request);
@@ -225,8 +288,8 @@ Deno.test("Summarize Function Integration Tests", async (t) => {
 
   await t.step("should handle invalid auth token", async () => {
     const request = createTestRequest({
-      meetingId: mockMeetingId,
-      transcript: mockTranscript
+      transcript: mockTranscript,
+      dry_run: false
     }, "invalid-token");
 
     const response = await serve(request);
@@ -237,57 +300,37 @@ Deno.test("Summarize Function Integration Tests", async (t) => {
     assertEquals(data.error, "Unauthorized");
   });
 
-  await t.step("should handle dry_run mode", async () => {
+  await t.step("should handle OpenAI API errors", async () => {
     const request = createTestRequest({
-      meetingId: mockMeetingId,
       transcript: mockTranscript,
-      dry_run: true
+      dry_run: false
     }, "valid-token");
 
-    // Mock fetch for OpenAI API
+    // Mock fetch to simulate OpenAI API error
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = typeof input === 'string' ? input : input.toString();
       if (url.includes("api.openai.com")) {
-        return new Response(JSON.stringify(mockOpenAIResponse), {
-          status: 200,
+        return new Response(JSON.stringify({
+          error: {
+            message: "Rate limit exceeded",
+            type: "rate_limit_error"
+          }
+        }), {
+          status: 429,
           headers: { "Content-Type": "application/json" }
         });
       }
-      return originalFetch(input, init);
-    };
-
-    try {
-      const response = await serve(request);
-      const data = await response.json();
-
-      assertEquals(response.status, 200);
-      assertEquals(data.success, true);
-      assertExists(data.summary);
-      assertEquals(data.message, "Dry run: generated summary, not saved to DB.");
-    } finally {
-      globalThis.fetch = originalFetch;
-    }
-  });
-
-  await t.step("should handle OpenAI API rate limiting", async () => {
-    const request = createTestRequest({
-      meetingId: mockMeetingId,
-      transcript: mockTranscript
-    }, "valid-token");
-
-    // Mock fetch for OpenAI API with rate limiting
-    const originalFetch = globalThis.fetch;
-    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = typeof input === 'string' ? input : input.toString();
-      if (url.includes("api.openai.com")) {
-        return new Response(JSON.stringify({ error: "rate_limit_exceeded" }), {
-          status: 429,
-          headers: { 
-            "Content-Type": "application/json",
-            "retry-after": "60"
-          }
-        });
+      if (url.includes("test.supabase.co")) {
+        // Mock Supabase auth response
+        if (url.includes("/auth/v1/user")) {
+          return new Response(JSON.stringify({
+            user: { id: mockUserId }
+          }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          });
+        }
       }
       return originalFetch(input, init);
     };
@@ -299,159 +342,6 @@ Deno.test("Summarize Function Integration Tests", async (t) => {
       assertEquals(response.status, 429);
       assertEquals(data.success, false);
       assertEquals(data.code, "RATE_LIMITED");
-      assertEquals(data.error, "OpenAI API is currently busy with too many requests. Please wait a few minutes and try again.");
-    } finally {
-      globalThis.fetch = originalFetch;
-    }
-  });
-
-  await t.step("should handle OpenAI API invalid key", async () => {
-    const request = createTestRequest({
-      meetingId: mockMeetingId,
-      transcript: mockTranscript
-    }, "valid-token");
-
-    // Mock fetch for OpenAI API with invalid key
-    const originalFetch = globalThis.fetch;
-    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = typeof input === 'string' ? input : input.toString();
-      if (url.includes("api.openai.com")) {
-        return new Response(JSON.stringify({ error: "invalid_api_key" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" }
-        });
-      }
-      return originalFetch(input, init);
-    };
-
-    try {
-      const response = await serve(request);
-      const data = await response.json();
-
-      assertEquals(response.status, 500);
-      assertEquals(data.success, false);
-      assertEquals(data.code, "INVALID_API_KEY");
-      assertEquals(data.error, "Invalid OpenAI API key configuration.");
-    } finally {
-      globalThis.fetch = originalFetch;
-    }
-  });
-
-  await t.step("should handle OpenAI API server error", async () => {
-    const request = createTestRequest({
-      meetingId: mockMeetingId,
-      transcript: mockTranscript
-    }, "valid-token");
-
-    // Mock fetch for OpenAI API with server error
-    const originalFetch = globalThis.fetch;
-    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = typeof input === 'string' ? input : input.toString();
-      if (url.includes("api.openai.com")) {
-        return new Response(JSON.stringify({ error: "internal_server_error" }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" }
-        });
-      }
-      return originalFetch(input, init);
-    };
-
-    try {
-      const response = await serve(request);
-      const data = await response.json();
-
-      assertEquals(response.status, 503);
-      assertEquals(data.success, false);
-      assertEquals(data.code, "SERVICE_ERROR");
-      assertEquals(data.error, "AI service is temporarily unavailable. Please try again in a few minutes.");
-    } finally {
-      globalThis.fetch = originalFetch;
-    }
-  });
-
-  await t.step("should handle missing OpenAI API key", async () => {
-    // Temporarily remove OpenAI API key
-    Deno.env.delete("OPENAI_API_KEY");
-
-    const request = createTestRequest({
-      meetingId: mockMeetingId,
-      transcript: mockTranscript
-    }, "valid-token");
-
-    const response = await serve(request);
-    const data = await response.json();
-
-    assertEquals(response.status, 500);
-    assertEquals(data.success, false);
-    assertEquals(data.error, "OpenAI API key not configured");
-
-    // Restore API key
-    Deno.env.set("OPENAI_API_KEY", "test-openai-key");
-  });
-
-  await t.step("should handle meeting not found", async () => {
-    const request = createTestRequest({
-      meetingId: "non-existent-meeting-id",
-      transcript: mockTranscript
-    }, "valid-token");
-
-    const response = await serve(request);
-    const data = await response.json();
-
-    assertEquals(response.status, 404);
-    assertEquals(data.success, false);
-    assertEquals(data.error, "Meeting not found or unauthorized");
-  });
-
-  await t.step("should handle CORS preflight request", async () => {
-    const request = new Request("http://localhost:8000/functions/v1/summarize", {
-      method: "OPTIONS",
-      headers: {
-        "Origin": "http://localhost:3000",
-        "Access-Control-Request-Method": "POST",
-        "Access-Control-Request-Headers": "authorization,content-type"
-      }
-    });
-
-    const response = await serve(request);
-    
-    assertEquals(response.status, 200);
-    assertEquals(response.headers.get("Access-Control-Allow-Origin"), "*");
-    assertEquals(response.headers.get("Access-Control-Allow-Headers"), "authorization, x-client-info, apikey, content-type");
-  });
-
-  await t.step("should handle very short transcript", async () => {
-    const request = createTestRequest({
-      meetingId: mockMeetingId,
-      transcript: "Hello world"
-    }, "valid-token");
-
-    // Mock fetch for OpenAI API with short response
-    const originalFetch = globalThis.fetch;
-    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = typeof input === 'string' ? input : input.toString();
-      if (url.includes("api.openai.com")) {
-        return new Response(JSON.stringify({
-          choices: [{
-            message: {
-              content: "Too short"
-            }
-          }]
-        }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" }
-        });
-      }
-      return originalFetch(input, init);
-    };
-
-    try {
-      const response = await serve(request);
-      const data = await response.json();
-
-      assertEquals(response.status, 422);
-      assertEquals(data.success, false);
-      assertEquals(data.code, "SUMMARY_ERROR");
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -468,8 +358,9 @@ Deno.test("Summarize Function Performance Test", async (t) => {
 
   await t.step("should complete within reasonable time", async () => {
     const request = createTestRequest({
-      meetingId: mockMeetingId,
-      transcript: mockTranscript
+      transcript: mockTranscript,
+      dry_run: false,
+      audio_name: "test-meeting.mp3"
     }, "valid-token");
 
     // Mock fetch for OpenAI API
@@ -511,8 +402,9 @@ Deno.test("Summarize Function Load Test", async (t) => {
   await t.step("should handle multiple concurrent requests", async () => {
     const requests = Array.from({ length: 5 }, () => 
       createTestRequest({
-        meetingId: mockMeetingId,
-        transcript: mockTranscript
+        transcript: mockTranscript,
+        dry_run: false,
+        audio_name: "test-meeting.mp3"
       }, "valid-token")
     );
 

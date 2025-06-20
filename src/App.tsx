@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import MyMeetings from "./pages/My Meetings";
+import SummaryHistory from "./pages/SummaryHistory";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ZoomCallback from "./components/ZoomCallback";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -50,6 +51,11 @@ const App = () => (
             <Route path="/my-meetings" element={
               <ProtectedRoute>
                 <MyMeetings />
+              </ProtectedRoute>
+            } />
+            <Route path="/summary-history" element={
+              <ProtectedRoute>
+                <SummaryHistory />
               </ProtectedRoute>
             } />
             <Route

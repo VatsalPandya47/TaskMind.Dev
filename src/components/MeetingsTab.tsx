@@ -69,6 +69,9 @@ const MeetingsTab = () => {
   // Get today's date in YYYY-MM-DD format for date input max
   const today = new Date().toISOString().split('T')[0];
 
+  // Get the selected meeting for audio_name
+  const selectedMeeting = meetings.find(m => m.id === selectedMeetingId);
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -378,12 +381,12 @@ const MeetingsTab = () => {
       {/* Transcript Summarizer Dialog */}
       {selectedMeetingId && (
         <TranscriptSummarizer
-          meetingId={selectedMeetingId}
           isOpen={isSummarizerDialogOpen}
           onClose={() => {
             setIsSummarizerDialogOpen(false);
             setSelectedMeetingId(null);
           }}
+          audio_name={selectedMeeting?.title}
         />
       )}
     </div>
