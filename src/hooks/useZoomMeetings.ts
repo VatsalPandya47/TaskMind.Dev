@@ -70,70 +70,6 @@ export const useZoomMeetings = () => {
       }));
   };
 
-  /**
-   * API MUTATION: Fetch fresh recording data from Zoom API
-   * 
-   * USE WHEN:
-   * - User clicks "Download Recording" or "Play Recording"
-   * - You need fresh, non-expired download URLs
-   * - Recording wasn't previously synced
-   * - You want to ensure data is completely up-to-date
-   * - Building a "Get Latest Recordings" feature
-   * 
-   * BENEFITS:
-   * - 🔄 Fresh data directly from Zoom
-   * - 🔗 Live URLs that won't be expired
-   * - 📝 Updates your database with latest info
-   * - 🎯 Gets most current recording status
-   * 
-   * LIMITATIONS:
-   * - 🕐 Takes time (API call required)
-   * - 📡 Requires internet connection
-   * - 🔑 Needs valid Zoom token
-   * - 📊 Rate limited by Zoom API
-   * 
-   * USAGE:
-   * const { fetchRecordingData } = useZoomMeetings();
-   * 
-   * // Basic usage
-   * fetchRecordingData.mutate('zoom_meeting_id_here');
-   * 
-   * // With success handling
-   * const handleGetRecordings = async (zoomMeetingId) => {
-   *   try {
-   *     const result = await fetchRecordingData.mutateAsync(zoomMeetingId);
-   *     const urls = result.downloadUrls; // Fresh recording URLs
-   *   } catch (error) {
-   *     console.error('Failed to fetch recordings:', error);
-   *   }
-   * };
-   */
-  const fetchRecordingData = useMutation({
-    mutationFn: async (zoomMeetingId: string) => {
-      console.log('Fetching recording data for meeting:', zoomMeetingId);
-      const { data, error } = await supabase.functions.invoke('get-meeting-recordings', {
-        body: { zoomMeetingId },
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["zoom-meetings"] });
-      toast({
-        title: "Success",
-        description: "Recording data fetched successfully",
-      });
-    },
-    onError: (error: any) => {
-      console.error('Fetch recording data error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to fetch recording data",
-        variant: "destructive",
-      });
-    },
-  });
-
   const syncMeetings = useMutation({
     mutationFn: async () => {
       console.log('Syncing Zoom meetings...');
@@ -206,6 +142,5 @@ export const useZoomMeetings = () => {
     syncMeetings,
     extractTranscript,
     getRecordingUrls,
-    fetchRecordingData,
   };
 };
