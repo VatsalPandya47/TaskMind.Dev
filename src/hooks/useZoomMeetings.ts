@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +25,50 @@ export const useZoomMeetings = () => {
       return data as ZoomMeeting[];
     },
   });
+
+  /**
+   * CLIENT-SIDE UTILITY: Extract recording URLs from stored data
+   * 
+   * USE WHEN:
+   * - Displaying recording availability in lists/grids
+   * - Quick checks for existing recordings
+   * - Building UI that shows "has recording" status
+   * - You need instant results without API calls
+   * 
+   * BENEFITS:
+   * - ⚡ Instant/fast (no API calls)
+   * - 💾 Uses cached data from database
+   * - 🔄 Always available (works offline)
+   * - 📊 Perfect for lists and overview displays
+   * 
+   * LIMITATIONS:
+   * - URLs might be expired if data is old
+   * - No fresh data from Zoom
+   * - Depends on previously synced data
+   * 
+   * @param meeting - ZoomMeeting object from your meetings list
+   * @returns Array of recording objects with download/play URLs
+   */
+  const getRecordingUrls = (meeting: ZoomMeeting) => {
+    if (!meeting.recording_files) return [];
+    
+    const recordingFiles = Array.isArray(meeting.recording_files) 
+      ? meeting.recording_files 
+      : [];
+    
+    return recordingFiles
+      .filter((file: any) => file.recording_type === 'shared_screen_with_speaker_view' || file.recording_type === 'speaker_view')
+      .map((file: any) => ({
+        id: file.id,
+        recording_type: file.recording_type,
+        download_url: file.download_url,
+        play_url: file.play_url,
+        file_type: file.file_type,
+        file_size: file.file_size,
+        recording_start: file.recording_start,
+        recording_end: file.recording_end,
+      }));
+  };
 
   const syncMeetings = useMutation({
     mutationFn: async () => {
@@ -98,5 +141,6 @@ export const useZoomMeetings = () => {
     error,
     syncMeetings,
     extractTranscript,
+    getRecordingUrls,
   };
 };
