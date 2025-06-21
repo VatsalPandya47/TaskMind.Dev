@@ -14,22 +14,22 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
-// Import main app components (commented out for landing page only mode)
-// import { AuthProvider } from "@/contexts/AuthContext";
-// import Auth from "./pages/Auth";
-// import MyMeetings from "./pages/My Meetings";
-// import SummaryHistory from "./pages/SummaryHistory";
-// import ProtectedRoute from "./components/ProtectedRoute";
-// import ZoomCallback from "./components/ZoomCallback";
-// import PrivacyPolicy from "./pages/PrivacyPolicy";
-// import TermsOfUse from "./pages/TermsOfUse";
-// import Support from "./pages/Support";
-// import Documentation from "./pages/Documentation";
-// import HowItWorks from "./pages/HowItWorks";
-// import UseCases from "./pages/UseCases";
-// import Help from "./pages/Help";
-// import Careers from "./pages/Careers";
-// import Manifesto from "./pages/Manifesto";
+// Import main app components
+import { AuthProvider } from "@/contexts/AuthContext";
+import Auth from "./pages/Auth";
+import MyMeetings from "./pages/My Meetings";
+import SummaryHistory from "./pages/SummaryHistory";
+import ProtectedRoute from "./components/ProtectedRoute";
+import ZoomCallback from "./components/ZoomCallback";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfUse from "./pages/TermsOfUse";
+import Support from "./pages/Support";
+import Documentation from "./pages/Documentation";
+import HowItWorks from "./pages/HowItWorks";
+import UseCases from "./pages/UseCases";
+import Help from "./pages/Help";
+import Careers from "./pages/Careers";
+import Manifesto from "./pages/Manifesto";
 
 const queryClient = new QueryClient();
 
@@ -59,8 +59,7 @@ const App = () => {
     );
   }
 
-  // Full application mode (commented out for now)
-  /*
+  // Full application mode
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -109,7 +108,6 @@ const App = () => {
       </AuthProvider>
     </QueryClientProvider>
   );
-  */
 };
 
 export default App;
