@@ -1,7 +1,16 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Global dark mode transition styles */
+body {
+  @apply transition-colors duration-300 ease-in-out;
+}
+
+/* Optional: Smooth dark mode transitions for elements */
+* {
+  @apply transition-colors duration-300 ease-in-out;
+}
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
 
