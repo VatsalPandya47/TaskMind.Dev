@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 // Import main app components
 import { AuthProvider } from "@/contexts/AuthContext";
 import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
 import MyMeetings from "./pages/My Meetings";
 import SummaryHistory from "./pages/SummaryHistory";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -97,7 +98,7 @@ const App = () => {
                 path="/"
                 element={
                   <ProtectedRoute>
-                    <Index />
+                    <Dashboard />
                   </ProtectedRoute>
                 }
               />
