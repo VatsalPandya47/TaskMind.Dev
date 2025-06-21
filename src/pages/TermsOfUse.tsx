@@ -1,26 +1,151 @@
-
 import React from 'react';
+import { FileText, Shield, Users, AlertTriangle, Mail } from 'lucide-react';
 
 const TermsOfUse = () => {
+  const sections = [
+    {
+      icon: FileText,
+      title: "Acceptance of Terms",
+      content: [
+        "By accessing or using TaskMind, you agree to be bound by these Terms of Use",
+        "If you disagree with any part of these terms, you may not use our service",
+        "These terms apply to all users of the service, including team members and administrators",
+        "We may update these terms from time to time with notice to users"
+      ]
+    },
+    {
+      icon: Users,
+      title: "Use of Service",
+      content: [
+        "TaskMind is designed for legitimate business and productivity purposes",
+        "You are responsible for all activity that occurs under your account",
+        "You must not use the service for any illegal or unauthorized purpose",
+        "You agree to provide accurate and complete information when creating your account",
+        "You are responsible for maintaining the security of your account credentials"
+      ]
+    },
+    {
+      icon: Shield,
+      title: "Data & Privacy",
+      content: [
+        "You retain ownership of all content and data you upload to TaskMind",
+        "We process your data in accordance with our Privacy Policy",
+        "You are responsible for ensuring you have permission to share meeting data",
+        "We implement security measures to protect your data, but cannot guarantee absolute security",
+        "You can export and delete your data at any time through your account settings"
+      ]
+    },
+    {
+      icon: AlertTriangle,
+      title: "Limitations & Disclaimers",
+      content: [
+        "TaskMind is provided 'as is' without warranties of any kind",
+        "We are not responsible for the accuracy of AI-generated task extractions",
+        "We do not guarantee uninterrupted or error-free service",
+        "Our liability is limited to the amount you paid for the service in the past 12 months",
+        "We are not responsible for any decisions made based on our AI insights"
+      ]
+    }
+  ];
+
   return (
-    <div className="bg-gray-50 min-h-screen py-12">
-      <div className="container mx-auto px-6 lg:px-8 max-w-4xl bg-white p-8 rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Terms of Use</h1>
-        <div className="text-gray-700 space-y-4">
-          <p>Last updated: June 15, 2025</p>
-          <p>
-            Please read these Terms of Use ("Terms") carefully before using the TaskMind.dev website (the "Service") operated by TaskMind.dev ("us", "we", or "our").
-          </p>
-          <h2 className="text-2xl font-semibold text-gray-800 mt-6 mb-2">1. Acceptance of Terms</h2>
-          <p>
-            By accessing or using the Service, you agree to be bound by these Terms. If you disagree with any part of the terms, then you may not access the Service.
-          </p>
-          <h2 className="text-2xl font-semibold text-gray-800 mt-6 mb-2">2. Use of Service</h2>
-          <p>
-            You agree not to use the service for any illegal or unauthorized purpose. You are responsible for all your activity in connection with the Service.
-          </p>
-          <h2 className="text-2xl font-semibold text-gray-800 mt-6 mb-2">3. Termination</h2>
-          <p>We may terminate or suspend access to our Service immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-20">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <h1 className="text-4xl md:text-5xl font-bold text-black mb-6">
+              Terms of Use
+            </h1>
+            <p className="text-xl text-gray-600">
+              The rules and guidelines for using TaskMind
+            </p>
+            <p className="text-sm text-gray-500 mt-4">
+              Last updated: January 2025
+            </p>
+          </div>
+
+          {/* Introduction */}
+          <div className="bg-white rounded-2xl p-8 shadow-lg mb-12">
+            <h2 className="text-2xl font-bold text-black mb-4">Agreement to Terms</h2>
+            <p className="text-gray-600 leading-relaxed">
+              These Terms of Use ("Terms") govern your use of TaskMind and its services. By accessing or using TaskMind, 
+              you agree to be bound by these terms. If you're using TaskMind on behalf of an organization, you represent 
+              that you have the authority to bind that organization to these terms.
+            </p>
+          </div>
+
+          {/* Main Sections */}
+          <div className="space-y-8 mb-12">
+            {sections.map((section, index) => (
+              <div key={index} className="bg-white rounded-2xl p-8 shadow-lg">
+                <div className="flex items-start gap-4 mb-6">
+                  <div className="bg-blue-50 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <section.icon size={24} className="text-blue-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-black">{section.title}</h3>
+                </div>
+                <ul className="space-y-3">
+                  {section.content.map((item, itemIndex) => (
+                    <li key={itemIndex} className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <span className="text-gray-600">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          {/* Additional Terms */}
+          <div className="bg-white rounded-2xl p-8 shadow-lg mb-12">
+            <h3 className="text-2xl font-bold text-black mb-4">Subscription & Billing</h3>
+            <p className="text-gray-600 mb-4">
+              TaskMind offers both free and paid subscription plans. Paid subscriptions are billed in advance on a recurring basis. 
+              You can cancel your subscription at any time through your account settings.
+            </p>
+            
+            <h3 className="text-2xl font-bold text-black mb-4">Intellectual Property</h3>
+            <p className="text-gray-600 mb-4">
+              TaskMind and its original content, features, and functionality are owned by TaskMind and are protected by international 
+              copyright, trademark, patent, trade secret, and other intellectual property laws.
+            </p>
+            
+            <h3 className="text-2xl font-bold text-black mb-4">Termination</h3>
+            <p className="text-gray-600 mb-4">
+              We may terminate or suspend your account immediately, without prior notice, for conduct that we believe violates these 
+              Terms or is harmful to other users, us, or third parties. Upon termination, your right to use the service will cease immediately.
+            </p>
+            
+            <h3 className="text-2xl font-bold text-black mb-4">Governing Law</h3>
+            <p className="text-gray-600">
+              These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which TaskMind operates, 
+              without regard to its conflict of law provisions.
+            </p>
+          </div>
+
+          {/* Contact Section */}
+          <div className="bg-blue-50 rounded-2xl p-8 text-center">
+            <h3 className="text-2xl font-bold text-black mb-4">Questions About These Terms?</h3>
+            <p className="text-gray-600 mb-6">
+              If you have any questions about these Terms of Use, please contact our legal team.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a 
+                href="mailto:legal@taskmind.dev" 
+                className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700 transition"
+              >
+                <Mail className="inline mr-2" size={20} />
+                Contact Legal Team
+              </a>
+              <a 
+                href="/" 
+                className="inline-block bg-gray-600 text-white px-6 py-3 rounded-lg shadow hover:bg-gray-700 transition"
+              >
+                Back to Dashboard
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>

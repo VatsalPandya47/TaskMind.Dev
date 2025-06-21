@@ -70,6 +70,33 @@ export const useZoomMeetings = () => {
       }));
   };
 
+  // Fetch fresh recording data from Zoom API
+  const fetchRecordingData = useMutation({
+    mutationFn: async (zoomMeetingId: string) => {
+      console.log('Fetching recording data for meeting:', zoomMeetingId);
+      const { data, error } = await supabase.functions.invoke('get-meeting-recordings', {
+        body: { zoomMeetingId },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["zoom-meetings"] });
+      toast({
+        title: "Success",
+        description: "Recording data fetched successfully",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Fetch recording data error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to fetch recording data",
+        variant: "destructive",
+      });
+    },
+  });
+
   const syncMeetings = useMutation({
     mutationFn: async () => {
       console.log('Syncing Zoom meetings...');
@@ -142,5 +169,6 @@ export const useZoomMeetings = () => {
     syncMeetings,
     extractTranscript,
     getRecordingUrls,
+    fetchRecordingData,
   };
 };
