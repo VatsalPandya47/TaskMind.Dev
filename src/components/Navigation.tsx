@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Brain, Calendar, CheckSquare, Settings, BarChart3, LogOut, Menu, X, CalendarDays } from "lucide-react";
+import { Brain, Calendar, CheckSquare, Settings, BarChart3, LogOut, Menu, X, CalendarDays, History } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface NavigationProps {
@@ -23,6 +23,7 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   // New pages (section navigation)
   const sectionNavItems = [
     { id: "my-meetings", label: "My Meetings", to: "/my-meetings", icon: CalendarDays },
+    { id: "summary-history", label: "Summary History", to: "/summary-history", icon: History },
     { id: "how-it-works", label: "How it works", to: "/how-it-works" },
     { id: "use-cases", label: "Use Cases", to: "/use-cases" },
     { id: "help", label: "Help", to: "/help" },
