@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useMeetings } from "@/hooks/useMeetings";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Calendar, Brain, FileText, Trash2, Video } from "lucide-react";
 import { format } from "date-fns";
 import TranscriptProcessor from "./TranscriptProcessor";
+import TranscriptSummarizer from "./TranscriptSummarizer";
 import ZoomIntegration from "./ZoomIntegration";
 import { MeetingSkeleton } from "./LoadingSkeleton";
 
@@ -21,6 +21,7 @@ const MeetingsTab = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(null);
   const [isTranscriptDialogOpen, setIsTranscriptDialogOpen] = useState(false);
+  const [isSummarizerDialogOpen, setIsSummarizerDialogOpen] = useState(false);
   const [newMeeting, setNewMeeting] = useState({
     title: "",
     date: "",
@@ -58,6 +59,11 @@ const MeetingsTab = () => {
   const handleProcessTranscript = (meetingId: string) => {
     setSelectedMeetingId(meetingId);
     setIsTranscriptDialogOpen(true);
+  };
+
+  const handleSummarizeTranscript = (meetingId: string) => {
+    setSelectedMeetingId(meetingId);
+    setIsSummarizerDialogOpen(true);
   };
 
   // Get today's date in YYYY-MM-DD format for date input max
@@ -327,6 +333,15 @@ const MeetingsTab = () => {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => handleSummarizeTranscript(meeting.id)}
+                              className="text-green-600 hover:text-green-800"
+                            >
+                              <FileText className="h-4 w-4 mr-1" />
+                              Summarize
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => deleteMeeting.mutate(meeting.id)}
                               disabled={deleteMeeting.isPending}
                             >
@@ -355,6 +370,18 @@ const MeetingsTab = () => {
           isOpen={isTranscriptDialogOpen}
           onClose={() => {
             setIsTranscriptDialogOpen(false);
+            setSelectedMeetingId(null);
+          }}
+        />
+      )}
+
+      {/* Transcript Summarizer Dialog */}
+      {selectedMeetingId && (
+        <TranscriptSummarizer
+          meetingId={selectedMeetingId}
+          isOpen={isSummarizerDialogOpen}
+          onClose={() => {
+            setIsSummarizerDialogOpen(false);
             setSelectedMeetingId(null);
           }}
         />
