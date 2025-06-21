@@ -124,8 +124,8 @@ const SummariesTab = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Summaries</h1>
-            <p className="text-gray-600">View your AI-generated meeting summaries</p>
+            <h1 className="text-3xl font-bold text-gray-900">AI Summaries 🧠</h1>
+            <p className="text-gray-600">Your AI-generated meeting summaries and insights</p>
           </div>
         </div>
         
@@ -133,7 +133,7 @@ const SummariesTab = () => {
           <CardContent className="flex items-center justify-center py-12">
             <div className="flex items-center gap-2">
               <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-              <span className="text-gray-600">Loading summaries...</span>
+              <span className="text-gray-600">Loading your summaries...</span>
             </div>
           </CardContent>
         </Card>
@@ -146,15 +146,15 @@ const SummariesTab = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Summaries</h1>
-            <p className="text-gray-600">View your AI-generated meeting summaries</p>
+            <h1 className="text-3xl font-bold text-gray-900">AI Summaries 🧠</h1>
+            <p className="text-gray-600">Your AI-generated meeting summaries and insights</p>
           </div>
         </div>
         
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Failed to load summaries: {error.message}
+            Oops! Failed to load summaries: {error.message}
           </AlertDescription>
         </Alert>
       </div>
@@ -167,8 +167,8 @@ const SummariesTab = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Summaries</h1>
-          <p className="text-gray-600">View your AI-generated meeting summaries</p>
+          <h1 className="text-3xl font-bold text-gray-900">AI Summaries 🧠</h1>
+          <p className="text-gray-600">Your AI-generated meeting summaries and insights</p>
         </div>
       </div>
 
@@ -177,7 +177,7 @@ const SummariesTab = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-green-600" />
-            Summary Statistics
+            Your Summary Stats
           </CardTitle>
           <CardDescription>
             Overview of your AI-generated meeting summaries
