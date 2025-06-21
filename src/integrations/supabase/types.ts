@@ -57,63 +57,6 @@ export type Database = {
         }
         Relationships: []
       }
-      summaries: {
-        Row: {
-          id: string
-          user_id: string
-          meeting_id: string
-          summary: string
-          transcript_sample: string | null
-          ai_model: string
-          prompt_version: string
-          processing_time_ms: number | null
-          retry_attempts: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          meeting_id: string
-          summary: string
-          transcript_sample?: string | null
-          ai_model?: string
-          prompt_version?: string
-          processing_time_ms?: number | null
-          retry_attempts?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          meeting_id?: string
-          summary?: string
-          transcript_sample?: string | null
-          ai_model?: string
-          prompt_version?: string
-          processing_time_ms?: number | null
-          retry_attempts?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "summaries_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "summaries_meeting_id_fkey"
-            columns: ["meeting_id"]
-            isOneToOne: true
-            referencedRelation: "meetings"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       profiles: {
         Row: {
           created_at: string
@@ -223,6 +166,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      waitlist: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name?: string | null
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          source?: string | null
+        }
+        Relationships: []
       }
       zoom_meetings: {
         Row: {
