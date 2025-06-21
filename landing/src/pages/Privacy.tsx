@@ -1,4 +1,3 @@
-
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Shield, Lock, Eye, Database } from 'lucide-react';
@@ -162,7 +161,7 @@ const Privacy = () => {
                 <div className="bg-gray-50 p-6 rounded-lg">
                   <p className="text-gray-600 mb-2"><strong>Email:</strong> support@taskmind.dev</p>
                   <p className="text-gray-600 mb-2"><strong>Address:</strong> TaskMind LLC 1341 n 9th St Lincoln NE 68508</p>
-                  <p className="text-gray-600"><strong>Data Protection Officer:</strong> dpo@taskmind.ai</p>
+                  <p className="text-gray-600"><strong>Data Protection Officer:</strong> dpo@taskmind.dev</p>
                 </div>
               </div>
             </div>
