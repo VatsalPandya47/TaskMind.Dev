@@ -286,8 +286,8 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
               onClick={handleExportData}
               className="bg-white border-gray-200 hover:bg-gray-50 rounded-xl"
             >
-              <Download className="h-4 w-4 mr-2" />
-              Export Data
+              <Share2 className="h-4 w-4 mr-2" />
+              Download Data
             </Button>
           </div>
         </div>
@@ -326,11 +326,11 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                 </div>
               </div>
               <div className="flex items-center justify-center">
-                <div className={`p-6 rounded-2xl ${productivityLevel.bg}`}>
+                <div className={`p-6 rounded-2xl ${productivityLevel.bg} hover:${productivityLevel.bg} transition-colors duration-200`}>
                   {productivityScore >= 80 ? (
                     <Award className="h-12 w-12 text-green-600" />
                   ) : productivityScore >= 60 ? (
-                    <Star className="h-12 w-12 text-blue-600" />
+                    <Star className="h-12 w-12 text-blue-600 hover:text-blue-600" />
                   ) : productivityScore >= 40 ? (
                     <TrendingUp className="h-12 w-12 text-yellow-600" />
                   ) : (
@@ -721,7 +721,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs border-gray-300 text-gray-700 dark:border-gray-600 dark:text-gray-300">
                         {meeting.participants?.length || 0} attendees
                       </Badge>
                       <Button 
