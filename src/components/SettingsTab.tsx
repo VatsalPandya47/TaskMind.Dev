@@ -196,7 +196,7 @@ const SettingsTab = () => {
                   id="first_name"
                   value={profile.first_name}
                   onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
-                  placeholder="What should we call you?"
+                  placeholder="Enter your first name"
                   className="rounded-xl"
                 />
               </div>
@@ -440,7 +440,7 @@ const SettingsTab = () => {
             Your Data
           </CardTitle>
           <CardDescription>
-            Export your data or manage your account
+            Download your data or manage your account
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -449,12 +449,12 @@ const SettingsTab = () => {
               <div className="flex items-center gap-3">
                 <Download className="h-5 w-5 text-blue-600" />
                 <div>
-                  <p className="font-medium">Export Your Data</p>
+                  <p className="font-medium">Download Your Data</p>
                   <p className="text-sm text-gray-600">Download all your meetings and tasks data</p>
                 </div>
               </div>
               <Button onClick={exportData} className="bg-blue-600 hover:bg-blue-700 rounded-lg">
-                Export
+                Download
               </Button>
             </div>
             <Separator />
