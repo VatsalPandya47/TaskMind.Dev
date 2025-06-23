@@ -33,6 +33,7 @@ import UseCases from "./pages/UseCases";
 import Help from "./pages/Help";
 import Careers from "./pages/Careers";
 import Manifesto from "./pages/Manifesto";
+import AppLayout from "./components/AppLayout";
 
 const queryClient = new QueryClient();
 
@@ -79,13 +80,55 @@ const App = () => {
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   <Route path="/terms-of-use" element={<TermsOfUse />} />
-                  <Route path="/support" element={<Support />} />
-                  <Route path="/documentation" element={<Documentation />} />
-                  <Route path="/how-it-works" element={<HowItWorks />} />
-                  <Route path="/use-cases" element={<UseCases />} />
-                  <Route path="/help" element={<Help />} />
-                  <Route path="/careers" element={<Careers />} />
-                  <Route path="/manifesto" element={<Manifesto />} />
+                  <Route path="/support" element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Support />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/documentation" element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Documentation />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/how-it-works" element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <HowItWorks />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/use-cases" element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <UseCases />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/help" element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Help />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/careers" element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Careers />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/manifesto" element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Manifesto />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } />
                   <Route path="/zoom-callback" element={
                     <ProtectedRoute>
                       <ZoomCallback />
@@ -93,12 +136,16 @@ const App = () => {
                   } />
                   <Route path="/my-meetings" element={
                     <ProtectedRoute>
-                      <MyMeetings />
+                      <AppLayout>
+                        <MyMeetings />
+                      </AppLayout>
                     </ProtectedRoute>
                   } />
                   <Route path="/summary-history" element={
                     <ProtectedRoute>
-                      <SummaryHistory />
+                      <AppLayout>
+                        <SummaryHistory />
+                      </AppLayout>
                     </ProtectedRoute>
                   } />
                   <Route

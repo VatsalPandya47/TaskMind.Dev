@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   Brain, 
@@ -33,7 +34,10 @@ interface NavigationProps {
 const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   const { signOut, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isUserDetailsExpanded, setIsUserDetailsExpanded] = useState(true);
+  const [isUserDetailsExpanded, setIsUserDetailsExpanded] = useState(false);
+  const [showUserDetails, setShowUserDetails] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const mainNavItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3, description: "Your productivity overview" },
@@ -88,9 +92,9 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
       } lg:translate-x-0`}>
         <div className="flex flex-col h-full">
           {/* Scrollable content area */}
-          <div className="flex-1 overflow-y-auto p-6 pb-0">
+          <div className="flex-1 overflow-y-auto p-6 pb-6">
             {/* Logo */}
-            <div className="flex items-center space-x-3 mb-8">
+            <div className="flex items-center space-x-3 mb-6">
               <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-sm">
                 <Brain className="h-6 w-6 text-white" />
               </div>
@@ -105,6 +109,7 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-4">
                 Main
               </p>
+              
               {mainNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -112,7 +117,13 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
                   <button
                     key={item.id}
                     onClick={() => {
-                      onTabChange(item.id);
+                      // If we're on a Resources page, navigate back to Dashboard with the correct tab
+                      if (location.pathname !== "/") {
+                        navigate("/", { state: { activeTab: item.id } });
+                      } else {
+                        // If we're already on Dashboard, just change the tab
+                        onTabChange(item.id);
+                      }
                       setIsMobileMenuOpen(false);
                     }}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
@@ -156,94 +167,114 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
                 </div>
               </div>
             </nav>
+            
+            {/* Spacer for user details */}
+            <div className="h-4"></div>
           </div>
 
-          {/* Bottom section - collapsible */}
-          <div className="border-t border-gray-200 bg-gray-50/80 backdrop-blur-sm">
-            {/* Toggle button */}
-            <button
-              onClick={() => setIsUserDetailsExpanded(!isUserDetailsExpanded)}
-              className="w-full p-3 flex items-center justify-between text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                <span className="text-sm font-medium">User Details</span>
-              </div>
-              {isUserDetailsExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronUp className="h-4 w-4" />
-              )}
-            </button>
-            
-            {/* Collapsible content */}
-            {isUserDetailsExpanded && (
-              <div className="p-6 pt-0">
-                {/* User info */}
-                <div className="mb-4 p-3 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 shadow-sm">
-                  <p className="text-xs text-gray-500 mb-1">Signed in as</p>
-                  <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
+          {/* Compact User Section */}
+          {showUserDetails && (
+            <div className="border-t border-gray-200 bg-gray-50/80 backdrop-blur-sm flex-shrink-0">
+              {/* Always visible user info */}
+              <div className="p-3 flex items-center justify-between">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <User className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-gray-500 truncate">Signed in as</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
+                  </div>
                 </div>
-                
-                {/* Quick links */}
-                <div className="mb-4 grid grid-cols-2 gap-2 text-xs">
-                  <button 
-                    onClick={() => {
-                      onTabChange("dashboard");
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="flex items-center gap-1 text-gray-600 hover:text-gray-900 hover:underline p-2 rounded-lg hover:bg-white transition-colors" 
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setIsUserDetailsExpanded(!isUserDetailsExpanded)}
+                    className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                    title={isUserDetailsExpanded ? "Collapse" : "Expand"}
                   >
-                    <Home className="h-3 w-3" />
-                    Dashboard
+                    {isUserDetailsExpanded ? (
+                      <ChevronDown className="h-3 w-3" />
+                    ) : (
+                      <ChevronUp className="h-3 w-3" />
+                    )}
                   </button>
-                  <Link 
-                    to="/support" 
-                    className="flex items-center gap-1 text-gray-600 hover:text-gray-900 hover:underline p-2 rounded-lg hover:bg-white transition-colors" 
-                    onClick={() => setIsMobileMenuOpen(false)}
+                  <button
+                    onClick={() => setShowUserDetails(false)}
+                    className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Hide user details"
                   >
-                    <HelpCircle className="h-3 w-3" />
-                    Support
-                  </Link>
-                  <Link 
-                    to="/documentation" 
-                    className="flex items-center gap-1 text-gray-600 hover:text-gray-900 hover:underline p-2 rounded-lg hover:bg-white transition-colors" 
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <FileCheck className="h-3 w-3" />
-                    Docs
-                  </Link>
-                  <Link 
-                    to="/privacy-policy" 
-                    className="flex items-center gap-1 text-gray-600 hover:text-gray-900 hover:underline p-2 rounded-lg hover:bg-white transition-colors" 
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Shield className="h-3 w-3" />
-                    Privacy
-                  </Link>
-                  <Link 
-                    to="/terms-of-use" 
-                    className="flex items-center gap-1 text-gray-600 hover:text-gray-900 hover:underline p-2 rounded-lg hover:bg-white transition-colors" 
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <FileText className="h-3 w-3" />
-                    Terms
-                  </Link>
+                    <X className="h-3 w-3" />
+                  </button>
                 </div>
-                
-                {/* Sign out */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSignOut}
-                  className="w-full text-gray-600 hover:text-gray-900 border-gray-300 hover:border-gray-400"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
               </div>
-            )}
-          </div>
+              
+              {/* Expandable quick actions */}
+              {isUserDetailsExpanded && (
+                <div className="px-3 pb-3 space-y-2">
+                  <div className="flex gap-1">
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        onTabChange("dashboard");
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="flex-1 h-8 text-xs"
+                    >
+                      <Home className="h-3 w-3 mr-1" />
+                      Dashboard
+                    </Button>
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      onClick={handleSignOut}
+                      className="h-8 text-xs"
+                    >
+                      <LogOut className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-1 text-xs">
+                    <Link 
+                      to="/support" 
+                      className="flex items-center justify-center gap-1 text-gray-600 hover:text-gray-900 hover:bg-white p-2 rounded-lg transition-colors" 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <HelpCircle className="h-3 w-3" />
+                      Support
+                    </Link>
+                    <Link 
+                      to="/documentation" 
+                      className="flex items-center justify-center gap-1 text-gray-600 hover:text-gray-900 hover:bg-white p-2 rounded-lg transition-colors" 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <FileCheck className="h-3 w-3" />
+                      Docs
+                    </Link>
+                    <Link 
+                      to="/privacy-policy" 
+                      className="flex items-center justify-center gap-1 text-gray-600 hover:text-gray-900 hover:bg-white p-2 rounded-lg transition-colors" 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Shield className="h-3 w-3" />
+                      Privacy
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Show user details button when hidden */}
+          {!showUserDetails && (
+            <div className="border-t border-gray-200 bg-gray-50/80 backdrop-blur-sm flex-shrink-0">
+              <button
+                onClick={() => setShowUserDetails(true)}
+                className="w-full p-3 flex items-center justify-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              >
+                <User className="h-4 w-4" />
+                <span className="text-sm font-medium">Show User Details</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>

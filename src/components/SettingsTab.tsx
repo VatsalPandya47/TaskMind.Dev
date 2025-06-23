@@ -147,10 +147,10 @@ const SettingsTab = () => {
     });
   };
 
-  const exportData = () => {
+  const downloadData = () => {
     toast({
-      title: "Export Started",
-      description: "Your data export is being prepared. You'll receive an email when it's ready.",
+      title: "Download Started",
+      description: "Your data download is being prepared. You'll receive an email when it's ready.",
     });
   };
 
@@ -453,7 +453,7 @@ const SettingsTab = () => {
                   <p className="text-sm text-gray-600">Download all your meetings and tasks data</p>
                 </div>
               </div>
-              <Button onClick={exportData} className="bg-blue-600 hover:bg-blue-700 rounded-lg">
+              <Button onClick={downloadData} className="bg-blue-600 hover:bg-blue-700 rounded-lg">
                 Download
               </Button>
             </div>

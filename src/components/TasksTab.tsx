@@ -34,7 +34,7 @@ const TasksTab = () => {
     error: meetingsError 
   } = useMeetings() || {};
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!newTask.task.trim() || !newTask.assignee.trim()) {
