@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckSquare, Plus, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from '../context/ThemeContext';
 
 const TasksTab = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -18,6 +19,7 @@ const TasksTab = () => {
     due_date: "",
     priority: "Medium",
     meeting_id: "none",
+    status: "In Progress",
   });
   
   // Use hooks with error boundaries
@@ -33,6 +35,8 @@ const TasksTab = () => {
     isLoading: meetingsLoading,
     error: meetingsError 
   } = useMeetings() || {};
+
+  const { theme } = useTheme();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -62,6 +66,7 @@ const TasksTab = () => {
         due_date: newTask.due_date || null,
         priority: newTask.priority,
         meeting_id: newTask.meeting_id === "none" ? null : newTask.meeting_id,
+        status: newTask.status,
       });
 
       setNewTask({
@@ -70,6 +75,7 @@ const TasksTab = () => {
         due_date: "",
         priority: "Medium",
         meeting_id: "none",
+        status: "In Progress",
       });
       setShowCreateForm(false);
       
@@ -85,6 +91,10 @@ const TasksTab = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleStatusChange = (taskId, newStatus) => {
+    console.log(`Task ID: ${taskId}, New Status: ${newStatus}`);
   };
 
   if (tasksLoading || meetingsLoading) {
@@ -160,7 +170,7 @@ const TasksTab = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="assignee">Who's the hero? *</Label>
+                  <Label htmlFor="assignee">Owner *</Label>
                   <Input
                     id="assignee"
                     value={newTask.assignee}
@@ -250,15 +260,24 @@ const TasksTab = () => {
           ) : (
             <div className="space-y-4">
               {tasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between p-4 border rounded">
+                <div key={task.id} className={`flex items-center justify-between p-4 border rounded ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}>
                   <div>
                     <p className={`font-medium ${task.completed ? 'line-through opacity-60' : ''}`}>
                       {task.task}
                     </p>
-                    <p className="text-sm text-gray-600">Assignee: {task.assignee}</p>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Owner: {task.assignee}</p>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Due Date: {task.due_date || 'N/A'}</p>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {task.completed ? "Completed" : "Pending"}
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={task.status}
+                      onChange={(e) => handleStatusChange(task.id, e.target.value)}
+                      className={`text-sm ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'}`}
+                    >
+                      <option value="Complete">Complete</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Stuck">Stuck</option>
+                    </select>
                   </div>
                 </div>
               ))}
