@@ -11,6 +11,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { 
   Calendar, 
   CheckSquare, 
@@ -48,7 +56,11 @@ import {
   ChevronRight,
   TrendingDown,
   Minus,
-  Equal
+  Equal,
+  Mail,
+  MessageCircle,
+  Copy,
+  ExternalLink
 } from "lucide-react";
 import { format, isAfter, isBefore, startOfDay, addDays, differenceInDays } from "date-fns";
 import { StatsSkeleton } from "./LoadingSkeleton";
@@ -127,6 +139,10 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
   };
 
   const handleExportData = () => {
+    // This will be handled by the dialog trigger
+  };
+
+  const handleDownloadData = () => {
     const data = {
       meetings: meetings,
       tasks: tasks,
@@ -149,8 +165,74 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
     URL.revokeObjectURL(url);
     
     toast({
-      title: "Data Exported! 📁",
+      title: "Data Downloaded! 📁",
       description: "Your TaskMind data has been downloaded successfully!",
+    });
+  };
+
+  const handleExportViaEmail = () => {
+    const data = {
+      meetings: meetings,
+      tasks: tasks,
+      summary: {
+        totalMeetings: meetings.length,
+        totalTasks: tasks.length,
+        completedTasks: tasks.filter(t => t.completed).length,
+        pendingTasks: tasks.filter(t => !t.completed).length
+      }
+    };
+    
+    const subject = encodeURIComponent(`TaskMind Report - ${new Date().toLocaleDateString()}`);
+    const body = encodeURIComponent(`Here's your TaskMind productivity report:\n\n` +
+      `📊 Summary:\n` +
+      `• Total Meetings: ${data.summary.totalMeetings}\n` +
+      `• Total Tasks: ${data.summary.totalTasks}\n` +
+      `• Completed Tasks: ${data.summary.completedTasks}\n` +
+      `• Pending Tasks: ${data.summary.pendingTasks}\n\n` +
+      `📋 Detailed data is attached as JSON file.`);
+    
+    const mailtoLink = `mailto:?subject=${subject}&body=${body}`;
+    window.open(mailtoLink);
+    
+    toast({
+      title: "Export via Email 📧",
+      description: "Opening your email client to share the report!",
+    });
+  };
+
+  const handleExportViaSlack = () => {
+    // For now, we'll copy the summary to clipboard and show instructions
+    const summary = `📊 TaskMind Report - ${new Date().toLocaleDateString()}\n` +
+      `• Total Meetings: ${meetings.length}\n` +
+      `• Total Tasks: ${tasks.length}\n` +
+      `• Completed Tasks: ${tasks.filter(t => t.completed).length}\n` +
+      `• Pending Tasks: ${tasks.filter(t => !t.completed).length}`;
+    
+    navigator.clipboard.writeText(summary);
+    
+    toast({
+      title: "Summary Copied! 📋",
+      description: "Summary copied to clipboard. Paste it in Slack!",
+    });
+  };
+
+  const handleCopyToClipboard = () => {
+    const data = {
+      meetings: meetings,
+      tasks: tasks,
+      summary: {
+        totalMeetings: meetings.length,
+        totalTasks: tasks.length,
+        completedTasks: tasks.filter(t => t.completed).length,
+        pendingTasks: tasks.filter(t => !t.completed).length
+      }
+    };
+    
+    navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    
+    toast({
+      title: "Data Copied! 📋",
+      description: "Your TaskMind data has been copied to clipboard!",
     });
   };
 
@@ -281,14 +363,62 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh Data
             </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleExportData}
-              className="bg-white border-gray-200 hover:bg-gray-50 rounded-xl"
-            >
-              <Share2 className="h-4 w-4 mr-2" />
-              Download Data
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="bg-white border-gray-200 hover:bg-gray-50 rounded-xl"
+                >
+                  <ArrowUpRight className="h-4 w-4 mr-2" />
+                  Export Data
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <ArrowUpRight className="h-5 w-5 text-blue-600" />
+                    Export Your Data
+                  </DialogTitle>
+                  <DialogDescription>
+                    Choose how you'd like to export your TaskMind data and reports.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid grid-cols-1 gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleDownloadData}
+                    className="justify-start h-12"
+                  >
+                    <Download className="h-4 w-4 mr-3" />
+                    Download as JSON File
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleExportViaEmail}
+                    className="justify-start h-12"
+                  >
+                    <Mail className="h-4 w-4 mr-3" />
+                    Export via Email
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleExportViaSlack}
+                    className="justify-start h-12"
+                  >
+                    <MessageCircle className="h-4 w-4 mr-3" />
+                    Share to Slack
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleCopyToClipboard}
+                    className="justify-start h-12"
+                  >
+                    <Copy className="h-4 w-4 mr-3" />
+                    Copy to Clipboard
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 

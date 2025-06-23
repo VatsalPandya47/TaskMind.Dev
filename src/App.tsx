@@ -3,10 +3,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { config, isLandingPageOnly } from "./config";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { config, isLandingPageOnly } from "./config";
 import "./App.css";
 
 // Import landing page components
@@ -33,6 +33,7 @@ import UseCases from "./pages/UseCases";
 import Help from "./pages/Help";
 import Careers from "./pages/Careers";
 import Manifesto from "./pages/Manifesto";
+import AppLayout from "./components/AppLayout";
 
 const queryClient = new QueryClient();
 
@@ -40,27 +41,25 @@ const App = () => {
   // Show landing page only mode
   if (isLandingPageOnly()) {
     return (
-      <ThemeProvider>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <div className="no-select">
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/blog" element={<Blog />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                  <Route path="/terms" element={<Terms />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-            </div>
-          </TooltipProvider>
-        </QueryClientProvider>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <div className="no-select">
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </div>
+        </TooltipProvider>
+      </QueryClientProvider>
     );
   }
 
@@ -81,13 +80,55 @@ const App = () => {
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   <Route path="/terms-of-use" element={<TermsOfUse />} />
-                  <Route path="/support" element={<Support />} />
-                  <Route path="/documentation" element={<Documentation />} />
-                  <Route path="/how-it-works" element={<HowItWorks />} />
-                  <Route path="/use-cases" element={<UseCases />} />
-                  <Route path="/help" element={<Help />} />
-                  <Route path="/careers" element={<Careers />} />
-                  <Route path="/manifesto" element={<Manifesto />} />
+                  <Route path="/support" element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Support />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/documentation" element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Documentation />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/how-it-works" element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <HowItWorks />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/use-cases" element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <UseCases />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/help" element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Help />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/careers" element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Careers />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/manifesto" element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Manifesto />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } />
                   <Route path="/zoom-callback" element={
                     <ProtectedRoute>
                       <ZoomCallback />
@@ -95,12 +136,16 @@ const App = () => {
                   } />
                   <Route path="/my-meetings" element={
                     <ProtectedRoute>
-                      <MyMeetings />
+                      <AppLayout>
+                        <MyMeetings />
+                      </AppLayout>
                     </ProtectedRoute>
                   } />
                   <Route path="/summary-history" element={
                     <ProtectedRoute>
-                      <SummaryHistory />
+                      <AppLayout>
+                        <SummaryHistory />
+                      </AppLayout>
                     </ProtectedRoute>
                   } />
                   <Route
