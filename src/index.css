@@ -1,7 +1,88 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Global dark mode transition styles */
+body {
+  @apply transition-colors duration-300 ease-in-out;
+}
+
+/* Optional: Smooth dark mode transitions for elements */
+* {
+  @apply transition-colors duration-300 ease-in-out;
+}
+
+/* Navigation active state styles - ensure they're not overridden */
+.nav-button-active {
+  background: linear-gradient(to right, rgb(219 234 254), rgb(199 210 254)) !important;
+  color: rgb(30 64 175) !important;
+  border: 2px solid rgb(147 197 253) !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+  font-weight: 600 !important;
+}
+
+.nav-button-active .nav-icon {
+  color: rgb(29 78 216) !important;
+}
+
+.nav-button-active .nav-text {
+  color: rgb(30 64 175) !important;
+}
+
+.nav-button-active .nav-description {
+  color: rgb(37 99 235) !important;
+}
+
+/* Auth page animations */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1s;
+}
+
+.animation-delay-3000 {
+  animation-delay: 3s;
+}
+
+/* Glassmorphism effects */
+.glass {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
 

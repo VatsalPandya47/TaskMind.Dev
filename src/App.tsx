@@ -4,6 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { config, isLandingPageOnly } from "./config";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
+import { ThemeToggle } from "./components/ThemeToggle";
 import "./App.css";
 
 // Import landing page components
@@ -15,7 +18,6 @@ import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 // Import main app components
-import { AuthProvider } from "@/contexts/AuthContext";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import MyMeetings from "./pages/My Meetings";
@@ -38,76 +40,85 @@ const App = () => {
   // Show landing page only mode
   if (isLandingPageOnly()) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <div className="no-select">
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/terms" element={<Terms />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </div>
-        </TooltipProvider>
-      </QueryClientProvider>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <div className="no-select">
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/terms" element={<Terms />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </div>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
     );
   }
 
   // Full application mode
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms-of-use" element={<TermsOfUse />} />
-              <Route path="/support" element={<Support />} />
-              <Route path="/documentation" element={<Documentation />} />
-              <Route path="/how-it-works" element={<HowItWorks />} />
-              <Route path="/use-cases" element={<UseCases />} />
-              <Route path="/help" element={<Help />} />
-              <Route path="/careers" element={<Careers />} />
-              <Route path="/manifesto" element={<Manifesto />} />
-              <Route path="/zoom-callback" element={
-                <ProtectedRoute>
-                  <ZoomCallback />
-                </ProtectedRoute>
-              } />
-              <Route path="/my-meetings" element={
-                <ProtectedRoute>
-                  <MyMeetings />
-                </ProtectedRoute>
-              } />
-              <Route path="/summary-history" element={
-                <ProtectedRoute>
-                  <SummaryHistory />
-                </ProtectedRoute>
-              } />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 text-gray-900 transition-colors duration-300 relative">
+              <div className="fixed bottom-4 right-4 z-50">
+                <ThemeToggle />
+              </div>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/terms-of-use" element={<TermsOfUse />} />
+                  <Route path="/support" element={<Support />} />
+                  <Route path="/documentation" element={<Documentation />} />
+                  <Route path="/how-it-works" element={<HowItWorks />} />
+                  <Route path="/use-cases" element={<UseCases />} />
+                  <Route path="/help" element={<Help />} />
+                  <Route path="/careers" element={<Careers />} />
+                  <Route path="/manifesto" element={<Manifesto />} />
+                  <Route path="/zoom-callback" element={
+                    <ProtectedRoute>
+                      <ZoomCallback />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/my-meetings" element={
+                    <ProtectedRoute>
+                      <MyMeetings />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/summary-history" element={
+                    <ProtectedRoute>
+                      <SummaryHistory />
+                    </ProtectedRoute>
+                  } />
+                  <Route
+                    path="/"
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </div>
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 };
 
