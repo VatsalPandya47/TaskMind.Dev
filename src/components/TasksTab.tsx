@@ -94,9 +94,12 @@ const TasksTab = () => {
     }
   };
 
-  const handleStatusChange = (taskId: string, newStatus: string) => {
-    updateTask.mutateAsync({ id: taskId, status: newStatus });
-    console.log(`Task ID: ${taskId}, New Status: ${newStatus}`);
+  const handleStatusChange = async (taskId: string, newStatus: string) => {
+    try {
+      await updateTask.mutateAsync({ id: taskId, status: newStatus });
+    } catch (error) {
+      console.error('Error updating task status:', error);
+    }
   };
 
   if (tasksLoading || meetingsLoading) {
