@@ -27,7 +27,8 @@ const TasksTab = () => {
     tasks = [], 
     isLoading: tasksLoading, 
     createTask,
-    error: tasksError 
+    error: tasksError,
+    updateTask
   } = useTasks() || {};
 
   const { 
@@ -93,7 +94,8 @@ const TasksTab = () => {
     }
   };
 
-  const handleStatusChange = (taskId, newStatus) => {
+  const handleStatusChange = (taskId: string, newStatus: string) => {
+    updateTask.mutateAsync({ id: taskId, status: newStatus });
     console.log(`Task ID: ${taskId}, New Status: ${newStatus}`);
   };
 
@@ -269,15 +271,16 @@ const TasksTab = () => {
                     <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Due Date: {task.due_date || 'N/A'}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <select
-                      value={task.status}
-                      onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                      className={`text-sm ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'}`}
-                    >
-                      <option value="Complete">Complete</option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="Stuck">Stuck</option>
-                    </select>
+                    <Select value={task.status} onValueChange={(value) => handleStatusChange(task.id, value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Complete">Complete</SelectItem>
+                        <SelectItem value="In Progress">In Progress</SelectItem>
+                        <SelectItem value="Stuck">Stuck</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               ))}
