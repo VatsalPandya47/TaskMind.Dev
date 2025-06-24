@@ -30,3 +30,6 @@ supabase/.env
 *.njsproj
 *.sln
 *.sw?
+
+.env
+.env.local

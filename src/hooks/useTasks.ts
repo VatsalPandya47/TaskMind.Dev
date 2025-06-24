@@ -4,8 +4,29 @@ import { useToast } from "@/hooks/use-toast";
 import { slackService } from "@/lib/slackService";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
-type Task = Tables<"tasks">;
-type TaskInsert = TablesInsert<"tasks">;
+export type Task = {
+  id: string;
+  task: string;
+  assignee: string;
+  due_date?: string;
+  priority: string;
+  meeting_id?: string;
+  completed: boolean;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  status: string;
+};
+
+export type TaskInsert = {
+  task: string;
+  assignee: string;
+  due_date?: string;
+  priority: string;
+  meeting_id?: string;
+  status: string;
+};
+
 type TaskUpdate = TablesUpdate<"tasks">;
 
 export const useTasks = () => {
@@ -57,7 +78,7 @@ export const useTasks = () => {
         console.error('Failed to send Slack notification for new task:', error);
       }
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
         description: error.message,
@@ -94,7 +115,7 @@ export const useTasks = () => {
         }
       }
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
         description: error.message,
@@ -119,7 +140,7 @@ export const useTasks = () => {
         description: "Task deleted successfully",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
         description: error.message,
