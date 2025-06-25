@@ -267,13 +267,13 @@ serve(async (req) => {
   }
 
   try {
-    const { meetingId, transcript, dry_run } = await req.json();
+    const { transcript, dry_run, audio_name } = await req.json();
 
-    if (!meetingId || !transcript) {
+    if (!transcript) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Meeting ID and transcript are required',
+          error: 'Transcript is required',
         }),
         {
           status: 400,
@@ -295,7 +295,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Summarizing transcript for meeting: ${meetingId} (length: ${transcript.length} chars)`);
+    console.log(`Summarizing transcript (length: ${transcript.length} chars)`);
 
     // Initialize Supabase client
     const supabase = createClient(supabaseUrl!, supabaseKey!);
@@ -318,88 +318,7 @@ serve(async (req) => {
       );
     }
 
-    // Verify meeting belongs to user
-    console.log(`Verifying meeting ownership: meetingId=${meetingId}, userId=${user.id}`);
-    
-    // First, check if the meeting exists
-    const { data: meetingExists, error: meetingExistsError } = await supabase
-      .from('meetings')
-      .select('id, user_id')
-      .eq('id', meetingId)
-      .single();
-
-    if (meetingExistsError) {
-      if (meetingExistsError.code === 'PGRST116') {
-        // Meeting not found
-        console.log(`Meeting not found: ${meetingId}`);
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: 'Meeting not found',
-            code: 'MEETING_NOT_FOUND'
-          }),
-          {
-            status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
-      } else {
-        // Database error
-        console.error('Database error checking meeting:', meetingExistsError);
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: 'Database error occurred while checking meeting',
-            code: 'DB_ERROR'
-          }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
-      }
-    }
-
-    // Meeting exists, now check ownership
-    if (meetingExists.user_id !== user.id) {
-      console.log(`Access denied: user ${user.id} does not own meeting ${meetingId} (owned by ${meetingExists.user_id})`);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Access denied. You do not have permission to access this meeting.',
-          code: 'ACCESS_DENIED'
-        }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
-    // User owns the meeting, get full meeting data
-    const { data: meeting, error: meetingError } = await supabase
-      .from('meetings')
-      .select('*')
-      .eq('id', meetingId)
-      .eq('user_id', user.id)
-      .single();
-
-    if (meetingError || !meeting) {
-      console.error('Error fetching meeting data after ownership verification:', meetingError);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Error retrieving meeting data',
-          code: 'DB_ERROR'
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
-    console.log(`Meeting ownership verified successfully: ${meetingId} belongs to user ${user.id}`);
+    console.log(`User authenticated: ${user.id}`);
 
     // Prepare a comprehensive prompt for summarization
     const prompt = `
@@ -412,9 +331,6 @@ Please provide a comprehensive summary of this meeting transcript. The summary s
 5. **Next Steps**: What happens after this meeting
 
 Format the summary in a clear, structured manner with appropriate sections.
-
-Meeting Title: ${meeting.title || 'Untitled Meeting'}
-Meeting Date: ${meeting.date || 'Unknown Date'}
 
 Transcript:
 ${transcript}
@@ -439,7 +355,6 @@ Please provide a well-structured summary that captures the essence of this meeti
       // Always save failed AI outputs for audit if possible
       await saveEvalLog({
         type: "gpt_summary_fail",
-        meetingId,
         transcript_sample: transcript?.slice?.(0, 200),
         error: error?.message,
         ai_content: error?.lastInvalidOutput || "",
@@ -551,7 +466,6 @@ Please provide a well-structured summary that captures the essence of this meeti
     if (dry_run) {
       await saveEvalLog({
         type: "dry_run_summary",
-        meetingId,
         transcript_sample: transcript?.slice?.(0, 200),
         ai_output: summary,
         prompt_version: "summarizer-v1",
@@ -572,22 +486,16 @@ Please provide a well-structured summary that captures the essence of this meeti
       );
     }
 
-    // Save summary to summaries table
-    console.log(`Saving summary to summaries table for meeting: ${meetingId}`);
+    // Save summary to summaries table using the new schema
+    console.log(`Saving summary to summaries table for user: ${user.id}`);
     
     const { data: savedSummary, error: saveError } = await supabase
       .from('summaries')
-      .upsert({
+      .insert({
         user_id: user.id,
-        meeting_id: meetingId,
+        transcript: transcript,
         summary: summary,
-        transcript_sample: transcript?.slice?.(0, 500), // Store first 500 chars as sample
-        ai_model: 'gpt-4o-mini',
-        prompt_version: 'summarizer-v1',
-        processing_time_ms: processingTime,
-        retry_attempts: retryAttempts
-      }, {
-        onConflict: 'meeting_id' // Update if summary already exists for this meeting
+        audio_name: audio_name || null
       })
       .select()
       .single();
@@ -615,7 +523,6 @@ Please provide a well-structured summary that captures the essence of this meeti
         success: true,
         message: 'Successfully generated and saved meeting summary',
         summary,
-        meetingId,
         summaryId: savedSummary.id,
         processing_time_ms: processingTime,
         dry_run: false
