@@ -10,7 +10,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import OpenAI from "https://deno.land/x/openai@v4.20.1/mod.ts";
 
 const client = new OpenAI({
-  apiKey: Deno.env.get('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'),
+  // apiKey: Deno.env.get('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'),
 });
 
 // const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
