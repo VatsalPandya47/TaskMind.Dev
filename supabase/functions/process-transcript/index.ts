@@ -7,6 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Try to get API key from environment first, fallback to request body for local development
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -22,7 +23,7 @@ async function saveEvalLog(obj: Record<string, unknown>) {
 }
 
 // Enhanced retry function for OpenAI API calls with exponential backoff
-async function retryOpenAICall(prompt: string, maxRetries = 3) {
+async function retryOpenAICall(prompt: string, apiKey: string, maxRetries = 3) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(`OpenAI API attempt ${attempt}/${maxRetries}`);
@@ -30,7 +31,7 @@ async function retryOpenAICall(prompt: string, maxRetries = 3) {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -110,24 +111,24 @@ async function retryOpenAICall(prompt: string, maxRetries = 3) {
 }
 
 // Enhanced retry logic for OpenAI (now accepts custom errorMessageOnFail)
-async function retryOpenAICallWithValidation(prompt: string, maxRetries = 2) {
+async function retryOpenAICallWithValidation(prompt: string, apiKey: string, maxRetries = 2) {
   let lastInvalidOutput = null;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     let openAIData;
     try {
-      openAIData = await retryOpenAICall(prompt, 1); // single call per attempt
+      openAIData = await retryOpenAICall(prompt, apiKey, 1); // single call per attempt
       if (!openAIData?.choices?.[0]?.message?.content) throw new Error("NoOpenAIContent");
 
-      // NEW: validate JSON parse & type (must be array of objects)
+      // NEW: validate JSON parse & type (must be array of objects with required keys)
       let output;
       try {
         output = JSON.parse(openAIData.choices[0].message.content);
         if (!Array.isArray(output)) throw new Error("NotArray");
-        if (
-          !output.every(
-            x => x && typeof x.task === "string" && "follow_up" in x
-          )
-        ) { throw new Error("InvalidTaskFormat"); }
+        if (!output.every(
+          x => x && typeof x.task === "string" && typeof x.assignee === "string" && "due_date" in x && "priority" in x && "context" in x
+        )) {
+          throw new Error("InvalidTaskFormat");
+        }
         return output; // valid
       } catch (e) {
         lastInvalidOutput = openAIData.choices[0].message.content;
@@ -149,7 +150,7 @@ serve(async (req) => {
   }
 
   try {
-    const { meetingId, transcript, dry_run } = await req.json();
+    const { meetingId, transcript, dry_run, openai_api_key } = await req.json();
 
     if (!meetingId || !transcript) {
       return new Response(
@@ -164,11 +165,14 @@ serve(async (req) => {
       );
     }
 
-    if (!openAIApiKey) {
+    // Use API key from request body if environment variable is not available (for local development)
+    const apiKeyToUse = openAIApiKey || openai_api_key;
+    
+    if (!apiKeyToUse) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'OpenAI API key not configured',
+          error: 'OpenAI API key not configured. Please provide openai_api_key in request body for local development.',
         }),
         {
           status: 500,
@@ -244,7 +248,7 @@ Return ONLY the JSON array, no other text.
     let extractedTasks;
     let ai_raw_output = "";
     try {
-      extractedTasks = await retryOpenAICallWithValidation(prompt, 2);
+      extractedTasks = await retryOpenAICallWithValidation(prompt, apiKeyToUse, 2);
       ai_raw_output = JSON.stringify(extractedTasks);
     } catch (error: any) {
       // Always save failed AI outputs for audit if possible
