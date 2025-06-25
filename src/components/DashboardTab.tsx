@@ -1,6 +1,8 @@
 import { useMeetings } from "@/hooks/useMeetings";
 import { useTasks } from "@/hooks/useTasks";
 import { useToast } from "@/hooks/use-toast";
+import { useGoogleCalendarEvents } from "@/hooks/useGoogleCalendarEvents";
+
 import {
   Card,
   CardContent,
@@ -73,7 +75,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
   const { meetings, isLoading: meetingsLoading } = useMeetings();
   const { tasks, isLoading: tasksLoading } = useTasks();
   const { toast } = useToast();
-
+  const { events: googleEvents, isConnected: isGoogleConnected } = useGoogleCalendarEvents();
   // Quick action handlers
   const handleAddNewTask = () => {
     if (onTabChange) {
@@ -342,6 +344,34 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
   };
 
   const productivityLevel = getProductivityLevel(productivityScore);
+
+  const unifiedEvents = [
+    ...pendingTasks
+      .filter(task => task.due_date)
+      .map(task => ({
+        id: `task-${task.id}`,
+        title: task.task,
+        datetime: task.due_date,
+        source: "task",
+        link: null,
+      })),
+    ...googleEvents.map(event => ({
+      id: `google-${event.id}`,
+      title: event.summary,
+      datetime: event.start.dateTime || event.start.date,
+      source: "google",
+      link: event.htmlLink,
+    })),
+    ...meetings
+      .filter(m => new Date(m.date) > new Date())
+      .map(m => ({
+        id: `zoom-${m.id}`,
+        title: m.title,
+        datetime: m.date,
+        source: "zoom",
+        link: null,
+      })),
+  ].sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
@@ -624,42 +654,41 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-black">
                 <CalendarDays className="h-5 w-5 text-blue-600" />
-                Deadline Watch
+                Upcoming Events & Deadlines
               </CardTitle>
               <CardDescription className="text-gray-600">
-                Tasks that need your attention soon (no pressure! 😅)
+                See your upcoming tasks, Google Calendar events, and Zoom meetings!
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {upcomingDeadlines.length > 0 ? (
-                  upcomingDeadlines.slice(0, 5).map((task) => {
-                    const daysUntilDue = differenceInDays(new Date(task.due_date), new Date());
-                    return (
-                      <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-blue-50 rounded-lg">
-                            <CheckSquare className="h-4 w-4 text-blue-600" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-black">{task.task}</p>
-                            <p className="text-sm text-gray-600">
-                              Due {format(new Date(task.due_date), "MMM d")}
-                            </p>
-                          </div>
+                {unifiedEvents.length > 0 ? (
+                  unifiedEvents.slice(0, 5).map(event => (
+                    <div key={event.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-50 rounded-lg">
+                          {event.source === "task" && <CheckSquare className="h-4 w-4 text-blue-600" />}
+                          {event.source === "google" && <Calendar className="h-4 w-4 text-green-600" />}
+                          {event.source === "zoom" && <Calendar className="h-4 w-4 text-purple-600" />}
                         </div>
-                        <Badge className={getPriorityColor(task.priority)}>
-                          {daysUntilDue === 0 ? 'Today!' : 
-                           daysUntilDue === 1 ? 'Tomorrow' : 
-                           `${daysUntilDue} days left`}
-                        </Badge>
+                        <div>
+                          <p className="font-medium text-black">{event.title}</p>
+                          <p className="text-sm text-gray-600">
+                            {format(new Date(event.datetime), "MMM d, h:mm a")}
+                          </p>
+                        </div>
                       </div>
-                    );
-                  })
+                      {event.link && (
+                        <a href={event.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                          View
+                        </a>
+                      )}
+                    </div>
+                  ))
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <CalendarDays className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p>No deadlines looming! 🎉</p>
+                    <p>No upcoming events! 🎉</p>
                   </div>
                 )}
               </div>
