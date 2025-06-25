@@ -53,3 +53,14 @@ enabled = true
 verify_jwt = true
 import_map = "./functions/summarize/deno.json"
 entrypoint = "./functions/summarize/index.ts"
+
+[functions.transcribe-audio]
+enabled = true
+verify_jwt = true
+import_map = "./functions/transcribe-audio/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/transcribe-audio/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/transcribe-audio/*.html" ]

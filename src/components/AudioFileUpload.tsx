@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Loader2
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AudioFileUploadProps {
   onFileSelect: (file: File, fileName: string) => void;
@@ -110,6 +111,40 @@ const AudioFileUpload = ({
         return <FileAudio className="h-8 w-8 text-gray-600" />;
     }
   };
+  
+  const handleTranscribe = async () => {
+    if (!selectedFile) return;
+
+    const formData = new FormData();
+    formData.append('audio', selectedFile);
+
+    try {
+      // const response = await fetch('https://jsxupnogyvfynjgkwdyj.supabase.co/functions/v1/transcribe-audio', {
+      //   method: 'POST',
+      //   body: formData,
+      // });
+
+      const { data, error } = await supabase.functions.invoke('transcribe-audio', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // const data = await response.json();
+      if (data.ok) {
+        console.log('Transcription:', data.text);
+        // You can display the transcription to the user here
+      } else {
+        console.error('Transcription error:', data);
+        // Handle error display here
+      }
+    } catch (error) {
+      console.error('Network or server error:', error);
+      // Handle error display here
+    }
+  };
 
   return (
     <div className={className}>
@@ -145,7 +180,7 @@ const AudioFileUpload = ({
               <div className="flex items-center gap-3">
                 {getFileIcon(selectedFile.name)}
                 <div>
-                  <p className="font-medium text-sm">{selectedFile.name}</p>
+                  <p className="font-medium text-sm text-black">{selectedFile.name}</p>
                   <p className="text-xs text-gray-500">
                     {formatFileSize(selectedFile.size)}
                   </p>
@@ -242,6 +277,12 @@ const AudioFileUpload = ({
                 Choose Audio File
               </Button>
             </div>
+          )}
+
+          {selectedFile && !isUploading && (
+            <Button onClick={handleTranscribe}className="bg-black text-white hover:bg-gray-900">
+              Transcribe Audio
+            </Button>
           )}
         </CardContent>
       </Card>
