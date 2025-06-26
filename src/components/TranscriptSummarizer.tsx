@@ -316,6 +316,7 @@ const TranscriptSummarizer = ({ isOpen, onClose, audio_name }: TranscriptSummari
                 isUploading={isUploading}
                 uploadProgress={uploadProgress}
                 error={localError}
+                onTranscription={setTranscript}
               />
 
               <Card className="border-gray-200">

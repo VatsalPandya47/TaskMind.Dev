@@ -22,6 +22,7 @@ interface AudioFileUploadProps {
   uploadProgress?: number;
   error?: string | null;
   className?: string;
+  onTranscription?: (transcript: string) => void;
 }
 
 const AudioFileUpload = ({
@@ -31,7 +32,8 @@ const AudioFileUpload = ({
   isUploading = false,
   uploadProgress = 0,
   error = null,
-  className = ""
+  className = "",
+  onTranscription
 }: AudioFileUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -115,7 +117,7 @@ const AudioFileUpload = ({
     }
   };
   
-  const handleTranscribe = async () => {
+  const transcribeAudioFile = async () => {
     if (!selectedFile) return;
 
     setIsTranscribing(true);
@@ -132,7 +134,7 @@ const AudioFileUpload = ({
       }
 
       // Use the local proxy server to bypass CORS issues
-      const response = await fetch('http://localhost:3001/proxy/transcribe-audio', {
+      const response = await fetch('https://jsxupnogyvfynjgkwdyj.supabase.co/functions/v1/transcribe-audio', {
         method: 'POST',
         body: formData,
       });
@@ -145,28 +147,11 @@ const AudioFileUpload = ({
 
       const data = await response.json();
 
-      if (data && data.transcript) {        // Automatically call summarize function
-        try {
-          setIsSummarizing(true);
-          const { data: { session: summarySession } } = await supabase.auth.getSession();
-          const summaryRes = await fetch('http://localhost:3001/functions/v1/summarize', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${summarySession?.access_token || ''}`,
-            },
-            body: JSON.stringify({ transcript: data.transcript }),
-          });
-          const summaryData = await summaryRes.json();
-          setMeetingSummary(summaryData);
-        } catch (summaryErr) {
-          alert(`Failed to summarize transcript: ${summaryErr}`);
-        } finally {
-          setIsSummarizing(false);
-        }
-        alert(`Transcription completed!\n\n${data.transcript}`);
+      if (data && data.transcript) {
+        if (onTranscription) onTranscription(data.transcript);
+        return data.transcript;
       } else {
-        alert('Transcription failed: Unexpected response format');
+        throw new Error('Transcription failed: Unexpected response format');
       }
     } catch (error) {
       alert(`Transcription failed: ${error.message || 'Network or server error'}`);
@@ -229,9 +214,9 @@ const AudioFileUpload = ({
                   size="sm"
                   onClick={onFileRemove}
                   disabled={isUploading}
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 hover:bg-gray-900 group"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4 text-black group-hover:text-white transition-colors" />
                 </Button>
               </div>
             </div>
@@ -310,7 +295,7 @@ const AudioFileUpload = ({
 
           {selectedFile && !isUploading && (
             <Button 
-              onClick={handleTranscribe} 
+              onClick={transcribeAudioFile} 
               disabled={isTranscribing}
               className="bg-black text-white hover:bg-gray-900 w-full"
             >
@@ -324,77 +309,7 @@ const AudioFileUpload = ({
               )}
             </Button>
           )}
-
-          {/* Show structured summary if available */}
-          {meetingSummary && (
-            <div className="mt-6 p-4 bg-gray-50 rounded border">
-              <h3 className="font-bold mb-2">Structured Meeting Summary</h3>
-              <div className="mb-2">
-                <strong>Key Topics:</strong>
-                {meetingSummary.key_topics?.length ? (
-                  <ul className="list-disc ml-6">
-                    {meetingSummary.key_topics.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
-                  </ul>
-                ) : <span className="text-gray-400">None detected</span>}
-              </div>
-              <div className="mb-2">
-                <strong>Important Decisions:</strong>
-                {meetingSummary.important_decisions?.length ? (
-                  <ul className="list-disc ml-6">
-                    {meetingSummary.important_decisions.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
-                  </ul>
-                ) : <span className="text-gray-400">None detected</span>}
-              </div>
-              <div className="mb-2">
-                <strong>Action Items:</strong>
-                {meetingSummary.action_items?.length ? (
-                  <ul className="list-disc ml-6">
-                    {meetingSummary.action_items.map((item, idx) => (
-                      <li key={idx}>{typeof item === 'string' ? item : JSON.stringify(item)}</li>
-                    ))}
-                  </ul>
-                ) : <span className="text-gray-400">None detected</span>}
-              </div>
-              <div className="mb-2">
-                <strong>Key Insights:</strong>
-                {meetingSummary.key_insights?.length ? (
-                  <ul className="list-disc ml-6">
-                    {meetingSummary.key_insights.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
-                  </ul>
-                ) : <span className="text-gray-400">None detected</span>}
-              </div>
-              <div className="mb-2">
-                <strong>Next Steps:</strong>
-                {meetingSummary.next_steps?.length ? (
-                  <ul className="list-disc ml-6">
-                    {meetingSummary.next_steps.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
-                  </ul>
-                ) : <span className="text-gray-400">None detected</span>}
-              </div>
-            </div>
-          )}
-
-          {isTranscribing && (
-            <div className="mt-4 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-sm text-gray-600">Transcribing audio...</p>
-            </div>
-          )}
-
-          {isSummarizing && (
-            <div className="mt-4 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
-              <p className="mt-2 text-sm text-gray-600">Creating structured summary...</p>
-            </div>
-          )}
+ 
         </CardContent>
       </Card>
     </div>
