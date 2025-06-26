@@ -5,6 +5,7 @@ import DashboardTab from "@/components/DashboardTab";
 import MeetingsTab from "@/components/MeetingsTab";
 import TasksTab from "@/components/TasksTab";
 import SettingsTab from "@/components/SettingsTab";
+import MemoryTab from "@/components/MemoryTab";
 
 const Dashboard = () => {
   const location = useLocation();
@@ -31,6 +32,8 @@ const Dashboard = () => {
         return <MeetingsTab />;
       case "tasks":
         return <TasksTab />;
+      case "memory":
+        return <MemoryTab />;
       case "settings":
         return <SettingsTab />;
       default:

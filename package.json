@@ -8,7 +8,12 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "memory:setup": "npx supabase db push && npx supabase functions deploy memory",
+    "memory:test": "node test-memory.js",
+    "memory:deploy": "npx supabase functions deploy memory",
+    "memory:logs": "npx supabase functions logs memory",
+    "memory:types": "npx supabase gen types typescript --project-id jsxupnogyvfynjgkwdyj > src/integrations/supabase/types.ts"
   },
   "dependencies": {
     "@capacitor/cli": "^7.3.0",
