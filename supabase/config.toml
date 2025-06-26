@@ -56,7 +56,7 @@ entrypoint = "./functions/summarize/index.ts"
 
 [functions.transcribe-audio]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/transcribe-audio/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
