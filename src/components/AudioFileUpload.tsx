@@ -123,9 +123,6 @@ const AudioFileUpload = ({
     formData.append('file', selectedFile);
 
     try {
-      console.log('Starting transcription for file:', selectedFile.name);
-      console.log('File size:', selectedFile.size, 'File type:', selectedFile.type);
-      
       // Get the current session for authentication
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -134,29 +131,21 @@ const AudioFileUpload = ({
         return;
       }
 
-      console.log('User session found, access token available:', !!session.access_token);
-
       // Use the local proxy server to bypass CORS issues
       const response = await fetch('http://localhost:3001/proxy/transcribe-audio', {
         method: 'POST',
         body: formData,
       });
-
-      console.log('Proxy response status:', response.status);
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('HTTP error:', response.status, errorText);
         alert(`Transcription failed: ${response.status} - ${errorText}`);
         return;
       }
 
       const data = await response.json();
-      console.log('Transcription response:', data);
 
-      if (data && data.transcript) {
-        console.log('Transcription successful:', data.transcript);
-        // Automatically call summarize function
+      if (data && data.transcript) {        // Automatically call summarize function
         try {
           setIsSummarizing(true);
           const { data: { session: summarySession } } = await supabase.auth.getSession();
@@ -169,23 +158,17 @@ const AudioFileUpload = ({
             body: JSON.stringify({ transcript: data.transcript }),
           });
           const summaryData = await summaryRes.json();
-          console.log('Structured meeting summary:', summaryData);
           setMeetingSummary(summaryData);
         } catch (summaryErr) {
-          console.error('Failed to summarize transcript:', summaryErr);
+          alert(`Failed to summarize transcript: ${summaryErr}`);
         } finally {
           setIsSummarizing(false);
         }
         alert(`Transcription completed!\n\n${data.transcript}`);
       } else {
-        console.error('Unexpected response format:', data);
         alert('Transcription failed: Unexpected response format');
       }
     } catch (error) {
-      console.error('Network or server error details:', error);
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
       alert(`Transcription failed: ${error.message || 'Network or server error'}`);
     } finally {
       setIsTranscribing(false);
