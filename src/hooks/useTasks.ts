@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { slackService } from "@/lib/slackService";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export type Task = {
@@ -63,12 +64,19 @@ export const useTasks = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (newTask) => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast({
         title: "Success",
         description: "Task created successfully",
       });
+      
+      // Send Slack notification for new task
+      try {
+        slackService.notifyTaskCreated(newTask);
+      } catch (error) {
+        console.error('Failed to send Slack notification for new task:', error);
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -91,12 +99,21 @@ export const useTasks = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (updatedTask) => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast({
         title: "Success",
         description: "Task updated successfully",
       });
+      
+      // Send Slack notification for task completion
+      if (updatedTask.completed) {
+        try {
+          slackService.notifyTaskCompleted(updatedTask);
+        } catch (error) {
+          console.error('Failed to send Slack notification for completed task:', error);
+        }
+      }
     },
     onError: (error: Error) => {
       toast({

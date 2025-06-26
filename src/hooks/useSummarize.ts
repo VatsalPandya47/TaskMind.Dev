@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { slackService } from "@/lib/slackService";
 
 // Configuration for retry logic
 const RETRY_CONFIG = {
@@ -242,6 +243,20 @@ export const useSummarize = () => {
           title,
           description: message,
         });
+
+        // Send Slack notification for successful summary (only for real summaries, not dry runs)
+        if (!data.dry_run && data.summary) {
+          try {
+            const meetingInfo = {
+              title: variables.audio_name || 'Meeting Summary',
+              date: new Date().toISOString(),
+              duration: 'Unknown'
+            };
+            slackService.notifyMeetingSummary(meetingInfo, data.summary);
+          } catch (error) {
+            logger.error('Failed to send Slack notification for summary', error);
+          }
+        }
       } else {
         logger.error('API returned success: false', { data });
         throw new Error(data.error || "Summarization failed");
