@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Loader2
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AudioFileUploadProps {
   onFileSelect: (file: File, fileName: string) => void;
@@ -21,6 +22,7 @@ interface AudioFileUploadProps {
   uploadProgress?: number;
   error?: string | null;
   className?: string;
+  onTranscription?: (transcript: string) => void;
 }
 
 const AudioFileUpload = ({
@@ -30,10 +32,14 @@ const AudioFileUpload = ({
   isUploading = false,
   uploadProgress = 0,
   error = null,
-  className = ""
+  className = "",
+  onTranscription
 }: AudioFileUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [meetingSummary, setMeetingSummary] = useState(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
 
   // Supported audio file types
   const allowedTypes = ["audio/mpeg", "audio/x-m4a", "audio/wav"];
@@ -110,6 +116,49 @@ const AudioFileUpload = ({
         return <FileAudio className="h-8 w-8 text-gray-600" />;
     }
   };
+  
+  const transcribeAudioFile = async () => {
+    if (!selectedFile) return;
+
+    setIsTranscribing(true);
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      // Get the current session for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        alert('Please sign in to use the transcription feature');
+        return;
+      }
+
+      // Use the local proxy server to bypass CORS issues
+      const response = await fetch('https://jsxupnogyvfynjgkwdyj.supabase.co/functions/v1/transcribe-audio', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        alert(`Transcription failed: ${response.status} - ${errorText}`);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data && data.transcript) {
+        if (onTranscription) onTranscription(data.transcript);
+        return data.transcript;
+      } else {
+        throw new Error('Transcription failed: Unexpected response format');
+      }
+    } catch (error) {
+      alert(`Transcription failed: ${error.message || 'Network or server error'}`);
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
 
   return (
     <div className={className}>
@@ -145,7 +194,7 @@ const AudioFileUpload = ({
               <div className="flex items-center gap-3">
                 {getFileIcon(selectedFile.name)}
                 <div>
-                  <p className="font-medium text-sm">{selectedFile.name}</p>
+                  <p className="font-medium text-sm text-black">{selectedFile.name}</p>
                   <p className="text-xs text-gray-500">
                     {formatFileSize(selectedFile.size)}
                   </p>
@@ -165,9 +214,9 @@ const AudioFileUpload = ({
                   size="sm"
                   onClick={onFileRemove}
                   disabled={isUploading}
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 hover:bg-gray-900 group"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4 text-black group-hover:text-white transition-colors" />
                 </Button>
               </div>
             </div>
@@ -243,6 +292,24 @@ const AudioFileUpload = ({
               </Button>
             </div>
           )}
+
+          {selectedFile && !isUploading && (
+            <Button 
+              onClick={transcribeAudioFile} 
+              disabled={isTranscribing}
+              className="bg-black text-white hover:bg-gray-900 w-full"
+            >
+              {isTranscribing ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Transcribing...
+                </>
+              ) : (
+                'Transcribe Audio'
+              )}
+            </Button>
+          )}
+ 
         </CardContent>
       </Card>
     </div>
