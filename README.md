@@ -25,6 +25,32 @@ Developers can switch to full application mode to work on core features includin
 
 ## ✨ Features
 
+### 🎤 Audio Transcription
+- **Multi-format Support**: Upload and transcribe audio files in MP3, M4A, and WAV formats
+- **Large File Handling**: Support for files up to 500MB
+- **Speaker Identification**: Automatic speaker labeling and segmentation for multi-speaker recordings
+- **High-Quality Transcription**: Powered by AssemblyAI's SLAM-1 speech model for accurate transcriptions
+- **Real-time Processing**: Live status updates during transcription with progress tracking
+- **Formatted Output**: Clean, punctuated transcripts with proper formatting and speaker labels
+
+#### Supported Audio Formats
+- **MP3** (.mp3) - Most common format, widely supported
+- **M4A** (.m4a) - Apple's audio format, high quality
+- **WAV** (.wav) - Uncompressed audio, best quality
+
+#### Transcription Features
+- **Speaker Labels**: Automatically identifies and labels different speakers (Speaker A, Speaker B, etc.)
+- **Punctuation**: Adds proper punctuation and formatting to raw speech
+- **Language Support**: Optimized for English (en_us) with support for other languages
+- **Noise Reduction**: Advanced speech processing for clear transcriptions even in noisy environments
+- **Time Stamps**: Optional time-based segmentation for precise audio tracking
+
+#### Integration with Summarization
+- **Seamless Workflow**: Transcribed audio automatically populates the meeting transcript section
+- **AI Summarization**: Use transcribed content to generate structured meeting summaries
+- **Structured Output**: Get organized summaries with key topics, decisions, action items, and insights
+- **Export Options**: Copy individual sections or the complete transcript/summary
+
 ### 🎯 **Smart Task Extraction**
 - **AI-Powered Analysis**: Advanced GPT-4 integration extracts actionable tasks from meeting transcripts
 - **Automatic Assignment**: Intelligently identifies task owners and due dates from conversation context
@@ -101,6 +127,7 @@ Developers can switch to full application mode to work on core features includin
 - Node.js 18+ and npm
 - Supabase account
 - OpenAI API key
+- AssemblyAI API key
 - Zoom App credentials
 - Slack App (for notifications)
 
@@ -124,6 +151,7 @@ Developers can switch to full application mode to work on core features includin
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    VITE_OPENAI_API_KEY=your_openai_api_key
    VITE_ZOOM_CLIENT_ID=your_zoom_client_id
+   ASSEMBLYAI_API_KEY=your_assemblyai_api_key
    ```
 
 4. **Database Setup**
@@ -140,6 +168,7 @@ Developers can switch to full application mode to work on core features includin
    supabase functions deploy sync-zoom-meetings
    supabase functions deploy notifySlack
    supabase functions deploy summarize
+   supabase functions deploy transcribe-audio
    ```
 
 6. **Start development server**
@@ -262,7 +291,8 @@ TaskMind.Dev/
 │   │   ├── process-transcript/
 │   │   ├── sync-zoom-meetings/
 │   │   ├── notifySlack/    # Slack notification function
-│   │   └── summarize/      # AI summarization function
+│   │   ├── summarize/      # AI summarization function
+│   │   └── transcribe-audio/  # Audio transcription function
 │   └── migrations/         # Database migrations
 ├── ai/                     # AI prompts and evaluation
 └── scripts/                # Development and testing scripts
