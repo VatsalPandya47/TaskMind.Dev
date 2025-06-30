@@ -15,8 +15,7 @@ import {
   ChevronRight,
   Plus,
   RotateCcw,
-  RefreshCw,
-  Download
+  RefreshCw
 } from "lucide-react";
 import { format, isSameDay, addMonths, subMonths, parseISO } from "date-fns";
 
@@ -85,12 +84,12 @@ const CalendarTab = ({ onTabChange }: CalendarTabProps) => {
 
   const stats = useMemo(() => {
     const totalMeetings = filteredEvents.length;
-    const zoomMeetings = filteredEvents.filter(e => e.type === 'zoom').length;
+    const zoomMeetingsCount = filteredEvents.filter(e => e.type === 'zoom').length;
     const upcomingMeetings = filteredEvents.filter(e => 
       new Date(e.date) > new Date()
     ).length;
 
-    return { totalMeetings, zoomMeetings, upcomingMeetings };
+    return { totalMeetings, zoomMeetings: zoomMeetingsCount, upcomingMeetings };
   }, [filteredEvents]);
 
   const getEventColor = (type: string) => {
