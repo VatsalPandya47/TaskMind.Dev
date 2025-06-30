@@ -177,8 +177,8 @@ const MyMeetings = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold">My Meetings</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-3xl font-bold text-white">My Meetings</h1>
+            <p className="text-gray-300">
               View and manage all your meetings
             </p>
           </div>
@@ -186,14 +186,14 @@ const MyMeetings = () => {
 
         <div className="grid gap-6">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
+            <Card key={i} className="animate-pulse bg-gray-800/50 backdrop-blur-sm border border-gray-700/50">
               <CardHeader>
-                <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-6 bg-gray-600 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-600 rounded w-1/2"></div>
               </CardHeader>
               <CardContent>
-                <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                <div className="h-4 bg-gray-600 rounded w-full mb-2"></div>
+                <div className="h-4 bg-gray-600 rounded w-2/3"></div>
               </CardContent>
             </Card>
           ))}
@@ -206,30 +206,30 @@ const MyMeetings = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">My Meetings</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold text-white">My Meetings</h1>
+          <p className="text-gray-300">
             View and manage all your meetings
           </p>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
               <Plus className="h-4 w-4 mr-2" />
               New Meeting
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[425px] bg-gray-800/90 backdrop-blur-sm border border-gray-700/50">
             <DialogHeader>
-              <DialogTitle>Create New Meeting</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-white">Create New Meeting</DialogTitle>
+              <DialogDescription className="text-gray-300">
                 Add a new meeting to track insights and action items.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
               <div className="grid gap-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Meeting Title</Label>
+                  <Label htmlFor="title" className="text-gray-200">Meeting Title</Label>
                   <Input
                     id="title"
                     value={newMeeting.title}
@@ -238,10 +238,11 @@ const MyMeetings = () => {
                     }
                     placeholder="Enter meeting title"
                     required
+                    className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="date">Date</Label>
+                  <Label htmlFor="date" className="text-gray-200">Date</Label>
                   <Input
                     id="date"
                     type="date"
@@ -251,10 +252,11 @@ const MyMeetings = () => {
                     }
                     max={today}
                     required
+                    className="bg-gray-700/50 border-gray-600 text-white focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="participants">Participants</Label>
+                  <Label htmlFor="participants" className="text-gray-200">Participants</Label>
                   <Input
                     id="participants"
                     value={newMeeting.participants}
@@ -265,10 +267,11 @@ const MyMeetings = () => {
                       })
                     }
                     placeholder="Enter names separated by commas"
+                    className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="duration">Duration</Label>
+                  <Label htmlFor="duration" className="text-gray-200">Duration</Label>
                   <Input
                     id="duration"
                     value={newMeeting.duration}
@@ -276,10 +279,11 @@ const MyMeetings = () => {
                       setNewMeeting({ ...newMeeting, duration: e.target.value })
                     }
                     placeholder="e.g., 1 hour, 30 minutes"
+                    className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="summary">Summary</Label>
+                  <Label htmlFor="summary" className="text-gray-200">Summary</Label>
                   <Textarea
                     id="summary"
                     value={newMeeting.summary}
@@ -288,11 +292,12 @@ const MyMeetings = () => {
                     }
                     placeholder="Meeting summary or notes"
                     rows={3}
+                    className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
               </div>
               <div className="flex justify-end">
-                <Button type="submit" disabled={createMeeting.isPending}>
+                <Button type="submit" disabled={createMeeting.isPending} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
                   {createMeeting.isPending ? "Creating..." : "Create Meeting"}
                 </Button>
               </div>
@@ -303,52 +308,52 @@ const MyMeetings = () => {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Card>
+        <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
+            <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <BarChart3 className="h-5 w-5 text-purple-400" />
               Total Meetings
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{totalMeetings}</div>
+            <div className="text-3xl font-bold text-white">{totalMeetings}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <FileText className="h-5 w-5" />
+            <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <FileText className="h-5 w-5 text-green-400" />
               Processed
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">
+            <div className="text-3xl font-bold text-green-400">
               {processedMeetings}
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Video className="h-5 w-5" />
+            <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <Video className="h-5 w-5 text-blue-400" />
               Zoom Meetings
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-600">
+            <div className="text-3xl font-bold text-blue-400">
               {zoomMeetings}
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="h-5 w-5" />
+            <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <Users className="h-5 w-5 text-purple-400" />
               Total Participants
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-purple-600">
+            <div className="text-3xl font-bold text-purple-400">
               {totalParticipants}
             </div>
           </CardContent>
@@ -363,28 +368,28 @@ const MyMeetings = () => {
             placeholder="Search meetings or participants..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px] bg-gray-700/50 border-gray-600 text-white focus:border-blue-500 focus:ring-blue-500">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="processed">Processed</SelectItem>
-            <SelectItem value="unprocessed">Not Processed</SelectItem>
+          <SelectContent className="bg-gray-800 border-gray-600">
+            <SelectItem value="all" className="text-white hover:bg-gray-700">All Status</SelectItem>
+            <SelectItem value="processed" className="text-white hover:bg-gray-700">Processed</SelectItem>
+            <SelectItem value="unprocessed" className="text-white hover:bg-gray-700">Not Processed</SelectItem>
           </SelectContent>
         </Select>
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px] bg-gray-700/50 border-gray-600 text-white focus:border-blue-500 focus:ring-blue-500">
             <SelectValue placeholder="Filter by type" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="zoom">Zoom Meetings</SelectItem>
-            <SelectItem value="manual">Manual Meetings</SelectItem>
+          <SelectContent className="bg-gray-800 border-gray-600">
+            <SelectItem value="all" className="text-white hover:bg-gray-700">All Types</SelectItem>
+            <SelectItem value="zoom" className="text-white hover:bg-gray-700">Zoom Meetings</SelectItem>
+            <SelectItem value="manual" className="text-white hover:bg-gray-700">Manual Meetings</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -392,25 +397,25 @@ const MyMeetings = () => {
       {meetings.length === 0 ? (
         <div className="text-center py-12">
           <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-white mb-2">
             No meetings yet
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-300 mb-6">
             Get started by creating your first meeting or connecting Zoom.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button onClick={() => setIsDialogOpen(true)}>
+            <Button onClick={() => setIsDialogOpen(true)} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
               <Plus className="h-4 w-4 mr-2" />
               Create Your First Meeting
             </Button>
-            <Button variant="outline" asChild>
+            <Button variant="outline" asChild className="border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white">
               <a href="/settings">Connect Zoom</a>
             </Button>
           </div>
           <div className="mt-10">
             <a
               href="/"
-              className="inline-block bg-primary text-white px-6 py-3 rounded-lg shadow hover:bg-primary/90 transition"
+              className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
               Back to Home
             </a>
@@ -419,10 +424,10 @@ const MyMeetings = () => {
       ) : filteredMeetings.length === 0 ? (
         <div className="text-center py-12">
           <Search className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-white mb-2">
             No meetings found
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-300 mb-6">
             Try adjusting your search or filters.
           </p>
           <Button
@@ -432,6 +437,7 @@ const MyMeetings = () => {
               setStatusFilter("all");
               setTypeFilter("all");
             }}
+            className="border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
           >
             Clear Filters
           </Button>
@@ -448,18 +454,18 @@ const MyMeetings = () => {
             return (
               <Card
                 key={meeting.id}
-                className="hover:shadow-md transition-shadow"
+                className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300"
               >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         {meeting.zoom_meeting_id && (
-                          <Video className="h-5 w-5 text-blue-600" />
+                          <Video className="h-5 w-5 text-blue-400" />
                         )}
                         {meeting.title}
                       </CardTitle>
-                      <CardDescription className="flex items-center gap-4 mt-2">
+                      <CardDescription className="flex items-center gap-4 mt-2 text-gray-300">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
                           {format(new Date(meeting.date), "PPP")}
@@ -487,18 +493,18 @@ const MyMeetings = () => {
                       {meeting.transcript ? (
                         <Badge
                           variant="default"
-                          className="bg-green-100 text-green-800"
+                          className="bg-green-500/20 text-green-400 border-green-400/30"
                         >
                           <FileText className="h-3 w-3 mr-1" />
                           Processed
                         </Badge>
                       ) : (
-                        <Badge variant="outline">Not Processed</Badge>
+                        <Badge variant="outline" className="border-gray-600 text-gray-300">Not Processed</Badge>
                       )}
 
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" className="text-gray-300 hover:bg-gray-600 hover:text-white">
                             <span className="sr-only">Open menu</span>
                             <svg
                               className="h-4 w-4"
@@ -515,13 +521,13 @@ const MyMeetings = () => {
                             </svg>
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEdit(meeting)}>
+                        <DropdownMenuContent align="end" className="bg-gray-800 border-gray-600">
+                          <DropdownMenuItem onClick={() => handleEdit(meeting)} className="text-white hover:bg-gray-700">
                             <Edit className="h-4 w-4 mr-2" />
                             Edit Meeting
                           </DropdownMenuItem>
                           {meetingTasks.length > 0 && (
-                            <DropdownMenuItem asChild>
+                            <DropdownMenuItem asChild className="text-white hover:bg-gray-700">
                               <a href={`/tasks?meeting=${meeting.id}`}>
                                 <Eye className="h-4 w-4 mr-2" />
                                 View Tasks ({meetingTasks.length})
@@ -530,7 +536,7 @@ const MyMeetings = () => {
                           )}
                           <DropdownMenuItem
                             onClick={() => handleDelete(meeting.id)}
-                            className="text-red-600"
+                            className="text-red-400 hover:bg-red-500/20"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete Meeting
@@ -545,7 +551,7 @@ const MyMeetings = () => {
                   <CardContent className="pt-0">
                     <div className="space-y-3">
                       <div>
-                        <h4 className="text-sm font-medium mb-2">
+                        <h4 className="text-sm font-medium mb-2 text-white">
                           Participants
                         </h4>
                         <div className="flex flex-wrap gap-1">
@@ -553,7 +559,7 @@ const MyMeetings = () => {
                             <Badge
                               key={index}
                               variant="secondary"
-                              className="text-xs"
+                              className="text-xs bg-gray-600/50 text-gray-300 border-gray-500/30"
                             >
                               {participant}
                             </Badge>
@@ -563,8 +569,8 @@ const MyMeetings = () => {
 
                       {meeting.summary && (
                         <div>
-                          <h4 className="text-sm font-medium mb-2">Summary</h4>
-                          <p className="text-sm text-muted-foreground line-clamp-3">
+                          <h4 className="text-sm font-medium mb-2 text-white">Summary</h4>
+                          <p className="text-sm text-gray-300 line-clamp-3">
                             {meeting.summary}
                           </p>
                         </div>
@@ -572,16 +578,16 @@ const MyMeetings = () => {
 
                       {meetingTasks.length > 0 && (
                         <div>
-                          <h4 className="text-sm font-medium mb-2">
+                          <h4 className="text-sm font-medium mb-2 text-white">
                             Action Items
                           </h4>
                           <div className="flex gap-2">
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs border-gray-600 text-gray-300">
                               {pendingTasks} Pending
                             </Badge>
                             <Badge
                               variant="default"
-                              className="bg-green-100 text-green-800 text-xs"
+                              className="bg-green-500/20 text-green-400 border-green-400/30 text-xs"
                             >
                               {completedTasks} Completed
                             </Badge>
@@ -600,17 +606,17 @@ const MyMeetings = () => {
       {/* Edit Meeting Dialog */}
       {editingMeeting && (
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[425px] bg-gray-800/90 backdrop-blur-sm border border-gray-700/50">
             <DialogHeader>
-              <DialogTitle>Edit Meeting</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-white">Edit Meeting</DialogTitle>
+              <DialogDescription className="text-gray-300">
                 Update meeting information and details.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleEditSubmit}>
               <div className="grid gap-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-title">Meeting Title</Label>
+                  <Label htmlFor="edit-title" className="text-gray-200">Meeting Title</Label>
                   <Input
                     id="edit-title"
                     value={editingMeeting.title}
@@ -622,10 +628,11 @@ const MyMeetings = () => {
                     }
                     placeholder="Enter meeting title"
                     required
+                    className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-date">Date</Label>
+                  <Label htmlFor="edit-date" className="text-gray-200">Date</Label>
                   <Input
                     id="edit-date"
                     type="date"
@@ -638,10 +645,11 @@ const MyMeetings = () => {
                     }
                     max={today}
                     required
+                    className="bg-gray-700/50 border-gray-600 text-white focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-participants">Participants</Label>
+                  <Label htmlFor="edit-participants" className="text-gray-200">Participants</Label>
                   <Input
                     id="edit-participants"
                     value={editingMeeting.participants || ""}
@@ -652,10 +660,11 @@ const MyMeetings = () => {
                       })
                     }
                     placeholder="Enter names separated by commas"
+                    className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-duration">Duration</Label>
+                  <Label htmlFor="edit-duration" className="text-gray-200">Duration</Label>
                   <Input
                     id="edit-duration"
                     value={editingMeeting.duration || ""}
@@ -666,10 +675,11 @@ const MyMeetings = () => {
                       })
                     }
                     placeholder="e.g., 1 hour, 30 minutes"
+                    className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-summary">Summary</Label>
+                  <Label htmlFor="edit-summary" className="text-gray-200">Summary</Label>
                   <Textarea
                     id="edit-summary"
                     value={editingMeeting.summary || ""}
@@ -681,6 +691,7 @@ const MyMeetings = () => {
                     }
                     placeholder="Meeting summary or notes"
                     rows={3}
+                    className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -689,10 +700,11 @@ const MyMeetings = () => {
                   type="button"
                   variant="outline"
                   onClick={() => setIsEditDialogOpen(false)}
+                  className="border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={updateMeeting.isPending}>
+                <Button type="submit" disabled={updateMeeting.isPending} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
                   {updateMeeting.isPending ? "Updating..." : "Update Meeting"}
                 </Button>
               </div>

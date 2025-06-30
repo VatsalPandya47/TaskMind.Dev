@@ -1,317 +1,363 @@
-import { useState, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Progress } from "@/components/ui/progress";
+import { useState, useRef, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Upload, 
-  Music, 
   FileAudio, 
   X, 
   CheckCircle, 
   AlertCircle,
-  Loader2
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+  Loader2,
+  Play,
+  Pause,
+  Volume2,
+  Download,
+  Trash2,
+  RefreshCw
+} from 'lucide-react';
+import { useAudioUpload } from '@/hooks/useAudioUpload';
 
 interface AudioFileUploadProps {
-  onFileSelect: (file: File, fileName: string) => void;
-  onFileRemove: () => void;
-  selectedFile: File | null;
-  isUploading?: boolean;
-  uploadProgress?: number;
-  error?: string | null;
+  onFileSelect?: (file: File) => void;
+  onUploadComplete?: (url: string) => void;
+  maxSize?: number; // in MB
+  acceptedFormats?: string[];
   className?: string;
-  onTranscription?: (transcript: string) => void;
 }
 
 const AudioFileUpload = ({
   onFileSelect,
-  onFileRemove,
-  selectedFile,
-  isUploading = false,
-  uploadProgress = 0,
-  error = null,
-  className = "",
-  onTranscription
+  onUploadComplete,
+  maxSize = 100,
+  acceptedFormats = ['.mp3', '.m4a', '.wav'],
+  className = ''
 }: AudioFileUploadProps) => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [dragActive, setDragActive] = useState(false);
-  const [isTranscribing, setIsTranscribing] = useState(false);
-  const [meetingSummary, setMeetingSummary] = useState(null);
-  const [isSummarizing, setIsSummarizing] = useState(false);
 
-  // Supported audio file types
-  const allowedTypes = ["audio/mpeg", "audio/x-m4a", "audio/wav"];
-  const allowedExtensions = [".mp3", ".m4a", ".wav"];
-  const maxFileSize = 100 * 1024 * 1024; // 100MB
+  const { uploadAudioFile, isUploading, uploadProgress } = useAudioUpload();
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = useCallback((file: File) => {
     // Validate file type
-    if (!allowedTypes.includes(file.type)) {
-      const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-      if (!allowedExtensions.includes(fileExtension)) {
-        alert("Only .mp3, .m4a, and .wav files are supported");
+    const isValidFormat = acceptedFormats.some(format => 
+      file.name.toLowerCase().endsWith(format.replace('.', ''))
+    );
+    
+    if (!isValidFormat) {
+      alert(`Please select a valid audio file. Accepted formats: ${acceptedFormats.join(', ')}`);
         return;
-      }
     }
 
     // Validate file size
-    if (file.size > maxFileSize) {
-      alert("File size must be less than 100MB");
+    if (file.size > maxSize * 1024 * 1024) {
+      alert(`File size must be less than ${maxSize}MB`);
       return;
     }
 
-    // Use file name as audio_name
-    const fileName = file.name;
-    onFileSelect(file, fileName);
-  };
+    setSelectedFile(file);
+    onFileSelect?.(file);
 
-  const handleDrag = (e: React.DragEvent) => {
+    // Create audio URL for preview
+    const url = URL.createObjectURL(file);
+    setAudioUrl(url);
+    setCurrentTime(0);
+    setIsPlaying(false);
+  }, [acceptedFormats, maxSize, onFileSelect]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFileSelect(files[0]);
+    }
+  }, [handleFileSelect]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  }, []);
+
+  const handleUpload = async () => {
+    if (!selectedFile) return;
+
+    try {
+      const result = await uploadAudioFile(selectedFile);
+      if (result.success && result.url) {
+        onUploadComplete?.(result.url);
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
+  const handlePlayPause = () => {
+    if (!audioRef.current) return;
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      handleFileSelect(file);
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      handleFileSelect(file);
+  const handleLoadedMetadata = () => {
+    if (audioRef.current) {
+      setDuration(audioRef.current.duration);
+    }
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = parseFloat(e.target.value);
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
+    }
+  };
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const removeFile = () => {
+    setSelectedFile(null);
+    setAudioUrl(null);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
+    if (bytes === 0) return '0 Bytes';
     const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
-
-  const getFileIcon = (fileName: string) => {
-    const extension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
-    switch (extension) {
-      case '.mp3':
-        return <Music className="h-8 w-8 text-blue-600" />;
-      case '.m4a':
-        return <FileAudio className="h-8 w-8 text-green-600" />;
-      case '.wav':
-        return <FileAudio className="h-8 w-8 text-purple-600" />;
-      default:
-        return <FileAudio className="h-8 w-8 text-gray-600" />;
-    }
-  };
-  
-  const transcribeAudioFile = async () => {
-    if (!selectedFile) return;
-
-    setIsTranscribing(true);
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-
-    try {
-      // Get the current session for authentication
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        alert('Please sign in to use the transcription feature');
-        return;
-      }
-
-      // Use the local proxy server to bypass CORS issues
-      const response = await fetch('https://jsxupnogyvfynjgkwdyj.supabase.co/functions/v1/transcribe-audio', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        alert(`Transcription failed: ${response.status} - ${errorText}`);
-        return;
-      }
-
-      const data = await response.json();
-
-      if (data && data.transcript) {
-        if (onTranscription) onTranscription(data.transcript);
-        return data.transcript;
-      } else {
-        throw new Error('Transcription failed: Unexpected response format');
-      }
-    } catch (error) {
-      alert(`Transcription failed: ${error.message || 'Network or server error'}`);
-    } finally {
-      setIsTranscribing(false);
-    }
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   return (
-    <div className={className}>
-      <Card className={`border-2 border-dashed transition-colors ${
-        dragActive 
-          ? "border-blue-400 bg-blue-50" 
-          : selectedFile 
-            ? "border-green-400 bg-green-50" 
-            : "border-gray-300 hover:border-gray-400"
-      }`}>
+    <div className={`space-y-6 ${className}`}>
+      {/* Upload Area */}
+      <Card className="bg-gradient-to-br from-gray-800/50 to-gray-700/30 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Upload className="h-5 w-5 text-blue-400" />
             Audio File Upload
           </CardTitle>
-          <CardDescription>
-            Upload your meeting recording (.mp3, .m4a, or .wav format, max 100MB)
+          <CardDescription className="text-gray-300">
+            Upload your meeting recording (.mp3, .m4a, or .wav format, max {maxSize}MB)
           </CardDescription>
         </CardHeader>
-        
-        <CardContent className="space-y-4">
-          {/* Error Alert */}
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Selected File Display */}
-          {selectedFile && (
-            <div className="flex items-center justify-between p-4 bg-white rounded-lg border">
-              <div className="flex items-center gap-3">
-                {getFileIcon(selectedFile.name)}
-                <div>
-                  <p className="font-medium text-sm text-black">{selectedFile.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {formatFileSize(selectedFile.size)}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {isUploading ? (
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                    <span className="text-sm text-blue-600">Uploading...</span>
-                  </div>
-                ) : (
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onFileRemove}
-                  disabled={isUploading}
-                  className="h-8 w-8 p-0 hover:bg-gray-900 group"
-                >
-                  <X className="h-4 w-4 text-black group-hover:text-white transition-colors" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Upload Progress */}
-          {isUploading && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Uploading...</span>
-                <span>{uploadProgress}%</span>
-              </div>
-              <Progress value={uploadProgress} className="h-2" />
-            </div>
-          )}
-
-          {/* Upload Area */}
-          {!selectedFile && (
+        <CardContent>
+          {!selectedFile ? (
             <div
-              className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                dragActive 
-                  ? "border-blue-400 bg-blue-50" 
-                  : "border-gray-300 hover:border-gray-400"
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 ${
+                isDragOver
+                  ? 'border-blue-400 bg-blue-500/10'
+                  : 'border-gray-600 hover:border-gray-500 hover:bg-gray-700/20'
               }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
               onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
             >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".mp3,.m4a,.wav,audio/mpeg,audio/x-m4a,audio/wav"
-                onChange={handleInputChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                disabled={isUploading}
-              />
-              
               <div className="space-y-4">
-                <div className="flex justify-center">
-                  <div className="p-4 bg-gray-100 rounded-full">
-                    <Upload className="h-8 w-8 text-gray-600" />
-                  </div>
+                <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center border border-blue-500/30">
+                  <FileAudio className="h-8 w-8 text-blue-400" />
                 </div>
                 
                 <div>
-                  <p className="text-lg font-medium text-gray-900">
+                  <p className="text-lg font-medium text-white mb-2">
                     Drop your audio file here
                   </p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    or click to browse files
-                  </p>
+                  <p className="text-gray-400 mb-4">or click to browse files</p>
+                  
+                  <div className="space-y-2 text-sm text-gray-400">
+                    <p>Supported formats: {acceptedFormats.join(', ')}</p>
+                    <p>Maximum file size: {maxSize}MB</p>
+                  </div>
                 </div>
                 
-                <div className="text-xs text-gray-400 space-y-1">
-                  <p>Supported formats: .mp3, .m4a, .wav</p>
-                  <p>Maximum file size: 100MB</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Manual Upload Button */}
-          {!selectedFile && (
-            <div className="flex justify-center">
               <Button
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="w-full max-w-xs"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <Upload className="h-4 w-4 mr-2" />
                 Choose Audio File
               </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* File Info */}
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm rounded-lg border border-blue-500/20">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-500/20 rounded-lg">
+                    <FileAudio className="h-5 w-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-medium text-white">
+                      {selectedFile.name}
+                    </p>
+                    <p className="text-sm text-gray-300">
+                      {formatFileSize(selectedFile.size)}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-green-500/20 text-green-400 border border-green-400/30">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Selected
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={removeFile}
+                    className="text-gray-400 hover:text-red-400 hover:bg-red-500/20"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Audio Player */}
+              {audioUrl && (
+                <div className="bg-gray-700/30 border border-gray-600/30 rounded-lg p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handlePlayPause}
+                          className="text-gray-300 hover:text-white hover:bg-gray-600/50"
+                        >
+                          {isPlaying ? (
+                            <Pause className="h-4 w-4" />
+                          ) : (
+                            <Play className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Volume2 className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-300">Preview</span>
+                      </div>
+                      <span className="text-sm text-gray-400">
+                        {formatTime(currentTime)} / {formatTime(duration)}
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <input
+                        type="range"
+                        min="0"
+                        max={duration || 0}
+                        value={currentTime}
+                        onChange={handleSeek}
+                        className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <div className="flex justify-between text-xs text-gray-400">
+                        <span>0:00</span>
+                        <span>{formatTime(duration)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <audio
+                    ref={audioRef}
+                    src={audioUrl}
+                    onTimeUpdate={handleTimeUpdate}
+                    onLoadedMetadata={handleLoadedMetadata}
+                    onEnded={() => setIsPlaying(false)}
+                    className="hidden"
+                  />
+                </div>
+              )}
+
+              {/* Upload Progress */}
+              {isUploading && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-300">Uploading...</span>
+                    <span className="text-gray-400">{uploadProgress}%</span>
+                  </div>
+                  <Progress value={uploadProgress} className="h-2" />
             </div>
           )}
 
-          {selectedFile && !isUploading && (
+              {/* Action Buttons */}
+              <div className="flex gap-3">
             <Button 
-              onClick={transcribeAudioFile} 
-              disabled={isTranscribing}
-              className="bg-black text-white hover:bg-gray-900 w-full"
+                  onClick={handleUpload}
+                  disabled={isUploading}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              {isTranscribing ? (
+                  {isUploading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Transcribing...
+                      Uploading...
                 </>
               ) : (
-                'Transcribe Audio'
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload File
+                    </>
               )}
             </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={removeFile}
+                  disabled={isUploading}
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700/50 hover:text-white"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           )}
- 
         </CardContent>
       </Card>
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={acceptedFormats.join(',')}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            handleFileSelect(file);
+          }
+        }}
+        className="hidden"
+      />
     </div>
   );
 };
