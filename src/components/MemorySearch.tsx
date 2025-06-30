@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useTheme } from '../context/ThemeContext';
 import { 
   Search, 
   Brain, 
@@ -31,6 +32,7 @@ interface MemorySearchProps {
 }
 
 const MemorySearch = ({ className }: MemorySearchProps) => {
+  const { theme } = useTheme();
   const [query, setQuery] = useState("");
   const [threshold, setThreshold] = useState([0.7]);
   const [limit, setLimit] = useState(10);
@@ -119,17 +121,17 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
   const getContentTypeColor = (type: string) => {
     switch (type) {
       case 'meeting':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-blue-500/20 text-blue-400 border-blue-400/30';
       case 'summary':
-        return 'bg-green-50 text-green-700 border-green-200';
+        return 'bg-green-500/20 text-green-400 border-green-400/30';
       case 'task':
-        return 'bg-orange-50 text-orange-700 border-orange-200';
+        return 'bg-orange-500/20 text-orange-400 border-orange-400/30';
       case 'decision':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
+        return 'bg-purple-500/20 text-purple-400 border-purple-400/30';
       case 'note':
-        return 'bg-gray-50 text-gray-700 border-gray-200';
+        return 'bg-gray-500/20 text-gray-400 border-gray-400/30';
       default:
-        return 'bg-gray-50 text-gray-700 border-gray-200';
+        return 'bg-gray-500/20 text-gray-400 border-gray-400/30';
     }
   };
 
@@ -141,10 +143,10 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
   };
 
   const getSimilarityColor = (similarity: number) => {
-    if (similarity >= 0.9) return 'text-green-600 bg-green-50 border-green-200';
-    if (similarity >= 0.8) return 'text-blue-600 bg-blue-50 border-blue-200';
-    if (similarity >= 0.7) return 'text-orange-600 bg-orange-50 border-orange-200';
-    return 'text-gray-600 bg-gray-50 border-gray-200';
+    if (similarity >= 0.9) return 'text-green-400 bg-green-500/20 border-green-400/30';
+    if (similarity >= 0.8) return 'text-blue-400 bg-blue-500/20 border-blue-400/30';
+    if (similarity >= 0.7) return 'text-orange-400 bg-orange-500/20 border-orange-400/30';
+    return 'text-gray-400 bg-gray-500/20 border-gray-400/30';
   };
 
   const truncateText = (text: string, maxLength: number = 200) => {
@@ -194,27 +196,27 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
       {/* Header with Stats */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl">
-            <Brain className="h-6 w-6 text-purple-600" />
+          <div className="p-2 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-xl backdrop-blur-sm">
+            <Brain className="h-6 w-6 text-purple-400" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
               TaskMind Memory
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-300">
               Your AI-powered memory assistant
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           {getMemoryStats.data && (
-            <div className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="hidden md:flex items-center gap-4 text-sm text-gray-300">
               <div className="flex items-center gap-1">
-                <Zap className="h-4 w-4 text-purple-500" />
+                <Zap className="h-4 w-4 text-purple-400" />
                 <span>{getMemoryStats.data.embeddingsCount} items</span>
               </div>
               <div className="flex items-center gap-1">
-                <TrendingUp className="h-4 w-4 text-green-500" />
+                <TrendingUp className="h-4 w-4 text-green-400" />
                 <span>{getMemoryStats.data.searchLogsCount} searches</span>
               </div>
             </div>
@@ -223,7 +225,7 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
             variant="outline"
             size="sm"
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
           >
             <Filter className="h-4 w-4" />
             {showAdvanced ? 'Hide' : 'Show'} Filters
@@ -232,13 +234,13 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
       </div>
 
       {/* Search Input */}
-      <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-gray-50/50">
+      <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
         <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Search className="h-5 w-5 text-purple-600" />
+          <CardTitle className="flex items-center gap-2 text-lg text-white">
+            <Search className="h-5 w-5 text-purple-400" />
             Search Your Memory
           </CardTitle>
-          <CardDescription className="text-base">
+          <CardDescription className="text-base text-gray-300">
             Ask questions in natural language to find relevant meetings, tasks, and decisions
           </CardDescription>
         </CardHeader>
@@ -250,19 +252,19 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="h-12 text-base pr-12"
+                className="h-12 text-base pr-12 bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                 disabled={isSearching}
               />
               {isSearching && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <Loader2 className="h-5 w-5 animate-spin text-purple-600" />
+                  <Loader2 className="h-5 w-5 animate-spin text-purple-400" />
                 </div>
               )}
             </div>
             <Button 
               onClick={handleSearch} 
               disabled={!query.trim() || isSearching}
-              className="h-12 px-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex items-center gap-2"
+              className="h-12 px-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
               {isSearching ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -276,7 +278,7 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
           {/* Quick Queries */}
           {!searchMemory.data && !isSearching && (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-gray-300">
                 <Zap className="h-4 w-4" />
                 <span>Quick queries:</span>
               </div>
@@ -287,7 +289,7 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
                     variant="outline"
                     size="sm"
                     onClick={() => handleQuickQuery(quickQuery)}
-                    className="text-xs h-8"
+                    className="text-xs h-8 border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
                   >
                     {quickQuery}
                   </Button>
@@ -299,7 +301,7 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
           {/* Recent Queries */}
           {recentQueries.length > 0 && !searchMemory.data && !isSearching && (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-gray-300">
                 <Clock className="h-4 w-4" />
                 <span>Recent searches:</span>
               </div>
@@ -310,7 +312,7 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleQuickQuery(recentQuery)}
-                    className="text-xs h-8 text-muted-foreground hover:text-foreground"
+                    className="text-xs h-8 text-gray-400 hover:text-white hover:bg-gray-600"
                   >
                     {recentQuery}
                   </Button>
@@ -322,12 +324,12 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
           {/* Advanced Settings */}
           {showAdvanced && (
             <>
-              <Separator />
+              <Separator className="bg-gray-600" />
               <div className="space-y-4 pt-4">
                 <div className="space-y-3">
-                  <Label className="flex items-center justify-between text-sm font-medium">
+                  <Label className="flex items-center justify-between text-sm font-medium text-gray-200">
                     <span>Similarity Threshold</span>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs border-gray-600 text-gray-300">
                       {formatSimilarity(threshold[0])} match
                     </Badge>
                   </Label>
@@ -339,20 +341,20 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
                     step={0.05}
                     className="w-full"
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-gray-400">
                     Higher values return more relevant but fewer results
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Maximum Results</Label>
+                  <Label className="text-sm font-medium text-gray-200">Maximum Results</Label>
                   <Input
                     type="number"
                     value={limit}
                     onChange={(e) => setLimit(parseInt(e.target.value) || 10)}
                     min={1}
                     max={50}
-                    className="w-32"
+                    className="w-32 bg-gray-700/50 border-gray-600 text-white focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
 
@@ -362,7 +364,7 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
                     size="sm"
                     onClick={handleUpdateEmbeddings}
                     disabled={isUpdating}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
                   >
                     {isUpdating ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -372,7 +374,7 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
                     Update Embeddings
                   </Button>
                   {getMemoryStats.data && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
                       <Info className="h-4 w-4" />
                       <span>{getMemoryStats.data.embeddingsCount} items indexed</span>
                     </div>
@@ -386,16 +388,16 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
 
       {/* Search Results */}
       {searchMemory.data && (
-        <Card className="border-0 shadow-lg">
+        <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-white">
               <span>Search Results</span>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-gray-300">
                 <Clock className="h-4 w-4" />
                 {searchMemory.data.search_duration_ms}ms
               </div>
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-300">
               Found {searchMemory.data.results.length} relevant items
             </CardDescription>
           </CardHeader>
@@ -408,8 +410,8 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
                   return (
                     <Card 
                       key={result.id} 
-                      className={`border-l-4 border-l-purple-500 hover:shadow-md transition-shadow duration-200 ${
-                        index === 0 ? 'ring-2 ring-purple-100' : ''
+                      className={`bg-gray-700/30 border border-gray-600/30 hover:bg-gray-600/30 transition-all duration-200 ${
+                        index === 0 ? 'ring-2 ring-purple-500/30' : ''
                       }`}
                     >
                       <CardContent className="pt-4">
@@ -423,20 +425,20 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
                               {formatSimilarity(result.similarity)} match
                             </Badge>
                           </div>
-                          <span className="text-sm text-muted-foreground">
+                          <span className="text-sm text-gray-400">
                             {formatDistanceToNow(new Date(result.metadata.created_at || Date.now()), { addSuffix: true })}
                           </span>
                         </div>
                         
-                        <h4 className="font-semibold mb-2 text-lg">
+                        <h4 className="font-semibold mb-2 text-lg text-white">
                           {metadata.title}
                         </h4>
                         
-                        <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
+                        <p className="text-sm text-gray-300 mb-3 leading-relaxed">
                           {truncateText(result.content_text)}
                         </p>
                         
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-4 text-xs text-gray-400">
                           {result.content_type === 'meeting' && (
                             <>
                               <span className="flex items-center gap-1">
@@ -451,7 +453,7 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
                               <span>Assigned to: {metadata.assignee}</span>
                               <span>Priority: {metadata.priority}</span>
                               {metadata.completed && (
-                                <span className="text-green-600 font-medium">✓ Completed</span>
+                                <span className="text-green-400 font-medium">✓ Completed</span>
                               )}
                             </>
                           )}
@@ -466,15 +468,15 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <Brain className="h-16 w-16 mx-auto mb-4 opacity-50 text-muted-foreground" />
-                <h3 className="text-lg font-medium mb-2">No results found</h3>
-                <p className="text-muted-foreground mb-4">
+                <Brain className="h-16 w-16 mx-auto mb-4 opacity-50 text-gray-400" />
+                <h3 className="text-lg font-medium mb-2 text-white">No results found</h3>
+                <p className="text-gray-300 mb-4">
                   Try adjusting your search terms or similarity threshold
                 </p>
                 <Button 
                   variant="outline" 
                   onClick={() => setThreshold([0.5])}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
                 >
                   <Settings className="h-4 w-4" />
                   Lower Threshold
@@ -487,20 +489,20 @@ const MemorySearch = ({ className }: MemorySearchProps) => {
 
       {/* Error State */}
       {searchMemory.error && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="bg-red-500/10 border-red-500/30">
           <CardContent className="pt-4">
-            <div className="flex items-center gap-2 text-red-800">
+            <div className="flex items-center gap-2 text-red-400">
               <Brain className="h-5 w-5" />
               <span className="font-semibold">Search Error</span>
             </div>
-            <p className="text-red-700 mt-2">
+            <p className="text-red-300 mt-2">
               {searchMemory.error.message || 'An unexpected error occurred'}
             </p>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => searchMemory.reset()}
-              className="mt-3"
+              className="mt-3 border-red-500/30 text-red-400 hover:bg-red-500/20"
             >
               Try Again
             </Button>

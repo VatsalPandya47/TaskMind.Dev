@@ -125,6 +125,7 @@ export type Database = {
           assignee: string
           completed: boolean | null
           created_at: string
+          description: string | null
           due_date: string | null
           id: string
           meeting_id: string | null
@@ -137,6 +138,7 @@ export type Database = {
           assignee: string
           completed?: boolean | null
           created_at?: string
+          description?: string | null
           due_date?: string | null
           id?: string
           meeting_id?: string | null
@@ -149,6 +151,7 @@ export type Database = {
           assignee?: string
           completed?: boolean | null
           created_at?: string
+          description?: string | null
           due_date?: string | null
           id?: string
           meeting_id?: string | null
