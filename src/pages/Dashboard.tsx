@@ -6,10 +6,29 @@ import MeetingsTab from "@/components/MeetingsTab";
 import TasksTab from "@/components/TasksTab";
 import SettingsTab from "@/components/SettingsTab";
 import MemoryTab from "@/components/MemoryTab";
+import SummariesTab from "@/components/SummariesTab";
 
 const Dashboard = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("dashboard");
+
+  // Set active tab based on current route
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === "/" || path === "/dashboard") {
+      setActiveTab("dashboard");
+    } else if (path === "/tasks") {
+      setActiveTab("tasks");
+    } else if (path === "/meetings") {
+      setActiveTab("meetings");
+    } else if (path === "/memory") {
+      setActiveTab("memory");
+    } else if (path === "/summaries") {
+      setActiveTab("summaries");
+    } else if (path === "/settings") {
+      setActiveTab("settings");
+    }
+  }, [location.pathname]);
 
   // Handle navigation state from Resources pages
   useEffect(() => {
@@ -34,6 +53,8 @@ const Dashboard = () => {
         return <TasksTab />;
       case "memory":
         return <MemoryTab />;
+      case "summaries":
+        return <SummariesTab />;
       case "settings":
         return <SettingsTab />;
       default:
@@ -42,7 +63,7 @@ const Dashboard = () => {
   };
 
   return (
-    <AppLayout activeTab={activeTab} onTabChange={handleTabChange}>
+    <AppLayout>
       {renderTabContent()}
     </AppLayout>
   );

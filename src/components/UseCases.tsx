@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 
 const UseCases = () => {
@@ -38,13 +37,13 @@ const UseCases = () => {
   ];
 
   return (
-    <section id="use-cases" className="py-20 bg-gray-50">
+    <section id="use-cases" className="py-20 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-black mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-6">
             Use Cases
           </h2>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-300">
             Discover how our AI assistant adapts to different scenarios and workflows.
           </p>
         </div>
@@ -53,12 +52,12 @@ const UseCases = () => {
           {useCases.map((useCase, index) => (
             <div key={index} className={`flex flex-col lg:flex-row items-center gap-12 mb-20 ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}>
               <div className="lg:w-1/2">
-                <div className="bg-white rounded-2xl p-8 shadow-lg">
-                  <span className="text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-gray-700/50 hover:shadow-2xl transition-all duration-300">
+                  <span className="text-sm font-medium text-purple-400 bg-purple-500/20 px-3 py-1 rounded-full border border-purple-400/30">
                     {useCase.category}
                   </span>
-                  <h3 className="text-3xl font-bold text-black mt-4 mb-4">{useCase.title}</h3>
-                  <p className="text-lg text-gray-600 leading-relaxed">{useCase.description}</p>
+                  <h3 className="text-3xl font-bold text-white mt-4 mb-4">{useCase.title}</h3>
+                  <p className="text-lg text-gray-300 leading-relaxed">{useCase.description}</p>
                 </div>
               </div>
               <div className="lg:w-1/2">
@@ -68,7 +67,7 @@ const UseCases = () => {
                     alt={useCase.title}
                     className="w-full rounded-2xl shadow-lg"
                   />
-                  <div className="absolute inset-0 bg-blue-600/10 rounded-2xl"></div>
+                  <div className="absolute inset-0 bg-purple-600/10 rounded-2xl"></div>
                 </div>
               </div>
             </div>

@@ -7,6 +7,7 @@ import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase
 export type Task = {
   id: string;
   task: string;
+  description?: string;
   assignee: string;
   due_date?: string;
   priority: string;
@@ -15,16 +16,15 @@ export type Task = {
   created_at: string;
   updated_at: string;
   user_id: string;
-  status: string;
 };
 
 export type TaskInsert = {
   task: string;
+  description?: string;
   assignee: string;
   due_date?: string;
   priority: string;
   meeting_id?: string;
-  status: string;
 };
 
 type TaskUpdate = TablesUpdate<"tasks">;

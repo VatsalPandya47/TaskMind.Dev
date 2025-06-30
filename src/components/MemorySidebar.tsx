@@ -103,17 +103,17 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
   const getContentTypeColor = (type: string) => {
     switch (type) {
       case 'meeting':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-blue-500/20 text-blue-400 border-blue-400/30';
       case 'summary':
-        return 'bg-green-50 text-green-700 border-green-200';
+        return 'bg-green-500/20 text-green-400 border-green-400/30';
       case 'task':
-        return 'bg-orange-50 text-orange-700 border-orange-200';
+        return 'bg-orange-500/20 text-orange-400 border-orange-400/30';
       case 'decision':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
+        return 'bg-purple-500/20 text-purple-400 border-purple-400/30';
       case 'note':
-        return 'bg-gray-50 text-gray-700 border-gray-200';
+        return 'bg-gray-500/20 text-gray-400 border-gray-400/30';
       default:
-        return 'bg-gray-50 text-gray-700 border-gray-200';
+        return 'bg-gray-500/20 text-gray-400 border-gray-400/30';
     }
   };
 
@@ -125,10 +125,10 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
   };
 
   const getSimilarityColor = (similarity: number) => {
-    if (similarity >= 0.9) return 'text-green-600 bg-green-50 border-green-200';
-    if (similarity >= 0.8) return 'text-blue-600 bg-blue-50 border-blue-200';
-    if (similarity >= 0.7) return 'text-orange-600 bg-orange-50 border-orange-200';
-    return 'text-gray-600 bg-gray-50 border-gray-200';
+    if (similarity >= 0.9) return 'text-green-400 bg-green-500/20 border-green-400/30';
+    if (similarity >= 0.8) return 'text-blue-400 bg-blue-500/20 border-blue-400/30';
+    if (similarity >= 0.7) return 'text-orange-400 bg-orange-500/20 border-orange-400/30';
+    return 'text-gray-400 bg-gray-500/20 border-gray-400/30';
   };
 
   const truncateText = (text: string, maxLength: number = 100) => {
@@ -191,26 +191,26 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-y-0 right-0 w-96 bg-background border-l shadow-xl z-50 animate-in slide-in-from-right duration-300">
+    <div className="fixed inset-y-0 right-0 w-96 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-l border-gray-700/50 shadow-2xl z-50 animate-in slide-in-from-right duration-300 backdrop-blur-sm">
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-purple-50 to-blue-50">
+        <div className="flex items-center justify-between p-4 border-b border-gray-700/50 bg-gradient-to-r from-gray-800/50 to-gray-700/30 backdrop-blur-sm">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg">
-              <Brain className="h-5 w-5 text-purple-600" />
+            <div className="p-1.5 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-lg backdrop-blur-sm">
+              <Brain className="h-5 w-5 text-purple-400" />
             </div>
             <div>
-              <h2 className="font-semibold text-purple-900">Memory Recall</h2>
-              <p className="text-xs text-purple-700">AI-powered search</p>
+              <h2 className="font-semibold text-white">Memory Recall</h2>
+              <p className="text-xs text-gray-300">AI-powered search</p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700/50">
             <X className="h-4 w-4" />
           </Button>
         </div>
 
         {/* Search Input */}
-        <div className="p-4 border-b bg-white">
+        <div className="p-4 border-b border-gray-700/50 bg-gradient-to-r from-gray-800/30 to-gray-700/20 backdrop-blur-sm">
           <div className="space-y-3">
             <div className="flex gap-2">
               <div className="relative flex-1">
@@ -219,12 +219,12 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="h-10 text-sm pr-10"
+                  className="h-10 text-sm pr-10 bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                   disabled={isSearching}
                 />
                 {isSearching && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
+                    <Loader2 className="h-4 w-4 animate-spin text-purple-400" />
                   </div>
                 )}
               </div>
@@ -232,7 +232,7 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
                 size="sm"
                 onClick={handleSearch} 
                 disabled={!query.trim() || isSearching}
-                className="h-10 px-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                className="h-10 px-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 {isSearching ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
@@ -241,7 +241,7 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
                 )}
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-400">
               Search your meetings, tasks, and decisions
             </p>
           </div>
@@ -252,7 +252,7 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
           <div className="p-4 space-y-4">
             {searchMemory.data && (
               <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <div className="flex items-center justify-between text-xs text-gray-400">
                   <span>Found {searchMemory.data.results.length} results</span>
                   <span>{searchMemory.data.search_duration_ms}ms</span>
                 </div>
@@ -262,7 +262,7 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
                     const metadata = getMetadataDisplay(result.metadata, result.content_type);
                     
                     return (
-                      <Card key={result.id} className="border-l-2 border-l-purple-500 hover:shadow-md transition-all duration-200">
+                      <Card key={result.id} className="bg-gray-800/30 border border-gray-600/30 hover:bg-gray-700/30 transition-all duration-200 shadow-lg hover:shadow-xl">
                         <CardContent className="p-3">
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-1">
@@ -276,15 +276,15 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
                             </Badge>
                           </div>
                           
-                          <h4 className="font-medium text-sm mb-1 line-clamp-1">
+                          <h4 className="font-medium text-sm mb-1 line-clamp-1 text-white">
                             {metadata.title}
                           </h4>
                           
-                          <p className="text-xs text-muted-foreground mb-2 line-clamp-2 leading-relaxed">
+                          <p className="text-xs text-gray-300 mb-2 line-clamp-2 leading-relaxed">
                             {truncateText(result.content_text, 80)}
                           </p>
                           
-                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <div className="flex items-center justify-between text-xs text-gray-400">
                             <span>
                               {result.content_type === 'meeting' && metadata.date}
                               {result.content_type === 'task' && `Assigned to ${metadata.assignee}`}
@@ -300,9 +300,9 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
                   })
                 ) : (
                   <div className="text-center py-8">
-                    <Brain className="h-8 w-8 mx-auto mb-2 opacity-50 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">No results found</p>
-                    <p className="text-xs text-muted-foreground">Try different search terms</p>
+                    <Brain className="h-8 w-8 mx-auto mb-2 opacity-50 text-gray-400" />
+                    <p className="text-sm text-gray-300">No results found</p>
+                    <p className="text-xs text-gray-400">Try different search terms</p>
                   </div>
                 )}
               </div>
@@ -311,8 +311,8 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
             {/* Quick Actions */}
             {!searchMemory.data && (
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <Lightbulb className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                  <Lightbulb className="h-4 w-4 text-purple-400" />
                   Quick Actions
                 </div>
                 
@@ -322,18 +322,18 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
                       key={index}
                       variant="outline"
                       size="sm"
-                      className="w-full justify-start text-left h-auto p-3 hover:bg-purple-50 hover:border-purple-200 transition-colors"
+                      className="w-full justify-start text-left h-auto p-3 border-gray-600 text-gray-300 hover:bg-gray-700/50 hover:text-white hover:border-gray-500 transition-all duration-200"
                       onClick={() => handleQuickQuery(action.query)}
                     >
                       <div className="flex items-start gap-3">
-                        <div className="p-1 bg-purple-100 rounded">
-                          <action.icon className="h-3 w-3 text-purple-600" />
+                        <div className="p-1 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded backdrop-blur-sm">
+                          <action.icon className="h-3 w-3 text-purple-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm">{action.title}</div>
-                          <div className="text-xs text-muted-foreground">{action.description}</div>
+                          <div className="font-medium text-sm text-white">{action.title}</div>
+                          <div className="text-xs text-gray-400">{action.description}</div>
                         </div>
-                        <ArrowRight className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                        <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
                       </div>
                     </Button>
                   ))}
@@ -342,10 +342,10 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
                 {/* Recent Searches */}
                 {recentQueries.length > 0 && (
                   <>
-                    <Separator />
+                    <Separator className="bg-gray-600" />
                     <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                        <History className="h-4 w-4" />
+                      <div className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                        <History className="h-4 w-4 text-blue-400" />
                         Recent Searches
                       </div>
                       
@@ -356,7 +356,7 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleQuickQuery(recentQuery)}
-                            className="w-full justify-start text-left h-auto p-2 text-xs text-muted-foreground hover:text-foreground hover:bg-gray-50"
+                            className="w-full justify-start text-left h-auto p-2 text-xs text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200"
                           >
                             <div className="truncate">{recentQuery}</div>
                           </Button>
@@ -370,13 +370,13 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
 
             {/* Error State */}
             {searchMemory.error && (
-              <Card className="border-red-200 bg-red-50">
+              <Card className="bg-red-500/10 border-red-500/30 backdrop-blur-sm">
                 <CardContent className="p-3">
-                  <div className="flex items-center gap-2 text-red-800">
+                  <div className="flex items-center gap-2 text-red-400">
                     <Brain className="h-4 w-4" />
                     <span className="text-sm font-medium">Search Error</span>
                   </div>
-                  <p className="text-red-700 text-xs mt-1">
+                  <p className="text-red-300 text-xs mt-1">
                     {searchMemory.error.message || 'An unexpected error occurred'}
                   </p>
                 </CardContent>
@@ -386,10 +386,10 @@ const MemorySidebar = ({ isOpen, onClose }: MemorySidebarProps) => {
         </ScrollArea>
 
         {/* Footer */}
-        <div className="p-4 border-t bg-gradient-to-r from-gray-50 to-purple-50">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="p-4 border-t border-gray-700/50 bg-gradient-to-r from-gray-800/30 to-gray-700/20 backdrop-blur-sm">
+          <div className="flex items-center justify-between text-xs text-gray-400">
             <span>TaskMind Memory</span>
-            <Button variant="ghost" size="sm" className="h-auto p-1 text-xs hover:text-purple-600">
+            <Button variant="ghost" size="sm" className="h-auto p-1 text-xs text-gray-400 hover:text-purple-400 hover:bg-gray-700/50 transition-all duration-200">
               View Full Memory
               <ChevronRight className="h-3 w-3 ml-1" />
             </Button>

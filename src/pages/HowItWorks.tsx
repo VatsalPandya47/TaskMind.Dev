@@ -26,13 +26,13 @@ const HowItWorks = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <div className="container mx-auto px-4 py-20">
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-black mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-6">
             How TaskMind Works
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-300">
             Turn meetings into action with AI-powered task automation that works with your existing tools.
           </p>
         </div>
@@ -40,17 +40,17 @@ const HowItWorks = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto mb-16">
           {features.map((feature, index) => (
             <div key={index} className="text-center group hover:scale-105 transition-transform duration-200">
-              <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-blue-100 transition-colors">
-                <feature.icon size={32} className="text-blue-600" />
+              <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:from-purple-500/30 group-hover:to-blue-500/30 transition-all duration-300 border border-purple-500/30">
+                <feature.icon size={32} className="text-purple-400" />
               </div>
-              <h3 className="text-xl font-semibold text-black mb-4">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
+              <h3 className="text-xl font-semibold text-white mb-4">{feature.title}</h3>
+              <p className="text-gray-300">{feature.description}</p>
             </div>
           ))}
         </div>
 
         <div className="max-w-4xl mx-auto text-center">
-          <a href="/" className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg shadow hover:bg-blue-700 transition">
+          <a href="/" className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
             Back to Dashboard
           </a>
         </div>

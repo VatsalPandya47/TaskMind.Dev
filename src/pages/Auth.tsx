@@ -83,220 +83,171 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-      </div>
-
-      {/* Floating Icons */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-20 animate-bounce">
-          <Sparkles className="h-8 w-8 text-blue-400 opacity-30" />
-        </div>
-        <div className="absolute top-40 right-32 animate-bounce animation-delay-1000">
-          <Zap className="h-6 w-6 text-purple-400 opacity-30" />
-        </div>
-        <div className="absolute bottom-32 left-32 animate-bounce animation-delay-2000">
-          <Shield className="h-7 w-7 text-indigo-400 opacity-30" />
-        </div>
-        <div className="absolute bottom-20 right-20 animate-bounce animation-delay-3000">
-          <Users className="h-6 w-6 text-blue-400 opacity-30" />
-        </div>
-      </div>
-
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
-        <div className="max-w-md w-full space-y-8">
-          {/* Logo and Header */}
-          <div className="text-center space-y-6">
-            <div className="relative">
-              <div className="flex justify-center mb-6">
-                <div className="relative">
-                  <div className="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg transform hover:scale-105 transition-transform duration-300">
-                    <Brain className="h-10 w-10 text-white" />
-                  </div>
-                  <div className="absolute -top-2 -right-2">
-                    <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                      <Rocket className="h-3 w-3 text-white" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute -inset-4 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-3xl blur-xl"></div>
-            </div>
-            
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/50 to-background relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute top-20 left-20 w-72 h-72 bg-primary/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+      <div className="absolute top-40 right-20 w-72 h-72 bg-primary/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-40 w-72 h-72 bg-primary/25 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+      
+      <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
+        <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm border-border shadow-2xl">
+          <CardHeader className="space-y-1 text-center">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                TaskMind
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                TaskMind ⚡
               </h1>
-              <p className="text-lg text-gray-600 font-medium">
-                Your AI-powered productivity companion
+              <p className="text-lg text-muted-foreground font-medium">
+                Your AI-powered productivity companion 🚀
               </p>
             </div>
 
             {/* CAPTCHA */}
             <div className="mt-6">
               <SimpleCaptcha
-                checked={captchaChecked}
-                setChecked={setCaptchaChecked}
-                error={captchaError}
+                onVerify={setCaptchaChecked}
+                className={captchaError ? 'border-red-500/50' : ''}
               />
             </div>
-          </div>
+          </CardHeader>
 
           {/* Auth Card */}
-          <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-2xl rounded-2xl overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-purple-50/50"></div>
-            <div className="relative">
-              <CardHeader className="text-center pb-6">
-                <CardTitle className="text-2xl font-bold text-gray-900">
-                  Welcome to TaskMind! 🚀
-                </CardTitle>
-                <CardDescription className="text-gray-600 text-base">
-                  Sign in to your account or create a new one to start your productivity journey.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="px-8 pb-8">
-                <Tabs value={tab} onValueChange={handleTabChange} defaultValue="signin" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-xl">
-                    <TabsTrigger 
-                      value="signin" 
-                      className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 transition-all duration-200"
-                    >
-                      Sign In
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="signup" 
-                      className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 transition-all duration-200"
-                    >
-                      Sign Up
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="signin" className="space-y-6 mt-6">
-                    <form onSubmit={handleSignIn} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          required
-                          placeholder="your.email@example.com"
-                          className="rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
-                        />
+          <CardContent className="px-8 pb-8">
+            <Tabs value={tab} onValueChange={handleTabChange} defaultValue="signin" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-700/50 p-1 rounded-xl border border-gray-600/30">
+                <TabsTrigger 
+                  value="signin" 
+                  className="rounded-lg data-[state=active]:bg-gray-600/50 data-[state=active]:shadow-sm data-[state=active]:text-blue-400 transition-all duration-200 text-gray-300 hover:text-white"
+                >
+                  Sign In
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="signup" 
+                  className="rounded-lg data-[state=active]:bg-gray-600/50 data-[state=active]:shadow-sm data-[state=active]:text-blue-400 transition-all duration-200 text-gray-300 hover:text-white"
+                >
+                  Sign Up
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="signin" className="space-y-6 mt-6">
+                <form onSubmit={handleSignIn} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium text-gray-200">Email</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      placeholder="your.email@example.com"
+                      className="rounded-xl bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm font-medium text-gray-200">Password</Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      required
+                      placeholder="Enter your password"
+                      className="rounded-xl bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Signing you in...
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
-                        <Input
-                          id="password"
-                          name="password"
-                          type="password"
-                          required
-                          placeholder="Enter your password"
-                          className="rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
-                        />
+                    ) : (
+                      "Sign In"
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+              
+              <TabsContent value="signup" className="space-y-6 mt-6">
+                <form onSubmit={handleSignUp} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="text-sm font-medium text-gray-200">First Name</Label>
+                      <Input
+                        id="firstName"
+                        name="firstName"
+                        type="text"
+                        placeholder="What should we call you?"
+                        className="rounded-xl bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName" className="text-sm font-medium text-gray-200">Last Name</Label>
+                      <Input
+                        id="lastName"
+                        name="lastName"
+                        type="text"
+                        placeholder="Your last name"
+                        className="rounded-xl bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium text-gray-200">Email</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      placeholder="your.email@example.com"
+                      className="rounded-xl bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm font-medium text-gray-200">Password</Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      required
+                      placeholder="Create a secure password"
+                      minLength={6}
+                      className="rounded-xl bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Creating your account...
                       </div>
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105" 
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <div className="flex items-center gap-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            Signing you in...
-                          </div>
-                        ) : (
-                          "Sign In"
-                        )}
-                      </Button>
-                    </form>
-                  </TabsContent>
-                  
-                  <TabsContent value="signup" className="space-y-6 mt-6">
-                    <form onSubmit={handleSignUp} className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">First Name</Label>
-                          <Input
-                            id="firstName"
-                            name="firstName"
-                            type="text"
-                            placeholder="What should we call you?"
-                            className="rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last Name</Label>
-                          <Input
-                            id="lastName"
-                            name="lastName"
-                            type="text"
-                            placeholder="Your last name"
-                            className="rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          required
-                          placeholder="your.email@example.com"
-                          className="rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
-                        <Input
-                          id="password"
-                          name="password"
-                          type="password"
-                          required
-                          placeholder="Create a secure password"
-                          minLength={6}
-                          className="rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
-                        />
-                      </div>
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105" 
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <div className="flex items-center gap-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            Creating your account...
-                          </div>
-                        ) : (
-                          "Create Account"
-                        )}
-                      </Button>
-                    </form>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </div>
-          </Card>
+                    ) : (
+                      "Create Account"
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
 
           {/* Footer */}
           <div className="text-center space-y-4">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-400">
               By continuing, you agree to our{" "}
-              <a href="/terms-of-use" className="text-blue-600 hover:text-blue-700 underline font-medium">
+              <a href="/terms-of-use" className="text-blue-400 hover:text-blue-300 underline font-medium">
                 Terms of Service
               </a>{" "}
               and{" "}
-              <a href="/privacy-policy" className="text-blue-600 hover:text-blue-700 underline font-medium">
+              <a href="/privacy-policy" className="text-blue-400 hover:text-blue-300 underline font-medium">
                 Privacy Policy
               </a>
             </p>
-            <div className="flex items-center justify-center gap-6 text-xs text-gray-400">
+            <div className="flex items-center justify-center gap-6 text-xs text-gray-500">
               <div className="flex items-center gap-1">
                 <Shield className="h-3 w-3" />
                 <span>Secure</span>
@@ -311,7 +262,7 @@ const Auth = () => {
               </div>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

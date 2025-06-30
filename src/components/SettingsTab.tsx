@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import SlackIntegration, { SlackSettings } from "@/components/SlackIntegration";
+import { useTheme } from '../context/ThemeContext';
 import { 
   User, 
   Bell, 
@@ -35,6 +36,7 @@ import {
 const SettingsTab = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { theme } = useTheme();
   const [profile, setProfile] = useState({
     first_name: "",
     last_name: "",
@@ -166,25 +168,29 @@ const SettingsTab = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
+      {/* Decorative blur elements */}
+      <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl -z-10"></div>
+      
       {/* Header */}
       <div className="text-center space-y-4">
-        <h1 className="text-5xl md:text-6xl font-bold text-black leading-tight">
+        <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight">
           Your Command Center ⚙️
         </h1>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+        <p className="text-xl text-gray-300 max-w-3xl mx-auto">
           Customize your TaskMind experience and manage your account settings
         </p>
       </div>
 
       {/* Profile Information */}
-      <Card className="shadow-lg">
+      <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <User className="h-5 w-5 text-blue-400" />
             Your Profile
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-300">
             Update your personal information and account details
           </CardDescription>
         </CardHeader>
@@ -192,58 +198,58 @@ const SettingsTab = () => {
           <form onSubmit={updateProfile} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="first_name">First Name</Label>
+                <Label htmlFor="first_name" className="text-gray-200">First Name</Label>
                 <Input
                   id="first_name"
                   value={profile.first_name}
                   onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
                   placeholder="Enter your first name"
-                  className="rounded-xl"
+                  className="rounded-xl bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="last_name">Last Name</Label>
+                <Label htmlFor="last_name" className="text-gray-200">Last Name</Label>
                 <Input
                   id="last_name"
                   value={profile.last_name}
                   onChange={(e) => setProfile({ ...profile, last_name: e.target.value })}
                   placeholder="Your last name"
-                  className="rounded-xl"
+                  className="rounded-xl bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-gray-200">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   value={profile.email}
                   onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                   placeholder="your.email@example.com"
-                  className="rounded-xl"
+                  className="rounded-xl bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="timezone">Timezone</Label>
+                <Label htmlFor="timezone" className="text-gray-200">Timezone</Label>
                 <Select value={profile.timezone} onValueChange={(value) => setProfile({ ...profile, timezone: value })}>
-                  <SelectTrigger className="rounded-xl">
+                  <SelectTrigger className="rounded-xl bg-gray-700/50 border-gray-600 text-white focus:border-blue-500 focus:ring-blue-500">
                     <SelectValue placeholder="Where are you located?" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="UTC">UTC</SelectItem>
-                    <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                    <SelectItem value="America/Chicago">Central Time</SelectItem>
-                    <SelectItem value="America/Denver">Mountain Time</SelectItem>
-                    <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
-                    <SelectItem value="Europe/London">London</SelectItem>
-                    <SelectItem value="Europe/Paris">Paris</SelectItem>
-                    <SelectItem value="Asia/Tokyo">Tokyo</SelectItem>
+                  <SelectContent className="bg-gray-800 border-gray-600">
+                    <SelectItem value="UTC" className="text-white hover:bg-gray-700">UTC</SelectItem>
+                    <SelectItem value="America/New_York" className="text-white hover:bg-gray-700">Eastern Time</SelectItem>
+                    <SelectItem value="America/Chicago" className="text-white hover:bg-gray-700">Central Time</SelectItem>
+                    <SelectItem value="America/Denver" className="text-white hover:bg-gray-700">Mountain Time</SelectItem>
+                    <SelectItem value="America/Los_Angeles" className="text-white hover:bg-gray-700">Pacific Time</SelectItem>
+                    <SelectItem value="Europe/London" className="text-white hover:bg-gray-700">London</SelectItem>
+                    <SelectItem value="Europe/Paris" className="text-white hover:bg-gray-700">Paris</SelectItem>
+                    <SelectItem value="Asia/Tokyo" className="text-white hover:bg-gray-700">Tokyo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 rounded-xl">
+            <Button type="submit" disabled={isLoading} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
               {isLoading ? "Saving..." : "Save Changes"}
             </Button>
           </form>
@@ -251,38 +257,38 @@ const SettingsTab = () => {
       </Card>
 
       {/* Account Information */}
-      <Card className="shadow-lg">
+      <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Key className="h-5 w-5 text-blue-400" />
             Account Details
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-300">
             Your account information and subscription status
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-4 bg-gray-50 rounded-xl">
-              <Label className="text-sm font-medium text-gray-500">User ID</Label>
-              <p className="text-sm text-gray-900 font-mono mt-1">{user?.id}</p>
+            <div className="p-4 bg-gray-700/50 rounded-xl border border-gray-600/30">
+              <Label className="text-sm font-medium text-gray-400">User ID</Label>
+              <p className="text-sm text-white font-mono mt-1">{user?.id}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-xl">
-              <Label className="text-sm font-medium text-gray-500">Member Since</Label>
-              <p className="text-sm text-gray-900 mt-1">
+            <div className="p-4 bg-gray-700/50 rounded-xl border border-gray-600/30">
+              <Label className="text-sm font-medium text-gray-400">Member Since</Label>
+              <p className="text-sm text-white mt-1">
                 {user?.created_at ? new Date(user.created_at).toLocaleDateString() : "N/A"}
               </p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-xl">
-              <Label className="text-sm font-medium text-gray-500">Your Plan</Label>
+            <div className="p-4 bg-gray-700/50 rounded-xl border border-gray-600/30">
+              <Label className="text-sm font-medium text-gray-400">Your Plan</Label>
               <div className="flex items-center gap-2 mt-1">
-                <Badge className="bg-blue-100 text-blue-800">Pro Plan</Badge>
-                <span className="text-sm text-gray-600">Active</span>
+                <Badge className="bg-blue-500/20 text-blue-400 border border-blue-400/30">Pro Plan</Badge>
+                <span className="text-sm text-gray-300">Active</span>
               </div>
             </div>
-            <div className="p-4 bg-gray-50 rounded-xl">
-              <Label className="text-sm font-medium text-gray-500">Last Login</Label>
-              <p className="text-sm text-gray-900 mt-1">
+            <div className="p-4 bg-gray-700/50 rounded-xl border border-gray-600/30">
+              <Label className="text-sm font-medium text-gray-400">Last Login</Label>
+              <p className="text-sm text-white mt-1">
                 {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : "N/A"}
               </p>
             </div>
@@ -291,25 +297,25 @@ const SettingsTab = () => {
       </Card>
 
       {/* Integrations */}
-      <Card className="shadow-lg">
+      <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Zap className="h-5 w-5 text-blue-400" />
             Connect Your Tools
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-300">
             Link your favorite apps and platforms
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {/* Zoom Integration */}
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-gray-700/30 border border-gray-600/30 rounded-xl hover:bg-gray-600/30 transition-all duration-200">
               <div className="flex items-center gap-3">
-                <Calendar className="h-5 w-5 text-blue-600" />
+                <Calendar className="h-5 w-5 text-blue-400" />
                 <div>
-                  <p className="font-medium">Zoom</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="font-medium text-white">Zoom</p>
+                  <p className="text-sm text-gray-300">
                     {integrations.zoom.connected ? "Connected" : "Not connected"}
                   </p>
                 </div>
@@ -317,7 +323,7 @@ const SettingsTab = () => {
               <div className="flex items-center gap-2">
                 {integrations.zoom.connected ? (
                   <>
-                    <Badge className="bg-green-100 text-green-800">
+                    <Badge className="bg-green-500/20 text-green-400 border border-green-400/30">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Connected
                     </Badge>
@@ -325,7 +331,7 @@ const SettingsTab = () => {
                       variant="outline" 
                       size="sm" 
                       onClick={() => disconnectIntegration('zoom')}
-                      className="rounded-lg"
+                      className="rounded-lg border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
                     >
                       Disconnect
                     </Button>
@@ -333,7 +339,7 @@ const SettingsTab = () => {
                 ) : (
                   <Button 
                     onClick={() => connectIntegration('zoom')}
-                    className="bg-blue-600 hover:bg-blue-700 rounded-lg"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                   >
                     Connect
                   </Button>
@@ -342,12 +348,12 @@ const SettingsTab = () => {
             </div>
 
             {/* Teams Integration */}
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-gray-700/30 border border-gray-600/30 rounded-xl hover:bg-gray-600/30 transition-all duration-200">
               <div className="flex items-center gap-3">
-                <MessageSquare className="h-5 w-5 text-purple-600" />
+                <MessageSquare className="h-5 w-5 text-purple-400" />
                 <div>
-                  <p className="font-medium">Microsoft Teams</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="font-medium text-white">Microsoft Teams</p>
+                  <p className="text-sm text-gray-300">
                     {integrations.teams.connected ? "Connected" : "Not connected"}
                   </p>
                 </div>
@@ -355,7 +361,7 @@ const SettingsTab = () => {
               <div className="flex items-center gap-2">
                 {integrations.teams.connected ? (
                   <>
-                    <Badge className="bg-green-100 text-green-800">
+                    <Badge className="bg-green-500/20 text-green-400 border border-green-400/30">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Connected
                     </Badge>
@@ -363,7 +369,7 @@ const SettingsTab = () => {
                       variant="outline" 
                       size="sm" 
                       onClick={() => disconnectIntegration('teams')}
-                      className="rounded-lg"
+                      className="rounded-lg border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
                     >
                       Disconnect
                     </Button>
@@ -371,7 +377,7 @@ const SettingsTab = () => {
                 ) : (
                   <Button 
                     onClick={() => connectIntegration('teams')}
-                    className="bg-blue-600 hover:bg-blue-700 rounded-lg"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                   >
                     Connect
                   </Button>
@@ -380,12 +386,12 @@ const SettingsTab = () => {
             </div>
 
             {/* Google Integration */}
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-gray-700/30 border border-gray-600/30 rounded-xl hover:bg-gray-600/30 transition-all duration-200">
               <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 text-red-600" />
+                <Mail className="h-5 w-5 text-red-400" />
                 <div>
-                  <p className="font-medium">Google Workspace</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="font-medium text-white">Google Workspace</p>
+                  <p className="text-sm text-gray-300">
                     {integrations.google.connected ? "Connected" : "Not connected"}
                   </p>
                 </div>
@@ -393,7 +399,7 @@ const SettingsTab = () => {
               <div className="flex items-center gap-2">
                 {integrations.google.connected ? (
                   <>
-                    <Badge className="bg-green-100 text-green-800">
+                    <Badge className="bg-green-500/20 text-green-400 border border-green-400/30">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Connected
                     </Badge>
@@ -401,7 +407,7 @@ const SettingsTab = () => {
                       variant="outline" 
                       size="sm" 
                       onClick={() => disconnectIntegration('google')}
-                      className="rounded-lg"
+                      className="rounded-lg border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
                     >
                       Disconnect
                     </Button>
@@ -409,7 +415,7 @@ const SettingsTab = () => {
                 ) : (
                   <Button 
                     onClick={() => connectIntegration('google')}
-                    className="bg-blue-600 hover:bg-blue-700 rounded-lg"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                   >
                     Connect
                   </Button>
@@ -441,29 +447,29 @@ const SettingsTab = () => {
       />
 
       {/* Notifications */}
-      <Card className="shadow-lg">
+      <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Bell className="h-5 w-5 text-blue-400" />
             Stay in the Loop
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-300">
             Choose how you want to receive updates and alerts
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
             {Object.entries(notifications).map(([key, value]) => (
-              <div key={key} className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+              <div key={key} className="flex items-center justify-between p-4 bg-gray-700/30 border border-gray-600/30 rounded-xl hover:bg-gray-600/30 transition-all duration-200">
                 <div>
-                  <p className="font-medium">
+                  <p className="font-medium text-white">
                     {key === 'email' && 'Email Notifications 📧'}
                     {key === 'slack' && 'Slack Notifications 💬'}
                     {key === 'taskReminders' && 'Task Reminders ⏰'}
                     {key === 'meetingDigests' && 'Meeting Digests 📋'}
                     {key === 'weeklyReports' && 'Weekly Reports 📊'}
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-300">
                     {key === 'email' && 'Get updates delivered to your inbox'}
                     {key === 'slack' && 'Receive notifications in your Slack channels'}
                     {key === 'taskReminders' && 'Never miss a deadline again'}
@@ -482,42 +488,42 @@ const SettingsTab = () => {
       </Card>
 
       {/* Security */}
-      <Card className="shadow-lg">
+      <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Shield className="h-5 w-5 text-blue-400" />
             Security & Privacy
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-300">
             Keep your account safe and secure
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-gray-700/30 border border-gray-600/30 rounded-xl hover:bg-gray-600/30 transition-all duration-200">
               <div>
-                <p className="font-medium">Two-Factor Authentication</p>
-                <p className="text-sm text-gray-600">Add an extra layer of security to your account</p>
+                <p className="font-medium text-white">Two-Factor Authentication</p>
+                <p className="text-sm text-gray-300">Add an extra layer of security to your account</p>
               </div>
-              <Button variant="outline" size="sm" className="rounded-lg">
+              <Button variant="outline" size="sm" className="rounded-lg border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white">
                 Enable
               </Button>
             </div>
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-gray-700/30 border border-gray-600/30 rounded-xl hover:bg-gray-600/30 transition-all duration-200">
               <div>
-                <p className="font-medium">Password</p>
-                <p className="text-sm text-gray-600">Change your account password</p>
+                <p className="font-medium text-white">Password</p>
+                <p className="text-sm text-gray-300">Change your account password</p>
               </div>
-              <Button variant="outline" size="sm" className="rounded-lg">
+              <Button variant="outline" size="sm" className="rounded-lg border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white">
                 Change
               </Button>
             </div>
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-gray-700/30 border border-gray-600/30 rounded-xl hover:bg-gray-600/30 transition-all duration-200">
               <div>
-                <p className="font-medium">Active Sessions</p>
-                <p className="text-sm text-gray-600">Manage your active login sessions</p>
+                <p className="font-medium text-white">Active Sessions</p>
+                <p className="text-sm text-gray-300">Manage your active login sessions</p>
               </div>
-              <Button variant="outline" size="sm" className="rounded-lg">
+              <Button variant="outline" size="sm" className="rounded-lg border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white">
                 View
               </Button>
             </div>
@@ -526,43 +532,43 @@ const SettingsTab = () => {
       </Card>
 
       {/* Data Management */}
-      <Card className="shadow-lg">
+      <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Database className="h-5 w-5 text-blue-400" />
             Your Data
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-300">
             Download your data or manage your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-gray-700/30 border border-gray-600/30 rounded-xl hover:bg-gray-600/30 transition-all duration-200">
               <div className="flex items-center gap-3">
-                <Download className="h-5 w-5 text-blue-600" />
+                <Download className="h-5 w-5 text-blue-400" />
                 <div>
-                  <p className="font-medium">Download Your Data</p>
-                  <p className="text-sm text-gray-600">Download all your meetings and tasks data</p>
+                  <p className="font-medium text-white">Download Your Data</p>
+                  <p className="text-sm text-gray-300">Download all your meetings and tasks data</p>
                 </div>
               </div>
-              <Button onClick={downloadData} className="bg-blue-600 hover:bg-blue-700 rounded-lg">
+              <Button onClick={downloadData} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                 Download
               </Button>
             </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4 border border-red-200 rounded-xl bg-red-50">
+            <Separator className="bg-gray-600" />
+            <div className="flex items-center justify-between p-4 bg-red-500/10 border border-red-500/30 rounded-xl hover:bg-red-500/20 transition-all duration-200">
               <div className="flex items-center gap-3">
-                <Trash2 className="h-5 w-5 text-red-600" />
+                <Trash2 className="h-5 w-5 text-red-400" />
                 <div>
-                  <p className="font-medium text-red-900">Delete Account</p>
-                  <p className="text-sm text-red-700">Permanently delete your account and all data</p>
+                  <p className="font-medium text-red-300">Delete Account</p>
+                  <p className="text-sm text-red-400">Permanently delete your account and all data</p>
                 </div>
               </div>
               <Button 
                 onClick={deleteAccount} 
                 variant="destructive" 
-                className="rounded-lg"
+                className="rounded-lg bg-red-600 hover:bg-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
               >
                 Delete
               </Button>

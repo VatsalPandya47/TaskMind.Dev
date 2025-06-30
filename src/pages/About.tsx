@@ -76,13 +76,13 @@ const About = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-50 to-white">
+      <section className="py-20 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-bold text-black mb-6">
+            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-6">
               About TaskMind
             </h1>
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+            <p className="text-xl text-gray-300 mb-8 leading-relaxed">
               We're on a mission to eliminate the productivity tax that plagues modern teams. 
               Too many great ideas and commitments get lost in the chaos of meetings, messages, 
               and daily work. TaskMind ensures nothing falls through the cracks.
@@ -92,11 +92,11 @@ const About = () => {
       </section>
 
       {/* Story Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-gray-800/50">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl font-bold text-black mb-12 text-center">Our Story</h2>
-            <div className="prose prose-lg mx-auto text-gray-600">
+            <h2 className="text-4xl font-bold text-white mb-12 text-center">Our Story</h2>
+            <div className="prose prose-lg mx-auto text-gray-300">
               <p className="text-xl leading-relaxed mb-6">
                 TaskMind was born from a frustrating reality we all know too well: the best intentions 
                 from meetings turning into forgotten commitments. After watching countless teams struggle 
@@ -119,18 +119,18 @@ const About = () => {
       </section>
 
       {/* Values Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl font-bold text-black mb-16 text-center">Our Values</h2>
+            <h2 className="text-4xl font-bold text-white mb-16 text-center">Our Values</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {values.map((value, index) => (
                 <div key={index} className="text-center">
-                  <div className="bg-blue-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <value.icon size={32} className="text-blue-600" />
+                  <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-purple-500/30">
+                    <value.icon size={32} className="text-purple-400" />
                   </div>
-                  <h3 className="text-xl font-semibold text-black mb-4">{value.title}</h3>
-                  <p className="text-gray-600">{value.description}</p>
+                  <h3 className="text-xl font-semibold text-white mb-4">{value.title}</h3>
+                  <p className="text-gray-300">{value.description}</p>
                 </div>
               ))}
             </div>
@@ -139,30 +139,30 @@ const About = () => {
       </section>
 
       {/* Team Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-gray-800/50">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl font-bold text-black mb-16 text-center">Meet the Team</h2>
+            <h2 className="text-4xl font-bold text-white mb-16 text-center">Meet the Team</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
               {team.map((member, index) => (
-                <div key={index} className="text-center bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+                <div key={index} className="text-center bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-gray-700/50 hover:shadow-2xl transition-all duration-300">
                   {member.image ? (
                     <img 
                       src={member.image} 
                       alt={member.name}
-                      className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
+                      className="w-24 h-24 rounded-full mx-auto mb-4 object-cover border-2 border-purple-500/30"
                     />
                   ) : (
-                    <div className="w-24 h-24 rounded-full mx-auto mb-4 bg-blue-100 flex items-center justify-center">
-                      <Users size={32} className="text-blue-600" />
+                    <div className="w-24 h-24 rounded-full mx-auto mb-4 bg-gradient-to-br from-purple-500/20 to-blue-500/20 backdrop-blur-sm flex items-center justify-center border border-purple-500/30">
+                      <Users size={32} className="text-purple-400" />
                     </div>
                   )}
-                  <h3 className="text-lg font-semibold text-black mb-2">{member.name}</h3>
-                  <p className="text-blue-600 font-medium mb-3">{member.role}</p>
-                  <p className="text-gray-600 text-sm mb-4">{member.bio}</p>
+                  <h3 className="text-lg font-semibold text-white mb-2">{member.name}</h3>
+                  <p className="text-purple-400 font-medium mb-3">{member.role}</p>
+                  <p className="text-gray-300 text-sm mb-4">{member.bio}</p>
                   <a 
                     href={`mailto:${member.email}`}
-                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors text-sm"
+                    className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors text-sm"
                   >
                     <Mail size={14} />
                     {member.email}

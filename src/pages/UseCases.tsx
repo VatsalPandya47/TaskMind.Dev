@@ -37,13 +37,13 @@ const UseCases = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <div className="container mx-auto px-4 py-20">
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-black mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-6">
             Use Cases
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-300">
             Discover how TaskMind adapts to different team workflows and scenarios.
           </p>
         </div>
@@ -52,26 +52,26 @@ const UseCases = () => {
           {useCases.map((useCase, index) => (
             <div key={index} className={`flex flex-col lg:flex-row items-center gap-12 mb-20 ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}>
               <div className="lg:w-1/2">
-                <div className="bg-white rounded-2xl p-8 shadow-lg">
+                <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-gray-700/50 hover:shadow-2xl transition-all duration-300">
                   <div className="flex items-center gap-3 mb-4">
                     <span className="text-2xl">{useCase.icon}</span>
-                    <span className="text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                    <span className="text-sm font-medium text-purple-400 bg-purple-500/20 px-3 py-1 rounded-full border border-purple-400/30">
                       {useCase.category}
                     </span>
                   </div>
-                  <h3 className="text-3xl font-bold text-black mb-4">{useCase.title}</h3>
-                  <p className="text-lg text-gray-600 leading-relaxed">{useCase.description}</p>
+                  <h3 className="text-3xl font-bold text-white mb-4">{useCase.title}</h3>
+                  <p className="text-lg text-gray-300 leading-relaxed">{useCase.description}</p>
                 </div>
               </div>
               <div className="lg:w-1/2">
                 <div className="relative">
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-8 h-64 flex items-center justify-center">
+                  <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 backdrop-blur-sm rounded-2xl p-8 h-64 flex items-center justify-center border border-purple-500/30">
                     <div className="text-center">
                       <div className="text-6xl mb-4">{useCase.icon}</div>
-                      <h4 className="text-xl font-semibold text-gray-800">{useCase.title}</h4>
+                      <h4 className="text-xl font-semibold text-white">{useCase.title}</h4>
                     </div>
                   </div>
-                  <div className="absolute inset-0 bg-blue-600/5 rounded-2xl"></div>
+                  <div className="absolute inset-0 bg-purple-600/10 rounded-2xl"></div>
                 </div>
               </div>
             </div>
@@ -79,7 +79,7 @@ const UseCases = () => {
         </div>
 
         <div className="max-w-4xl mx-auto text-center mt-16">
-          <a href="/" className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg shadow hover:bg-blue-700 transition">
+          <a href="/" className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
             Back to Dashboard
           </a>
         </div>

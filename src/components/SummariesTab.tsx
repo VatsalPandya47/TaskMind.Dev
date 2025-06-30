@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
+import { useTheme } from '../context/ThemeContext';
 import { 
   FileText, 
   Calendar, 
@@ -80,23 +81,31 @@ const SummarySection = ({
   if (!content.trim()) return null;
 
   const colorClasses = {
-    blue: "border-blue-200 bg-blue-50",
-    green: "border-green-200 bg-green-50", 
-    orange: "border-orange-200 bg-orange-50",
-    purple: "border-purple-200 bg-purple-50",
-    red: "border-red-200 bg-red-50"
+    blue: "border-blue-500/30 bg-blue-500/10",
+    green: "border-green-500/30 bg-green-500/10", 
+    orange: "border-orange-500/30 bg-orange-500/10",
+    purple: "border-purple-500/30 bg-purple-500/10",
+    red: "border-red-500/30 bg-red-500/10"
+  };
+
+  const iconColors = {
+    blue: "text-blue-400",
+    green: "text-green-400",
+    orange: "text-orange-400",
+    purple: "text-purple-400",
+    red: "text-red-400"
   };
 
   return (
-    <Card className={`${colorClasses[color as keyof typeof colorClasses]} border-2`}>
+    <Card className={`${colorClasses[color as keyof typeof colorClasses]} border-2 bg-gray-800/50 backdrop-blur-sm`}>
       <CardHeader className="pb-2 px-4">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Icon className={`h-4 w-4 text-${color}-600 flex-shrink-0`} />
+        <CardTitle className="text-sm flex items-center gap-2 text-white">
+          <Icon className={`h-4 w-4 ${iconColors[color as keyof typeof iconColors]} flex-shrink-0`} />
           <span className="break-words">{title}</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-4">
-        <div className="whitespace-pre-wrap text-xs text-gray-700 leading-relaxed">
+        <div className="whitespace-pre-wrap text-xs text-gray-300 leading-relaxed">
           {content}
         </div>
       </CardContent>
@@ -106,6 +115,7 @@ const SummarySection = ({
 
 const SummariesTab = () => {
   const { summaries, isLoading, error } = useUserSummaries();
+  const { theme } = useTheme();
   const [selectedSummary, setSelectedSummary] = useState<any>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
@@ -121,19 +131,27 @@ const SummariesTab = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="space-y-6 relative">
+        {/* Decorative blur elements */}
+        <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl -z-10"></div>
+        
+        <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">AI Summaries 🧠</h1>
-            <p className="text-gray-600">Your AI-generated meeting summaries and insights</p>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-primary bg-clip-text text-transparent">
+              Summaries
+            </h1>
+            <p className="text-muted-foreground">
+              AI-generated insights from your meetings
+            </p>
           </div>
         </div>
         
-        <Card>
+        <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
           <CardContent className="flex items-center justify-center py-12">
             <div className="flex items-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-              <span className="text-gray-600">Loading your summaries...</span>
+              <Loader2 className="h-5 w-5 animate-spin text-blue-400" />
+              <span className="text-gray-300">Loading your summaries...</span>
             </div>
           </CardContent>
         </Card>
@@ -143,16 +161,24 @@ const SummariesTab = () => {
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="space-y-6 relative">
+        {/* Decorative blur elements */}
+        <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl -z-10"></div>
+        
+        <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">AI Summaries 🧠</h1>
-            <p className="text-gray-600">Your AI-generated meeting summaries and insights</p>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-primary bg-clip-text text-transparent">
+              Summaries
+            </h1>
+            <p className="text-muted-foreground">
+              AI-generated insights from your meetings
+            </p>
           </div>
         </div>
         
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
+        <Alert variant="destructive" className="bg-red-500/10 border-red-500/30 text-red-300">
+          <AlertCircle className="h-4 w-4 text-red-400" />
           <AlertDescription>
             Oops! Failed to load summaries: {error.message}
           </AlertDescription>
@@ -164,50 +190,58 @@ const SummariesTab = () => {
   const formattedSummary = selectedSummary ? formatSummary(selectedSummary.summary) : null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 relative">
+      {/* Decorative blur elements */}
+      <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl -z-10"></div>
+      
+      <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">AI Summaries 🧠</h1>
-          <p className="text-gray-600">Your AI-generated meeting summaries and insights</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-primary bg-clip-text text-transparent">
+            Summaries
+          </h1>
+          <p className="text-muted-foreground">
+            AI-generated insights from your meetings
+          </p>
         </div>
       </div>
 
       {/* Summary Stats */}
-      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+      <Card className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/30 bg-gray-800/50 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-300">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-green-600" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <FileText className="h-5 w-5 text-green-400" />
             Your Summary Stats
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-300">
             Overview of your AI-generated meeting summaries
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{summaries.length}</div>
-              <div className="text-sm text-gray-600">Total Summaries</div>
+              <div className="text-2xl font-bold text-green-400">{summaries.length}</div>
+              <div className="text-sm text-gray-300">Total Summaries</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-emerald-600">
+              <div className="text-2xl font-bold text-emerald-400">
                 {summaries.filter(s => s.audio_name).length}
               </div>
-              <div className="text-sm text-gray-600">Audio Files</div>
+              <div className="text-sm text-gray-300">Audio Files</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-teal-600">GPT-4o</div>
-              <div className="text-sm text-gray-600">AI Model</div>
+              <div className="text-2xl font-bold text-teal-400">GPT-4o</div>
+              <div className="text-sm text-gray-300">AI Model</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Summaries List */}
-      <Card>
+      <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
         <CardHeader>
-          <CardTitle>Meeting Summaries</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-white">Meeting Summaries</CardTitle>
+          <CardDescription className="text-gray-300">
             Browse and view your AI-generated meeting summaries
           </CardDescription>
         </CardHeader>
@@ -215,56 +249,56 @@ const SummariesTab = () => {
           {summaries.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No summaries yet</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-lg font-medium text-white mb-2">No summaries yet</h3>
+              <p className="text-gray-300 mb-4">
                 Generate your first summary by processing a meeting transcript.
               </p>
-              <Badge variant="outline" className="text-sm">
-                <CheckCircle className="h-3 w-3 mr-1" />
+              <Badge variant="outline" className="text-sm border-gray-600 text-gray-300">
+                <CheckCircle className="h-3 w-3 mr-1 text-green-400" />
                 Ready to summarize
               </Badge>
             </div>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Audio File</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Transcript Length</TableHead>
-                  <TableHead>Summary Length</TableHead>
-                  <TableHead>Actions</TableHead>
+                <TableRow className="border-gray-700 hover:bg-gray-700/30">
+                  <TableHead className="text-gray-200">Audio File</TableHead>
+                  <TableHead className="text-gray-200">Created</TableHead>
+                  <TableHead className="text-gray-200">Transcript Length</TableHead>
+                  <TableHead className="text-gray-200">Summary Length</TableHead>
+                  <TableHead className="text-gray-200">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {summaries.map((summary) => (
-                  <TableRow key={summary.id}>
-                    <TableCell className="font-medium">
+                  <TableRow key={summary.id} className="border-gray-700 hover:bg-gray-700/30 transition-all duration-200">
+                    <TableCell className="font-medium text-white">
                       <div className="flex items-center gap-2">
                         {summary.audio_name ? (
-                          <Music className="h-4 w-4 text-blue-600" />
+                          <Music className="h-4 w-4 text-blue-400" />
                         ) : (
-                          <FileText className="h-4 w-4 text-gray-600" />
+                          <FileText className="h-4 w-4 text-gray-400" />
                         )}
                         <span className="truncate max-w-[200px]">
                           {summary.audio_name || "Manual Entry"}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-gray-300">
                       <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3 text-gray-500" />
+                        <Calendar className="h-3 w-3 text-gray-400" />
                         <span className="text-sm">
                           {format(new Date(summary.created_at), "MMM d, yyyy")}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs bg-blue-500/20 text-blue-400 border border-blue-400/30">
                         {summary.transcript.length} chars
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs border-gray-600 text-gray-300">
                         {summary.summary.length} chars
                       </Badge>
                     </TableCell>
@@ -274,7 +308,7 @@ const SummariesTab = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleViewSummary(summary)}
-                          className="text-blue-600 hover:text-blue-800"
+                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           View
@@ -292,21 +326,21 @@ const SummariesTab = () => {
       {/* View Summary Dialog */}
       {selectedSummary && (
         <Dialog open={isViewDialogOpen} onOpenChange={handleCloseView}>
-          <DialogContent className="w-[95vw] max-w-[800px] max-h-[95vh] overflow-y-auto">
+          <DialogContent className="w-[95vw] max-w-[800px] max-h-[95vh] overflow-y-auto bg-gray-800/95 backdrop-blur-sm border border-gray-700/50">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-green-600" />
+              <DialogTitle className="flex items-center gap-2 text-white">
+                <FileText className="h-5 w-5 text-green-400" />
                 Meeting Summary
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-gray-300">
                 {selectedSummary.audio_name && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Music className="h-4 w-4" />
+                  <div className="flex items-center gap-2 text-sm">
+                    <Music className="h-4 w-4 text-blue-400" />
                     {selectedSummary.audio_name}
                   </div>
                 )}
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Calendar className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="h-4 w-4 text-gray-400" />
                   {format(new Date(selectedSummary.created_at), "PPP 'at' p")}
                 </div>
               </DialogDescription>
@@ -350,12 +384,12 @@ const SummariesTab = () => {
                 />
               </div>
 
-              <Separator />
+              <Separator className="bg-gray-600" />
 
               <div className="space-y-2">
-                <h4 className="font-medium text-sm text-gray-700">Raw Summary</h4>
-                <div className="bg-gray-50 p-3 rounded-md">
-                  <pre className="text-xs text-gray-600 whitespace-pre-wrap">
+                <h4 className="font-medium text-sm text-gray-200">Raw Summary</h4>
+                <div className="bg-gray-700/50 p-3 rounded-md border border-gray-600/30">
+                  <pre className="text-xs text-gray-300 whitespace-pre-wrap">
                     {selectedSummary.summary}
                   </pre>
                 </div>
