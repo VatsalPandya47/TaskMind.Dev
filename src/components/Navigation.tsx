@@ -22,7 +22,8 @@ import {
   FileText,
   Users,
   HelpCircle,
-  ExternalLink
+  ExternalLink,
+  CalendarDays
 } from "lucide-react";
 
 const Navigation = () => {
@@ -54,6 +55,12 @@ const Navigation = () => {
       href: "/dashboard",
       icon: Home,
       description: "Overview and insights"
+    },
+    {
+      name: "Calendar",
+      href: "/calendar",
+      icon: CalendarDays,
+      description: "View synchronized meetings"
     },
     {
       name: "Tasks",

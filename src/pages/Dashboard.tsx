@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import DashboardTab from "@/components/DashboardTab";
+import CalendarTab from "@/components/CalendarTab";
 import MeetingsTab from "@/components/MeetingsTab";
 import TasksTab from "@/components/TasksTab";
 import SettingsTab from "@/components/SettingsTab";
@@ -17,6 +18,8 @@ const Dashboard = () => {
     const path = location.pathname;
     if (path === "/" || path === "/dashboard") {
       setActiveTab("dashboard");
+    } else if (path === "/calendar") {
+      setActiveTab("calendar");
     } else if (path === "/tasks") {
       setActiveTab("tasks");
     } else if (path === "/meetings") {
@@ -47,6 +50,8 @@ const Dashboard = () => {
     switch (activeTab) {
       case "dashboard":
         return <DashboardTab onTabChange={handleTabChange} />;
+      case "calendar":
+        return <CalendarTab onTabChange={handleTabChange} />;
       case "meetings":
         return <MeetingsTab />;
       case "tasks":
