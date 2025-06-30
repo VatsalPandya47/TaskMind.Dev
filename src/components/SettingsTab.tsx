@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import SlackIntegration, { SlackSettings } from "@/components/SlackIntegration";
 import { 
   User, 
   Bell, 
@@ -302,50 +303,142 @@ const SettingsTab = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {Object.entries(integrations).map(([platform, status]) => (
-              <div key={platform} className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
-                <div className="flex items-center gap-3">
-                  {platform === 'zoom' && <Calendar className="h-5 w-5 text-blue-600" />}
-                  {platform === 'teams' && <MessageSquare className="h-5 w-5 text-purple-600" />}
-                  {platform === 'slack' && <Slack className="h-5 w-5 text-pink-600" />}
-                  {platform === 'google' && <Mail className="h-5 w-5 text-red-600" />}
-                  <div>
-                    <p className="font-medium capitalize">{platform}</p>
-                    <p className="text-sm text-gray-600">
-                      {status.connected ? "Connected" : "Not connected"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {status.connected ? (
-                    <>
-                      <Badge className="bg-green-100 text-green-800">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Connected
-                      </Badge>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => disconnectIntegration(platform)}
-                        className="rounded-lg"
-                      >
-                        Disconnect
-                      </Button>
-                    </>
-                  ) : (
-                    <Button 
-                      onClick={() => connectIntegration(platform)}
-                      className="bg-blue-600 hover:bg-blue-700 rounded-lg"
-                    >
-                      Connect
-                    </Button>
-                  )}
+            {/* Zoom Integration */}
+            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+              <div className="flex items-center gap-3">
+                <Calendar className="h-5 w-5 text-blue-600" />
+                <div>
+                  <p className="font-medium">Zoom</p>
+                  <p className="text-sm text-gray-600">
+                    {integrations.zoom.connected ? "Connected" : "Not connected"}
+                  </p>
                 </div>
               </div>
-            ))}
+              <div className="flex items-center gap-2">
+                {integrations.zoom.connected ? (
+                  <>
+                    <Badge className="bg-green-100 text-green-800">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Connected
+                    </Badge>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => disconnectIntegration('zoom')}
+                      className="rounded-lg"
+                    >
+                      Disconnect
+                    </Button>
+                  </>
+                ) : (
+                  <Button 
+                    onClick={() => connectIntegration('zoom')}
+                    className="bg-blue-600 hover:bg-blue-700 rounded-lg"
+                  >
+                    Connect
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Teams Integration */}
+            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+              <div className="flex items-center gap-3">
+                <MessageSquare className="h-5 w-5 text-purple-600" />
+                <div>
+                  <p className="font-medium">Microsoft Teams</p>
+                  <p className="text-sm text-gray-600">
+                    {integrations.teams.connected ? "Connected" : "Not connected"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {integrations.teams.connected ? (
+                  <>
+                    <Badge className="bg-green-100 text-green-800">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Connected
+                    </Badge>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => disconnectIntegration('teams')}
+                      className="rounded-lg"
+                    >
+                      Disconnect
+                    </Button>
+                  </>
+                ) : (
+                  <Button 
+                    onClick={() => connectIntegration('teams')}
+                    className="bg-blue-600 hover:bg-blue-700 rounded-lg"
+                  >
+                    Connect
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Google Integration */}
+            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+              <div className="flex items-center gap-3">
+                <Mail className="h-5 w-5 text-red-600" />
+                <div>
+                  <p className="font-medium">Google Workspace</p>
+                  <p className="text-sm text-gray-600">
+                    {integrations.google.connected ? "Connected" : "Not connected"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {integrations.google.connected ? (
+                  <>
+                    <Badge className="bg-green-100 text-green-800">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Connected
+                    </Badge>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => disconnectIntegration('google')}
+                      className="rounded-lg"
+                    >
+                      Disconnect
+                    </Button>
+                  </>
+                ) : (
+                  <Button 
+                    onClick={() => connectIntegration('google')}
+                    className="bg-blue-600 hover:bg-blue-700 rounded-lg"
+                  >
+                    Connect
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Slack Integration */}
+      <SlackIntegration 
+        onSettingsChange={(slackSettings: SlackSettings) => {
+          // Update the main notifications state when Slack settings change
+          setNotifications(prev => ({
+            ...prev,
+            slack: slackSettings.enabled
+          }));
+          
+          // Update integrations state
+          setIntegrations(prev => ({
+            ...prev,
+            slack: { 
+              connected: slackSettings.enabled, 
+              status: slackSettings.enabled ? "connected" : "disconnected" 
+            }
+          }));
+        }}
+      />
 
       {/* Notifications */}
       <Card className="shadow-lg">

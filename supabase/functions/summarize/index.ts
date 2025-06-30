@@ -7,18 +7,17 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import OpenAI from "https://deno.land/x/openai@v4.20.1/mod.ts";
 
 console.log("Hello from Functions!")
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-const supabaseUrl = Deno.env.get('SUPABASE_URL');
-const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 // Rate limiting configuration
 const RATE_LIMIT_CONFIG = {
@@ -263,290 +262,75 @@ async function retryOpenAICallWithValidation(prompt: string, maxRetries = 2) {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (req.method !== 'POST') {
+    return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
+  }
+
+  if (!openAIApiKey) {
+    return new Response(
+      JSON.stringify({ error: "OpenAI API key not configured" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 
   try {
-    const { transcript, dry_run, audio_name } = await req.json();
-
+    const { transcript } = await req.json();
     if (!transcript) {
       return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Transcript is required',
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
+        JSON.stringify({ error: "Missing transcript" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (!openAIApiKey) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'OpenAI API key not configured',
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
+    const prompt = `Analyze this meeting transcript and extract structured information in the following format:
 
-    console.log(`Summarizing transcript (length: ${transcript.length} chars)`);
+**Key Topics**: Main subjects, themes, and topics discussed during the meeting
+**Important Decisions**: Specific decisions made, agreements reached, or conclusions drawn
+**Action Items**: Tasks assigned, responsibilities given, and who is responsible for what
+**Key Insights**: Important points, revelations, discoveries, or significant information shared
+**Next Steps**: What happens after the meeting, follow-up actions, and timeline
 
-    // Initialize Supabase client
-    const supabase = createClient(supabaseUrl!, supabaseKey!);
+Return your answer as a JSON object with these exact keys: key_topics, important_decisions, action_items, key_insights, next_steps.
 
-    // Get user ID from auth header
-    const authHeader = req.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Unauthorized',
-        }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
+For each section, provide specific, actionable items. If a section has no relevant content, return an empty array.
 
-    console.log(`User authenticated: ${user.id}`);
+Meeting Transcript:
+${transcript}`;
 
-    // Prepare a comprehensive prompt for summarization
-    const prompt = `
-Please provide a comprehensive summary of this meeting transcript. The summary should include:
+    const openai = new OpenAI({ apiKey: openAIApiKey });
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo-1106",
+      messages: [
+        { role: "system", content: "You are a meeting assistant. Extract structured information from meeting transcripts." },
+        { role: "user", content: prompt },
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 1024,
+      temperature: 0.2,
+    });
 
-1. **Key Topics Discussed**: Main subjects and themes covered
-2. **Important Decisions**: Any decisions made during the meeting
-3. **Action Items**: Tasks assigned and responsibilities
-4. **Key Insights**: Important points or revelations
-5. **Next Steps**: What happens after this meeting
-
-Format the summary in a clear, structured manner with appropriate sections.
-
-Transcript:
-${transcript}
-
-Please provide a well-structured summary that captures the essence of this meeting.
-`;
-
-    // Call OpenAI with validation and retry
-    let summary;
-    let ai_raw_output = "";
-    let processingStartTime = Date.now();
-    let retryAttempts = 0;
-    
+    const summary = completion.choices[0]?.message?.content || "";
+    let summaryJson;
     try {
-      console.log('Starting OpenAI API call with retry logic...');
-      summary = await retryOpenAICallWithValidation(prompt, 2);
-      ai_raw_output = summary;
-      console.log('Successfully generated summary');
-    } catch (error: any) {
-      console.error('OpenAI API call failed:', error.message);
-      
-      // Always save failed AI outputs for audit if possible
-      await saveEvalLog({
-        type: "gpt_summary_fail",
-        transcript_sample: transcript?.slice?.(0, 200),
-        error: error?.message,
-        ai_content: error?.lastInvalidOutput || "",
-        prompt_version: "summarizer-v1",
-        retry_config: RATE_LIMIT_CONFIG
-      });
-      
-      if (error.message === "InvalidSummaryFinal") {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: 'AI response could not generate a valid summary after retry.',
-            code: 'SUMMARY_ERROR',
-            raw_output: error.lastInvalidOutput,
-          }),
-          {
-            status: 422,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
-      }
-      
-      // Handle specific error types with proper HTTP status codes
-      if (error.message === 'RATE_LIMITED') {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: 'OpenAI API is currently busy with too many requests. Please wait a few minutes and try again.',
-            code: 'RATE_LIMITED',
-            retry_after: '300' // Suggest 5 minutes
-          }),
-          {
-            status: 429,
-            headers: { 
-              ...corsHeaders, 
-              'Content-Type': 'application/json',
-              'Retry-After': '300'
-            },
-          }
-        );
-      } else if (error.message === 'INVALID_API_KEY') {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: 'Invalid OpenAI API key configuration.',
-            code: 'INVALID_API_KEY'
-          }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
-      } else if (error.message === 'FORBIDDEN') {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: 'OpenAI API access forbidden. Please check your API key permissions.',
-            code: 'FORBIDDEN'
-          }),
-          {
-            status: 403,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
-      } else if (error.message === 'SERVER_ERROR') {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: 'OpenAI service is temporarily unavailable. Please try again in a few minutes.',
-            code: 'SERVICE_ERROR'
-          }),
-          {
-            status: 503,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
-      } else if (error.message === 'TIMEOUT_ERROR') {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: 'Request timed out. Please try again.',
-            code: 'TIMEOUT_ERROR'
-          }),
-          {
-            status: 408,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
-      } else {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: 'AI service is temporarily unavailable. Please try again in a few minutes.',
-            code: 'SERVICE_ERROR',
-            details: error.message
-          }),
-          {
-            status: 503,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
-      }
-    }
-
-    const processingTime = Date.now() - processingStartTime;
-    console.log(`Summary generation completed in ${processingTime}ms`);
-
-    // DRY RUN: for testing, don't save to DB, just return result and log
-    if (dry_run) {
-      await saveEvalLog({
-        type: "dry_run_summary",
-        transcript_sample: transcript?.slice?.(0, 200),
-        ai_output: summary,
-        prompt_version: "summarizer-v1",
-        processing_time_ms: processingTime
-      });
+      summaryJson = JSON.parse(summary);
+    } catch (e) {
       return new Response(
-        JSON.stringify({
-          success: true,
-          message: "Dry run: generated summary, not saved to DB.",
-          summary,
-          dry_run: true,
-          processing_time_ms: processingTime
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
+        JSON.stringify({ error: "Failed to parse summary JSON", raw: summary }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    // Save summary to summaries table using the new schema
-    console.log(`Saving summary to summaries table for user: ${user.id}`);
-    
-    const { data: savedSummary, error: saveError } = await supabase
-      .from('summaries')
-      .insert({
-        user_id: user.id,
-        transcript: transcript,
-        summary: summary,
-        audio_name: audio_name || null
-      })
-      .select()
-      .single();
-
-    if (saveError) {
-      console.error('Failed to save summary to summaries table:', saveError);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Failed to save summary to database.',
-          code: 'DB_ERROR',
-          details: saveError.message
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
-    console.log(`Successfully saved summary to database. Summary ID: ${savedSummary.id}`);
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: 'Successfully generated and saved meeting summary',
-        summary,
-        summaryId: savedSummary.id,
-        processing_time_ms: processingTime,
-        dry_run: false
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
+      JSON.stringify(summaryJson),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-
-  } catch (error) {
-    console.error('Unexpected error in summarize function:', error);
-    
+  } catch (err) {
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: 'An unexpected error occurred while summarizing the transcript.',
-        code: 'UNEXPECTED_ERROR',
-        details: error.message,
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      JSON.stringify({ error: `Failed to summarize: ${err.message}` }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

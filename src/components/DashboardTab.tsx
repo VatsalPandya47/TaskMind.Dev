@@ -67,6 +67,7 @@ import {
 } from "lucide-react";
 import { format, isAfter, isBefore, startOfDay, addDays, differenceInDays } from "date-fns";
 import { StatsSkeleton } from "./LoadingSkeleton";
+import { slackService } from '@/lib/slackService';
 
 interface DashboardTabProps {
   onTabChange?: (tab: string) => void;
@@ -203,20 +204,59 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
     });
   };
 
-  const handleExportViaSlack = () => {
-    // For now, we'll copy the summary to clipboard and show instructions
-    const summary = `📊 TaskMind Report - ${new Date().toLocaleDateString()}\n` +
-      `• Total Meetings: ${meetings.length}\n` +
-      `• Total Tasks: ${tasks.length}\n` +
-      `• Completed Tasks: ${tasks.filter(t => t.completed).length}\n` +
-      `• Pending Tasks: ${tasks.filter(t => !t.completed).length}`;
-    
-    navigator.clipboard.writeText(summary);
-    
-    toast({
-      title: "Summary Copied! 📋",
-      description: "Summary copied to clipboard. Paste it in Slack!",
-    });
+  const handleExportViaSlack = async () => {
+    try {
+      // Show loading toast
+      toast({
+        title: "Sending to Slack...",
+        description: "Preparing your TaskMind report for Slack.",
+      });
+
+      // Create a comprehensive report message
+      const completedTasks = tasks.filter(t => t.completed).length;
+      const pendingTasks = tasks.filter(t => !t.completed).length;
+      const totalMeetings = meetings.length;
+      const completionRate = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
+
+      const message = `📊 *TaskMind Productivity Report*\n\n` +
+        `📅 *Report Date:* ${new Date().toLocaleDateString()}\n\n` +
+        `📈 *Productivity Summary*\n` +
+        `• Total Meetings: ${totalMeetings}\n` +
+        `• Total Tasks: ${tasks.length}\n` +
+        `• Completed Tasks: ${completedTasks}\n` +
+        `• Pending Tasks: ${pendingTasks}\n` +
+        `• Completion Rate: ${completionRate}%\n\n` +
+        `🎯 *Recent Activity*\n` +
+        `${meetings.length > 0 ? 
+          `• Latest Meeting: ${meetings[0].title} (${format(new Date(meetings[0].date), 'MMM dd')})\n` : 
+          '• No recent meetings\n'}` +
+        `${pendingTasks.length > 0 ? 
+          `• Next Priority: ${pendingTasks[0].task}\n` : 
+          '• No pending tasks\n'}` +
+        `\n${completionRate >= 80 ? '🎉 Excellent productivity! Keep up the great work!' : 
+          completionRate >= 60 ? '👍 Good progress! You\'re on track!' : 
+          '💪 Room for improvement. Let\'s boost that productivity!'}`;
+
+      // Send to Slack using the service
+      await slackService.sendCustomNotification({
+        type: 'custom',
+        title: 'TaskMind Productivity Report',
+        message: message
+      });
+
+      // Success toast
+      toast({
+        title: "✅ Report Sent to Slack!",
+        description: "Your TaskMind productivity report has been sent to your Slack channel.",
+      });
+    } catch (error) {
+      console.error('Failed to send report to Slack:', error);
+      toast({
+        title: "❌ Failed to Send to Slack",
+        description: "There was an error sending the report. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCopyToClipboard = () => {

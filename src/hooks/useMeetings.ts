@@ -1,7 +1,7 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { slackService } from "@/lib/slackService";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 type Meeting = Tables<"meetings">;
@@ -43,12 +43,19 @@ export const useMeetings = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (newMeeting) => {
       queryClient.invalidateQueries({ queryKey: ["meetings"] });
       toast({
         title: "Success",
         description: "Meeting created successfully",
       });
+      
+      // Send Slack notification for new meeting
+      try {
+        slackService.notifyMeetingCreated(newMeeting);
+      } catch (error) {
+        console.error('Failed to send Slack notification for new meeting:', error);
+      }
     },
     onError: (error: any) => {
       toast({
@@ -71,12 +78,19 @@ export const useMeetings = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (updatedMeeting) => {
       queryClient.invalidateQueries({ queryKey: ["meetings"] });
       toast({
         title: "Success",
         description: "Meeting updated successfully",
       });
+      
+      // Send Slack notification for meeting updates
+      try {
+        slackService.notifyMeetingUpdated(updatedMeeting);
+      } catch (error) {
+        console.error('Failed to send Slack notification for meeting update:', error);
+      }
     },
     onError: (error: any) => {
       toast({

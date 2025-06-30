@@ -43,6 +43,7 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
     { id: "dashboard", label: "Dashboard", icon: BarChart3, description: "Your productivity overview" },
     { id: "meetings", label: "Meeting Hub", icon: Calendar, description: "Manage your meetings" },
     { id: "tasks", label: "Task Master", icon: CheckSquare, description: "Action items & follow-ups" },
+    { id: "memory", label: "Memory", icon: Brain, description: "Long-term AI memory" },
     { id: "settings", label: "Command Center", icon: Settings, description: "Account & preferences" },
   ];
 
