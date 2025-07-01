@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
-import { ThemeToggle } from "./components/ThemeToggle";
 import { config, isLandingPageOnly } from "./config";
 import OAuth2Callback from "./components/OAuth2CallBack";
 import "./App.css";
@@ -28,12 +27,6 @@ import ZoomCallback from "./components/ZoomCallback";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
 import Support from "./pages/Support";
-import Documentation from "./pages/Documentation";
-import HowItWorks from "./pages/HowItWorks";
-import UseCases from "./pages/UseCases";
-import Help from "./pages/Help";
-import Careers from "./pages/Careers";
-import Manifesto from "./pages/Manifesto";
 import AppLayout from "./components/AppLayout";
 
 const queryClient = new QueryClient();
@@ -71,10 +64,7 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TooltipProvider>
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 text-gray-900 transition-colors duration-300 relative">
-              <div className="fixed bottom-4 right-4 z-50">
-                <ThemeToggle />
-              </div>
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white transition-colors duration-300 relative">
               <Toaster />
               <Sonner />
               <BrowserRouter>
@@ -87,48 +77,6 @@ const App = () => {
                     <ProtectedRoute>
                       <AppLayout>
                         <Support />
-                      </AppLayout>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/documentation" element={
-                    <ProtectedRoute>
-                      <AppLayout>
-                        <Documentation />
-                      </AppLayout>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/how-it-works" element={
-                    <ProtectedRoute>
-                      <AppLayout>
-                        <HowItWorks />
-                      </AppLayout>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/use-cases" element={
-                    <ProtectedRoute>
-                      <AppLayout>
-                        <UseCases />
-                      </AppLayout>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/help" element={
-                    <ProtectedRoute>
-                      <AppLayout>
-                        <Help />
-                      </AppLayout>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/careers" element={
-                    <ProtectedRoute>
-                      <AppLayout>
-                        <Careers />
-                      </AppLayout>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/manifesto" element={
-                    <ProtectedRoute>
-                      <AppLayout>
-                        <Manifesto />
                       </AppLayout>
                     </ProtectedRoute>
                   } />
@@ -151,14 +99,46 @@ const App = () => {
                       </AppLayout>
                     </ProtectedRoute>
                   } />
-                  <Route
-                    path="/"
-                    element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    }
-                  />
+                  <Route path="/" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/calendar" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/tasks" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/meetings" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/memory" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/summaries" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>

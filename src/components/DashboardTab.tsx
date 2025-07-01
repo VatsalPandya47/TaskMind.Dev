@@ -63,10 +63,12 @@ import {
   Mail,
   MessageCircle,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Mic
 } from "lucide-react";
 import { format, isAfter, isBefore, startOfDay, addDays, differenceInDays } from "date-fns";
 import { StatsSkeleton } from "./LoadingSkeleton";
+import { slackService } from '@/lib/slackService';
 
 interface DashboardTabProps {
   onTabChange?: (tab: string) => void;
@@ -203,20 +205,59 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
     });
   };
 
-  const handleExportViaSlack = () => {
-    // For now, we'll copy the summary to clipboard and show instructions
-    const summary = `📊 TaskMind Report - ${new Date().toLocaleDateString()}\n` +
-      `• Total Meetings: ${meetings.length}\n` +
-      `• Total Tasks: ${tasks.length}\n` +
-      `• Completed Tasks: ${tasks.filter(t => t.completed).length}\n` +
-      `• Pending Tasks: ${tasks.filter(t => !t.completed).length}`;
-    
-    navigator.clipboard.writeText(summary);
-    
-    toast({
-      title: "Summary Copied! 📋",
-      description: "Summary copied to clipboard. Paste it in Slack!",
-    });
+  const handleExportViaSlack = async () => {
+    try {
+      // Show loading toast
+      toast({
+        title: "Sending to Slack...",
+        description: "Preparing your TaskMind report for Slack.",
+      });
+
+      // Create a comprehensive report message
+      const completedTasks = tasks.filter(t => t.completed).length;
+      const pendingTasks = tasks.filter(t => !t.completed).length;
+      const totalMeetings = meetings.length;
+      const completionRate = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
+
+      const message = `📊 *TaskMind Productivity Report*\n\n` +
+        `📅 *Report Date:* ${new Date().toLocaleDateString()}\n\n` +
+        `📈 *Productivity Summary*\n` +
+        `• Total Meetings: ${totalMeetings}\n` +
+        `• Total Tasks: ${tasks.length}\n` +
+        `• Completed Tasks: ${completedTasks}\n` +
+        `• Pending Tasks: ${pendingTasks}\n` +
+        `• Completion Rate: ${completionRate}%\n\n` +
+        `🎯 *Recent Activity*\n` +
+        `${meetings.length > 0 ? 
+          `• Latest Meeting: ${meetings[0].title} (${format(new Date(meetings[0].date), 'MMM dd')})\n` : 
+          '• No recent meetings\n'}` +
+        `${pendingTasks.length > 0 ? 
+          `• Next Priority: ${pendingTasks[0].task}\n` : 
+          '• No pending tasks\n'}` +
+        `\n${completionRate >= 80 ? '🎉 Excellent productivity! Keep up the great work!' : 
+          completionRate >= 60 ? '👍 Good progress! You\'re on track!' : 
+          '💪 Room for improvement. Let\'s boost that productivity!'}`;
+
+      // Send to Slack using the service
+      await slackService.sendCustomNotification({
+        type: 'custom',
+        title: 'TaskMind Productivity Report',
+        message: message
+      });
+
+      // Success toast
+      toast({
+        title: "✅ Report Sent to Slack!",
+        description: "Your TaskMind productivity report has been sent to your Slack channel.",
+      });
+    } catch (error) {
+      console.error('Failed to send report to Slack:', error);
+      toast({
+        title: "❌ Failed to Send to Slack",
+        description: "There was an error sending the report. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCopyToClipboard = () => {
@@ -241,14 +282,23 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
 
   if (meetingsLoading || tasksLoading) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-4xl md:text-5xl font-bold text-black mb-6">Dashboard</h1>
-          <p className="text-xl text-gray-600">
-            Welcome back! Here's your meeting insights overview.
-          </p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
+        
+        <div className="relative z-10 container mx-auto px-6 py-20 space-y-8">
+          <div className="text-center">
+            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-white via-blue-200 to-indigo-200 bg-clip-text text-transparent mb-6">
+              Dashboard
+            </h1>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              Welcome back! Here's your meeting insights overview.
+            </p>
+          </div>
+          <StatsSkeleton />
         </div>
-        <StatsSkeleton />
       </div>
     );
   }
@@ -330,18 +380,18 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'High': return 'bg-red-100 text-red-800 border-red-200';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Low': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'High': return 'bg-red-500/20 text-red-400 border-red-400/30';
+      case 'Medium': return 'bg-yellow-500/20 text-yellow-400 border-yellow-400/30';
+      case 'Low': return 'bg-green-500/20 text-green-400 border-green-400/30';
+      default: return 'bg-gray-500/20 text-gray-400 border-gray-400/30';
     }
   };
 
   const getProductivityLevel = (score) => {
-    if (score >= 80) return { level: 'Excellent', color: 'text-green-600', bg: 'bg-green-50' };
-    if (score >= 60) return { level: 'Good', color: 'text-blue-600', bg: 'bg-blue-50' };
-    if (score >= 40) return { level: 'Fair', color: 'text-yellow-600', bg: 'bg-yellow-50' };
-    return { level: 'Needs Improvement', color: 'text-red-600', bg: 'bg-red-50' };
+    if (score >= 80) return { level: 'Excellent', color: 'text-green-400', bg: 'bg-green-500/20' };
+    if (score >= 60) return { level: 'Good', color: 'text-blue-400', bg: 'bg-blue-500/20' };
+    if (score >= 40) return { level: 'Fair', color: 'text-yellow-400', bg: 'bg-yellow-500/20' };
+    return { level: 'Needs Improvement', color: 'text-red-400', bg: 'bg-red-500/20' };
   };
 
   const productivityLevel = getProductivityLevel(productivityScore);
@@ -375,21 +425,39 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
   ].sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <div className="container mx-auto px-6 py-8 space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
+      
+      <div className="relative z-10 container mx-auto px-6 py-20 space-y-8">
         {/* Header */}
-        <div className="text-center space-y-4">
-          <h1 className="text-5xl md:text-6xl font-bold text-black leading-tight">
-            Your AI Chief of Staff
+        <div className="text-center space-y-6">
+          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-white via-blue-200 to-indigo-200 bg-clip-text text-transparent leading-tight">
+            Your AI Chief of Staff ⚡
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Welcome back, productivity champion! 🚀 Let's see what your AI assistant has been up to.
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            Welcome back! Here's your productivity command center
           </p>
-          <div className="flex justify-center gap-4 mt-6">
+          
+          {/* Quick Stats Banner */}
+          <div className="flex flex-wrap justify-center gap-4 mt-6">
+            <div className="bg-blue-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-blue-500/30">
+              <span className="text-sm font-medium text-blue-400">{completedTasks.length} completed today</span>
+            </div>
+            <div className="bg-green-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-green-500/30">
+              <span className="text-sm font-medium text-green-400">{Math.round(productivityScore)}% productivity</span>
+            </div>
+            <div className="bg-indigo-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-indigo-500/30">
+              <span className="text-sm font-medium text-indigo-400">{meetings.length} meetings</span>
+            </div>
+          </div>
+          <div className="flex justify-center gap-4 mt-8">
             <Button 
               variant="outline" 
               onClick={handleRefreshData}
-              className="bg-white border-gray-200 hover:bg-gray-50 rounded-xl"
+              className="bg-gray-800/60 backdrop-blur-sm border-gray-700/50 text-white hover:bg-gray-700/60 hover:border-gray-600/50 rounded-2xl transition-all duration-200"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh Data
@@ -398,19 +466,19 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
               <DialogTrigger asChild>
                 <Button 
                   variant="outline" 
-                  className="bg-white border-gray-200 hover:bg-gray-50 rounded-xl"
+                  className="bg-gray-800/60 backdrop-blur-sm border-gray-700/50 text-white hover:bg-gray-700/60 hover:border-gray-600/50 rounded-2xl transition-all duration-200"
                 >
                   <ArrowUpRight className="h-4 w-4 mr-2" />
                   Export Data
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md bg-gray-800/90 backdrop-blur-sm border-gray-700/50">
                 <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <ArrowUpRight className="h-5 w-5 text-blue-600" />
+                  <DialogTitle className="flex items-center gap-2 text-white">
+                    <ArrowUpRight className="h-5 w-5 text-blue-400" />
                     Export Your Data
                   </DialogTitle>
-                  <DialogDescription>
+                  <DialogDescription className="text-gray-300">
                     Choose how you'd like to export your TaskMind data and reports.
                   </DialogDescription>
                 </DialogHeader>
@@ -418,7 +486,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                   <Button 
                     variant="outline" 
                     onClick={handleDownloadData}
-                    className="justify-start h-12"
+                    className="justify-start h-12 bg-gray-700/60 border-gray-600/50 text-white hover:bg-gray-600/60"
                   >
                     <Download className="h-4 w-4 mr-3" />
                     Download as JSON File
@@ -426,7 +494,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                   <Button 
                     variant="outline" 
                     onClick={handleExportViaEmail}
-                    className="justify-start h-12"
+                    className="justify-start h-12 bg-gray-700/60 border-gray-600/50 text-white hover:bg-gray-600/60"
                   >
                     <Mail className="h-4 w-4 mr-3" />
                     Export via Email
@@ -434,7 +502,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                   <Button 
                     variant="outline" 
                     onClick={handleExportViaSlack}
-                    className="justify-start h-12"
+                    className="justify-start h-12 bg-gray-700/60 border-gray-600/50 text-white hover:bg-gray-600/60"
                   >
                     <MessageCircle className="h-4 w-4 mr-3" />
                     Share to Slack
@@ -442,7 +510,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                   <Button 
                     variant="outline" 
                     onClick={handleCopyToClipboard}
-                    className="justify-start h-12"
+                    className="justify-start h-12 bg-gray-700/60 border-gray-600/50 text-white hover:bg-gray-600/60"
                   >
                     <Copy className="h-4 w-4 mr-3" />
                     Copy to Clipboard
@@ -460,48 +528,48 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
         )}
 
         {/* Productivity Score */}
-        <Card className="bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg">
+        <Card className="bg-gray-800/60 backdrop-blur-sm border-gray-700/50 shadow-2xl hover:border-gray-600/50 transition-all duration-200">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="text-2xl font-bold text-black">
+            <CardTitle className="text-2xl font-bold text-white">
               Your Productivity Power Level
             </CardTitle>
-            <CardDescription className="text-gray-600">
+            <CardDescription className="text-gray-300">
               The AI has calculated your superhero score for this week
             </CardDescription>
           </CardHeader>
           <CardContent className="px-8 pb-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
-                <div className="text-5xl font-bold text-black mb-2">{Math.round(productivityScore)}</div>
+                <div className="text-5xl font-bold text-white mb-2">{Math.round(productivityScore)}</div>
                 <div className={`text-lg font-semibold ${productivityLevel.color}`}>
                   {productivityLevel.level}
                 </div>
                 <Progress value={productivityScore} className="mt-4 h-2" />
               </div>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                  <span className="text-gray-600">Tasks Crushed</span>
-                  <span className="font-semibold text-black">{completionRate}%</span>
+                <div className="flex items-center justify-between p-3 bg-gray-700/50 rounded-xl">
+                  <span className="text-gray-300">Tasks Crushed</span>
+                  <span className="font-semibold text-white">{completionRate}%</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                  <span className="text-gray-600">Oops, Overdue</span>
-                  <span className="font-semibold text-black">{overdueTasks.length}</span>
+                <div className="flex items-center justify-between p-3 bg-gray-700/50 rounded-xl">
+                  <span className="text-gray-300">Oops, Overdue</span>
+                  <span className="font-semibold text-white">{overdueTasks.length}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                  <span className="text-gray-600">Meetings This Week</span>
-                  <span className="font-semibold text-black">{thisWeekMeetings.length}</span>
+                <div className="flex items-center justify-between p-3 bg-gray-700/50 rounded-xl">
+                  <span className="text-gray-300">Meetings This Week</span>
+                  <span className="font-semibold text-white">{thisWeekMeetings.length}</span>
                 </div>
               </div>
               <div className="flex items-center justify-center">
-                <div className={`p-6 rounded-2xl ${productivityLevel.bg} hover:${productivityLevel.bg} transition-colors duration-200`}>
+                <div className={`p-6 rounded-2xl ${productivityLevel.bg} hover:scale-105 transition-transform duration-200`}>
                   {productivityScore >= 80 ? (
-                    <Award className="h-12 w-12 text-green-600" />
+                    <Award className="h-12 w-12 text-green-400" />
                   ) : productivityScore >= 60 ? (
-                    <Star className="h-12 w-12 text-blue-600 hover:text-blue-600" />
+                    <Star className="h-12 w-12 text-blue-400" />
                   ) : productivityScore >= 40 ? (
-                    <TrendingUp className="h-12 w-12 text-yellow-600" />
+                    <TrendingUp className="h-12 w-12 text-yellow-400" />
                   ) : (
-                    <TrendingDown className="h-12 w-12 text-red-600" />
+                    <TrendingDown className="h-12 w-12 text-red-400" />
                   )}
                 </div>
               </div>
@@ -510,45 +578,28 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
         </Card>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { 
-              icon: <Plus className="h-6 w-6" />, 
-              label: "Add New Task", 
-              color: "bg-blue-50 text-blue-600",
-              onClick: handleAddNewTask
-            },
-            { 
-              icon: <Calendar className="h-6 w-6" />, 
-              label: "Schedule Meeting", 
-              color: "bg-green-50 text-green-600",
-              onClick: handleScheduleMeeting
-            },
-            { 
-              icon: <FileText className="h-6 w-6" />, 
-              label: "Upload Audio", 
-              color: "bg-purple-50 text-purple-600",
-              onClick: handleUploadAudio
-            },
-            { 
-              icon: <Share2 className="h-6 w-6" />, 
-              label: "Share Report", 
-              color: "bg-orange-50 text-orange-600",
-              onClick: handleShareReport
-            }
-          ].map((action, index) => (
-            <Button 
-              key={index} 
-              variant="outline" 
-              onClick={action.onClick}
-              className="h-20 flex flex-col items-center gap-2 bg-white border-gray-200 hover:bg-gray-50 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200"
-            >
-              <div className={`p-2 rounded-xl ${action.color}`}>
-                {action.icon}
-              </div>
-              <span className="text-sm font-medium text-black">{action.label}</span>
-            </Button>
-          ))}
+        <div className="flex flex-wrap justify-center gap-4 mt-8">
+          <Button 
+            onClick={handleAddNewTask}
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 py-3 font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Task
+          </Button>
+          <Button 
+            onClick={handleScheduleMeeting}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 py-3 font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Schedule Meeting
+          </Button>
+          <Button 
+            onClick={handleUploadAudio}
+            className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl px-6 py-3 font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+          >
+            <Mic className="h-4 w-4 mr-2" />
+            Upload Audio
+          </Button>
         </div>
 
         {/* Stats Cards */}
@@ -558,7 +609,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
               title: "Total Meetings", 
               value: meetings.length, 
               icon: <Calendar className="h-6 w-6" />, 
-              color: "bg-blue-50 text-blue-600",
+              color: "bg-blue-500/20 text-blue-400",
               trend: meetingTrend,
               subtitle: `${thisWeekMeetings.length} this week`,
               onClick: () => onTabChange && onTabChange("meetings")
@@ -567,7 +618,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
               title: "Active Tasks", 
               value: pendingTasks.length, 
               icon: <CheckSquare className="h-6 w-6" />, 
-              color: "bg-green-50 text-green-600",
+              color: "bg-green-500/20 text-green-400",
               subtitle: `${completedTasks.length} completed`,
               onClick: () => onTabChange && onTabChange("tasks")
             },
@@ -575,7 +626,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
               title: "Team Members", 
               value: totalParticipants, 
               icon: <Users className="h-6 w-6" />, 
-              color: "bg-purple-50 text-purple-600",
+              color: "bg-purple-500/20 text-purple-400",
               subtitle: "Across all meetings",
               onClick: () => onTabChange && onTabChange("meetings")
             },
@@ -583,18 +634,18 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
               title: "Avg Duration", 
               value: avgDuration, 
               icon: <Clock className="h-6 w-6" />, 
-              color: "bg-orange-50 text-orange-600",
+              color: "bg-orange-500/20 text-orange-400",
               subtitle: "Per meeting",
               onClick: () => onTabChange && onTabChange("meetings")
             }
           ].map((stat, index) => (
             <Card 
               key={index} 
-              className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-105"
+              className="bg-gray-800/60 backdrop-blur-sm border-gray-700/50 shadow-lg hover:shadow-2xl hover:border-gray-600/50 transition-all duration-200 cursor-pointer hover:scale-105"
               onClick={stat.onClick}
             >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">
+                <CardTitle className="text-sm font-medium text-gray-300">
                   {stat.title}
                 </CardTitle>
                 <div className={`p-2 rounded-xl ${stat.color}`}>
@@ -602,16 +653,16 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-black">{stat.value}</div>
-                <div className="flex items-center text-xs text-gray-500">
+                <div className="text-2xl font-bold text-white">{stat.value}</div>
+                <div className="flex items-center text-xs text-gray-400">
                   {stat.trend && (
                     <>
                       {stat.trend === 'up' ? (
-                        <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
+                        <TrendingUp className="h-3 w-3 mr-1 text-green-400" />
                       ) : stat.trend === 'down' ? (
-                        <TrendingDown className="h-3 w-3 mr-1 text-red-500" />
+                        <TrendingDown className="h-3 w-3 mr-1 text-red-400" />
                       ) : (
-                        <Equal className="h-3 w-3 mr-1 text-gray-500" />
+                        <Equal className="h-3 w-3 mr-1 text-gray-400" />
                       )}
                     </>
                   )}
@@ -622,80 +673,82 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
           ))}
         </div>
 
+        {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Priority Distribution */}
-          <Card className="bg-white border-gray-200 shadow-sm">
+          <Card className="bg-gray-800/60 backdrop-blur-sm border-gray-700/50 shadow-lg hover:border-gray-600/50 transition-all duration-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-black">
-                <BarChart3 className="h-5 w-5 text-blue-600" />
+              <CardTitle className="flex items-center gap-2 text-white">
+                <BarChart3 className="h-5 w-5 text-blue-400" />
                 Task Priority Breakdown
               </CardTitle>
-              <CardDescription className="text-gray-600">
+              <CardDescription className="text-gray-300">
                 Your to-do list organized by urgency level
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {[
-                { priority: 'High', count: highPriorityTasks, color: 'bg-red-50 text-red-600', icon: <AlertCircle className="h-5 w-5" />, desc: 'Drop everything and do this!' },
-                { priority: 'Medium', count: mediumPriorityTasks, color: 'bg-yellow-50 text-yellow-600', icon: <Clock className="h-5 w-5" />, desc: 'Important but not urgent' },
-                { priority: 'Low', count: lowPriorityTasks, color: 'bg-green-50 text-green-600', icon: <Circle className="h-5 w-5" />, desc: 'When you have time' }
+                { priority: 'High', count: highPriorityTasks, color: 'bg-red-500/20 text-red-400', icon: <AlertCircle className="h-5 w-5" />, desc: 'Drop everything and do this!' },
+                { priority: 'Medium', count: mediumPriorityTasks, color: 'bg-yellow-500/20 text-yellow-400', icon: <Clock className="h-5 w-5" />, desc: 'Important but not urgent' },
+                { priority: 'Low', count: lowPriorityTasks, color: 'bg-green-500/20 text-green-400', icon: <Circle className="h-5 w-5" />, desc: 'When you have time' }
               ].map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                <div key={index} className="flex items-center justify-between p-4 bg-gray-700/50 rounded-xl hover:bg-gray-600/50 transition-colors duration-200">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg ${item.color}`}>
                       {item.icon}
                     </div>
                     <div>
-                      <div className="font-medium text-black">{item.priority} Priority</div>
-                      <div className="text-sm text-gray-600">{item.desc}</div>
+                      <div className="font-medium text-white">{item.priority} Priority</div>
+                      <div className="text-sm text-gray-400">{item.desc}</div>
                     </div>
                   </div>
-                  <div className="text-2xl font-bold text-black">{item.count}</div>
+                  <div className="text-2xl font-bold text-white">{item.count}</div>
                 </div>
               ))}
             </CardContent>
           </Card>
 
           {/* Upcoming Deadlines */}
-          <Card className="bg-white border-gray-200 shadow-sm">
+          <Card className="bg-gray-800/60 backdrop-blur-sm border-gray-700/50 shadow-lg hover:border-gray-600/50 transition-all duration-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-black">
-                <CalendarDays className="h-5 w-5 text-blue-600" />
-                Upcoming Events & Deadlines
+              <CardTitle className="flex items-center gap-2 text-white">
+                <CalendarDays className="h-5 w-5 text-blue-400" />
+                Deadline Watch
               </CardTitle>
-              <CardDescription className="text-gray-600">
-                See your upcoming tasks, Google Calendar events, and Zoom meetings!
+              <CardDescription className="text-gray-300">
+                Tasks that need your attention soon (no pressure! 😅)
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {unifiedEvents.length > 0 ? (
-                  unifiedEvents.slice(0, 5).map(event => (
-                    <div key={event.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-50 rounded-lg">
-                          {event.source === "task" && <CheckSquare className="h-4 w-4 text-blue-600" />}
-                          {event.source === "google" && <Calendar className="h-4 w-4 text-green-600" />}
-                          {event.source === "zoom" && <Calendar className="h-4 w-4 text-purple-600" />}
+                {upcomingDeadlines.length > 0 ? (
+                  upcomingDeadlines.slice(0, 5).map((task) => {
+                    const daysUntilDue = differenceInDays(new Date(task.due_date), new Date());
+                    return (
+                      <div key={task.id} className="flex items-center justify-between p-3 bg-gray-700/50 rounded-xl hover:bg-gray-600/50 transition-colors duration-200">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-500/20 rounded-lg">
+                            <CheckSquare className="h-4 w-4 text-blue-400" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-white">{task.task}</p>
+                            <p className="text-sm text-gray-400">
+                              Due {format(new Date(task.due_date), "MMM d")}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-black">{event.title}</p>
-                          <p className="text-sm text-gray-600">
-                            {format(new Date(event.datetime), "MMM d, h:mm a")}
-                          </p>
-                        </div>
+                        <Badge className={`${getPriorityColor(task.priority)} border-0`}>
+                          {daysUntilDue === 0 ? 'Today!' : 
+                           daysUntilDue === 1 ? 'Tomorrow' : 
+                           `${daysUntilDue} days left`}
+                        </Badge>
                       </div>
-                      {event.link && (
-                        <a href={event.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                          View
-                        </a>
-                      )}
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <CalendarDays className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p>No upcoming events! 🎉</p>
+                  <div className="text-center py-8 text-gray-400">
+                    <CalendarDays className="h-12 w-12 mx-auto mb-4 text-gray-500" />
+                    <p>No deadlines looming! 🎉</p>
                   </div>
                 )}
               </div>
@@ -703,15 +756,16 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
           </Card>
         </div>
 
+        {/* Bottom Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Team Insights */}
-          <Card className="bg-white border-gray-200 shadow-sm">
+          <Card className="bg-gray-800/60 backdrop-blur-sm border-gray-700/50 shadow-lg hover:border-gray-600/50 transition-all duration-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-black">
-                <Users className="h-5 w-5 text-blue-600" />
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Users className="h-5 w-5 text-blue-400" />
                 Your Meeting Squad
               </CardTitle>
-              <CardDescription className="text-gray-600">
+              <CardDescription className="text-gray-300">
                 The most active participants in your meetings
               </CardDescription>
             </CardHeader>
@@ -719,20 +773,20 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
               <div className="space-y-3">
                 {topParticipants.length > 0 ? (
                   topParticipants.map(([participant, count], index) => (
-                    <div key={participant} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <div key={participant} className="flex items-center justify-between p-3 bg-gray-700/50 rounded-xl hover:bg-gray-600/50 transition-colors duration-200">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-bold text-blue-600">
+                        <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center border border-blue-400/30">
+                          <span className="text-sm font-bold text-blue-400">
                             {(participant as string).charAt(0).toUpperCase()}
                           </span>
                         </div>
                         <div>
-                          <p className="font-medium text-black">{participant as string}</p>
-                          <p className="text-sm text-gray-600">{count} meetings attended</p>
+                          <p className="font-medium text-white">{participant as string}</p>
+                          <p className="text-sm text-gray-400">{count} meetings attended</p>
                         </div>
                       </div>
                       {index < 3 && (
-                        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                        <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-400/30">
                           <Star className="h-3 w-3 mr-1" />
                           Top {index + 1}
                         </Badge>
@@ -740,8 +794,8 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <div className="text-center py-8 text-gray-400">
+                    <Users className="h-12 w-12 mx-auto mb-4 text-gray-500" />
                     <p>No meeting buddies yet! 🤝</p>
                   </div>
                 )}
@@ -750,33 +804,33 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
           </Card>
 
           {/* AI Recommendations */}
-          <Card className="bg-white border-gray-200 shadow-sm">
+          <Card className="bg-gray-800/60 backdrop-blur-sm border-gray-700/50 shadow-lg hover:border-gray-600/50 transition-all duration-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-black">
-                <Lightbulb className="h-5 w-5 text-blue-600" />
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Lightbulb className="h-5 w-5 text-blue-400" />
                 AI Wisdom Corner
               </CardTitle>
-              <CardDescription className="text-gray-600">
+              <CardDescription className="text-gray-300">
                 Your AI assistant's friendly advice and suggestions
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {overdueTasks.length > 0 && (
-                  <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+                  <div className="p-4 bg-red-500/10 rounded-xl border border-red-500/20">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-red-100 rounded-lg">
-                        <AlertCircle className="h-5 w-5 text-red-600" />
+                      <div className="p-2 bg-red-500/20 rounded-lg">
+                        <AlertCircle className="h-5 w-5 text-red-400" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-red-900">Uh-oh, Overdue Alert! 🚨</p>
-                        <p className="text-sm text-red-700 mb-3">
+                        <p className="font-medium text-red-400">Uh-oh, Overdue Alert! 🚨</p>
+                        <p className="text-sm text-gray-300 mb-3">
                           You have {overdueTasks.length} tasks that are past their due date. Maybe it's time to reschedule or delegate?
                         </p>
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="border-red-200 text-red-700 hover:bg-red-100"
+                          className="border-red-500/30 text-red-400 hover:bg-red-500/10"
                           onClick={() => onTabChange && onTabChange("tasks")}
                         >
                           View Overdue Tasks
@@ -786,20 +840,20 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                   </div>
                 )}
                 {highPriorityTasks > 3 && (
-                  <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+                  <div className="p-4 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-yellow-100 rounded-lg">
-                        <Clock className="h-5 w-5 text-yellow-600" />
+                      <div className="p-2 bg-yellow-500/20 rounded-lg">
+                        <Clock className="h-5 w-5 text-yellow-400" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-yellow-900">High Priority Overload! ⚡</p>
-                        <p className="text-sm text-yellow-700 mb-3">
+                        <p className="font-medium text-yellow-400">High Priority Overload! ⚡</p>
+                        <p className="text-sm text-gray-300 mb-3">
                           You have {highPriorityTasks} high-priority tasks. Consider breaking them down into smaller, more manageable pieces.
                         </p>
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="border-yellow-200 text-yellow-700 hover:bg-yellow-100"
+                          className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
                           onClick={() => onTabChange && onTabChange("tasks")}
                         >
                           Organize Tasks
@@ -809,20 +863,20 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                   </div>
                 )}
                 {completionRate < 50 && (
-                  <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                  <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <Target className="h-5 w-5 text-blue-600" />
+                      <div className="p-2 bg-blue-500/20 rounded-lg">
+                        <Target className="h-5 w-5 text-blue-400" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-blue-900">Let's Boost That Completion Rate! 🎯</p>
-                        <p className="text-sm text-blue-700 mb-3">
+                        <p className="font-medium text-blue-400">Let's Boost That Completion Rate! 🎯</p>
+                        <p className="text-sm text-gray-300 mb-3">
                           Your completion rate is {completionRate}%. Try setting smaller, achievable goals to build momentum!
                         </p>
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="border-blue-200 text-blue-700 hover:bg-blue-100"
+                          className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
                           onClick={() => onTabChange && onTabChange("tasks")}
                         >
                           Set Mini Goals
@@ -832,20 +886,20 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                   </div>
                 )}
                 {meetings.length === 0 && (
-                  <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                  <div className="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-green-100 rounded-lg">
-                        <Calendar className="h-5 w-5 text-green-600" />
+                      <div className="p-2 bg-green-500/20 rounded-lg">
+                        <Calendar className="h-5 w-5 text-green-400" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-green-900">Ready to Start Your Journey! 🌟</p>
-                        <p className="text-sm text-green-700 mb-3">
+                        <p className="font-medium text-green-400">Ready to Start Your Journey! 🌟</p>
+                        <p className="text-sm text-gray-300 mb-3">
                           No meetings recorded yet. Schedule your first meeting and let the AI magic begin!
                         </p>
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="border-green-200 text-green-700 hover:bg-green-100"
+                          className="border-green-500/30 text-green-400 hover:bg-green-500/10"
                           onClick={() => onTabChange && onTabChange("meetings")}
                         >
                           Schedule Meeting
@@ -859,57 +913,150 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
           </Card>
         </div>
 
-        {/* Recent Activity */}
-        <Card className="bg-white border-gray-200 shadow-sm">
+        {/* Achievement Badges */}
+        <Card className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/30 bg-gray-800/50 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-300">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-black">
-              <Activity className="h-5 w-5 text-blue-600" />
-              Recent Adventures
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Award className="h-5 w-5 text-purple-400" />
+              Achievement Unlocked! 🏆
             </CardTitle>
-            <CardDescription className="text-gray-600">
-              Your latest meetings and task updates
+            <CardDescription className="text-gray-300">
+              Your productivity milestones and accomplishments
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentMeetings.length > 0 ? (
-                recentMeetings.map((meeting) => (
-                  <div key={meeting.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-50 rounded-lg">
-                        <Calendar className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-black">{meeting.title}</p>
-                        <p className="text-sm text-gray-600">
-                          {meeting.date ? format(new Date(meeting.date), "MMM d, yyyy") : "No date"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs border-gray-300 text-gray-700 dark:border-gray-600 dark:text-gray-300">
-                        {meeting.participants?.length || 0} attendees
-                      </Badge>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleViewMeeting(meeting.id)}
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>No meetings yet! Time to schedule some? 📅</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {completedTasks.length >= 5 && (
+                <div className="text-center p-4 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-xl border border-yellow-500/30">
+                  <div className="text-2xl mb-2">🎯</div>
+                  <p className="text-sm font-medium text-yellow-400">Task Crusher</p>
+                  <p className="text-xs text-gray-400">5+ tasks completed</p>
+                </div>
+              )}
+              {meetings.length >= 3 && (
+                <div className="text-center p-4 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl border border-blue-500/30">
+                  <div className="text-2xl mb-2">🎤</div>
+                  <p className="text-sm font-medium text-blue-400">Meeting Master</p>
+                  <p className="text-xs text-gray-400">3+ meetings processed</p>
+                </div>
+              )}
+              {productivityScore >= 80 && (
+                <div className="text-center p-4 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl border border-green-500/30">
+                  <div className="text-2xl mb-2">⚡</div>
+                  <p className="text-sm font-medium text-green-400">Productivity Pro</p>
+                  <p className="text-xs text-gray-400">80%+ efficiency</p>
+                </div>
+              )}
+              {overdueTasks.length === 0 && tasks.length > 0 && (
+                <div className="text-center p-4 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl border border-purple-500/30">
+                  <div className="text-2xl mb-2">🦄</div>
+                  <p className="text-sm font-medium text-purple-400">Unicorn Status</p>
+                  <p className="text-xs text-gray-400">No overdue tasks!</p>
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
+
+        {/* Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent Tasks */}
+          <Card className="bg-gray-800/60 backdrop-blur-sm border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-white">
+                <CheckSquare className="h-5 w-5 text-blue-400" />
+                Recent Tasks
+              </CardTitle>
+              <CardDescription className="text-gray-300">
+                Your latest action items
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {tasks.slice(0, 3).length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-400">No tasks yet</p>
+                  <Button 
+                    onClick={handleAddNewTask}
+                    className="mt-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                  >
+                    Create First Task
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {tasks.slice(0, 3).map((task) => (
+                    <div key={task.id} className="flex items-center gap-3 p-3 bg-gray-700/50 rounded-lg">
+                      <div className={`w-2 h-2 rounded-full ${task.completed ? 'bg-green-400' : 'bg-blue-400'}`}></div>
+                      <div className="flex-1">
+                        <p className={`text-sm font-medium ${task.completed ? 'text-gray-400 line-through' : 'text-white'}`}>
+                          {task.task}
+                        </p>
+                        <p className="text-xs text-gray-400">{task.assignee}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <Button 
+                    onClick={() => onTabChange?.('tasks')}
+                    variant="outline"
+                    className="w-full mt-3 border-gray-600 text-gray-300 hover:bg-gray-700/50"
+                  >
+                    View All Tasks
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Recent Meetings */}
+          <Card className="bg-gray-800/60 backdrop-blur-sm border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-white">
+                <MessageSquare className="h-5 w-5 text-indigo-400" />
+                Recent Meetings
+              </CardTitle>
+              <CardDescription className="text-gray-300">
+                Your latest conversations
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {recentMeetings.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-400">No meetings yet</p>
+                  <Button 
+                    onClick={handleScheduleMeeting}
+                    className="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl"
+                  >
+                    Schedule First Meeting
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {recentMeetings.map((meeting) => (
+                    <div key={meeting.id} className="flex items-center gap-3 p-3 bg-gray-700/50 rounded-lg">
+                      <div className="w-2 h-2 bg-indigo-400 rounded-full"></div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-white">{meeting.title}</p>
+                        <p className="text-xs text-gray-400">
+                          {format(new Date(meeting.date), 'MMM dd, yyyy')}
+                        </p>
+                      </div>
+                      {meeting.has_recording && (
+                        <div className="w-2 h-2 bg-green-400 rounded-full" title="Has recording"></div>
+                      )}
+                    </div>
+                  ))}
+                  <Button 
+                    onClick={() => onTabChange?.('meetings')}
+                    variant="outline"
+                    className="w-full mt-3 border-gray-600 text-gray-300 hover:bg-gray-700/50"
+                  >
+                    View All Meetings
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

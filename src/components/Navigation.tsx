@@ -1,282 +1,415 @@
-import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { 
-  Brain, 
-  Calendar, 
-  CheckSquare, 
-  Settings, 
-  BarChart3, 
-  LogOut, 
   Menu, 
   X, 
-  CalendarDays, 
-  History,
-  Home,
+  Home, 
+  CheckSquare, 
+  MessageSquare, 
+  Brain, 
+  Settings, 
+  LogOut, 
+  User, 
+  Bell,
+  Zap,
+  TrendingUp,
   FileText,
+  Users,
   HelpCircle,
-  Briefcase,
-  BookOpen,
-  Shield,
-  FileCheck,
-  ChevronUp,
-  ChevronDown,
-  User
+  ExternalLink,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
-import { Link } from "react-router-dom";
 
-interface NavigationProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-}
-
-const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
-  const { signOut, user } = useAuth();
+const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isUserDetailsExpanded, setIsUserDetailsExpanded] = useState(false);
-  const [showUserDetails, setShowUserDetails] = useState(true);
-  const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { user, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const mainNavItems = [
-    { id: "dashboard", label: "Dashboard", icon: BarChart3, description: "Your productivity overview" },
-    { id: "meetings", label: "Meeting Hub", icon: Calendar, description: "Manage your meetings" },
-    { id: "tasks", label: "Task Master", icon: CheckSquare, description: "Action items & follow-ups" },
-    { id: "settings", label: "Command Center", icon: Settings, description: "Account & preferences" },
-  ];
-
-  // New pages (section navigation)
-  const sectionNavItems = [
-    { id: "my-meetings", label: "My Meetings", to: "/my-meetings", icon: CalendarDays },
-    { id: "summary-history", label: "AI Summaries", to: "/summary-history", icon: History },
-    { id: "how-it-works", label: "How it works", to: "/how-it-works", icon: HelpCircle },
-    { id: "use-cases", label: "Use Cases", to: "/use-cases", icon: FileText },
-    { id: "help", label: "Help", to: "/help", icon: HelpCircle },
-    { id: "careers", label: "Careers", to: "/careers", icon: Briefcase },
-    { id: "manifesto", label: "Manifesto", to: "/manifesto", icon: BookOpen },
-  ];
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+    setIsSidebarOpen(false);
+  }, [location.pathname]);
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+      navigate("/auth");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
+  const navigationItems = [
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: Home,
+      description: "Overview and insights"
+    },
+    {
+      name: "Calendar",
+      href: "/calendar",
+      icon: CalendarDays,
+      description: "View synchronized meetings"
+    },
+    {
+      name: "Tasks",
+      href: "/tasks",
+      icon: CheckSquare,
+      description: "Action items and to-dos"
+    },
+    {
+      name: "Meetings",
+      href: "/meetings",
+      icon: MessageSquare,
+      description: "Calendar and recordings"
+    },
+    {
+      name: "Memory",
+      href: "/memory",
+      icon: Brain,
+      description: "Search and recall"
+    },
+    {
+      name: "Summaries",
+      href: "/summaries",
+      icon: FileText,
+      description: "AI-generated insights"
+    },
+    {
+      name: "Settings",
+      href: "/settings",
+      icon: Settings,
+      description: "Preferences and account"
+    }
+  ];
+
+  const isActive = (href: string) => {
+    return location.pathname === href || location.pathname.startsWith(href + "/");
   };
 
   return (
     <>
-      {/* Mobile header */}
-      <div className="lg:hidden flex items-center justify-between p-4 bg-white/90 backdrop-blur-sm border-b border-gray-200 shadow-sm">
-        <div className="flex items-center space-x-2">
-          <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-sm">
-            <Brain className="h-6 w-6 text-white" />
-          </div>
-          <span className="text-xl font-bold text-gray-900">TaskMind</span>
+      {/* Mobile Header */}
+      <div className="lg:hidden flex items-center justify-between p-4 bg-gradient-to-r from-card/90 to-muted/90 backdrop-blur-sm border-b border-border shadow-sm">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">TaskMind</span>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="hover:bg-gray-100"
-        >
-          {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
+        
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleTheme}
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+          >
+            {theme === 'dark' ? <Zap className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />}
+          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.email} />
+                  <AvatarFallback className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 text-purple-400 border border-purple-500/30">
+                    {user?.email?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56 bg-gray-800 border-gray-700" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none text-white">{user?.email}</p>
+                  <p className="text-xs leading-none text-gray-400">Signed in</p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-gray-700" />
+              <DropdownMenuItem onClick={handleSignOut} className="text-red-400 hover:text-red-300 hover:bg-red-500/20">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
-
-      {/* Mobile menu overlay */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)} />
-      )}
 
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full w-64 bg-white/95 backdrop-blur-sm border-r border-gray-200 shadow-xl transform transition-transform duration-200 ease-in-out z-50 ${
-        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-      } lg:translate-x-0`}>
+      <div className={`fixed inset-y-0 left-0 z-50 ${isCollapsed ? 'w-20' : 'w-80'} bg-card/95 backdrop-blur-sm border-r border-border transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:inset-0`}>
         <div className="flex flex-col h-full">
-          {/* Scrollable content area */}
-          <div className="flex-1 overflow-y-auto p-6 pb-6">
-            {/* Logo */}
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-sm">
-                <Brain className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <span className="text-xl font-bold text-gray-900">TaskMind</span>
-                <p className="text-xs text-gray-500">AI-powered productivity</p>
-              </div>
-            </div>
-
-            {/* Main Navigation */}
-            <nav className="space-y-1">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-4">
-                Main
-              </p>
-              
-              {mainNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      // If we're on a Resources page, navigate back to Dashboard with the correct tab
-                      if (location.pathname !== "/") {
-                        navigate("/", { state: { activeTab: item.id } });
-                      } else {
-                        // If we're already on Dashboard, just change the tab
-                        onTabChange(item.id);
-                      }
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
-                      isActive 
-                        ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-blue-700 shadow-sm' 
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm'
-                    }`}
-                  >
-                    <Icon 
-                      className={`h-5 w-5 ${isActive ? 'text-blue-600' : 'text-gray-500'}`}
-                    />
-                    <div className="flex-1">
-                      <span className={`font-medium ${isActive ? 'text-blue-700' : ''}`}>
-                        {item.label}
-                      </span>
-                      <p className={`text-xs mt-0.5 ${isActive ? 'text-blue-600' : 'text-gray-500'}`}>
-                        {item.description}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-
-              {/* Section navigation */}
-              <div className="pt-6 border-t border-gray-200">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-4">
-                  Resources
-                </p>
-                <div className="space-y-1">
-                  {sectionNavItems.map((item) => (
-                    <Link
-                      key={item.id}
-                      to={item.to}
-                      className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-left transition-all duration-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {item.icon && <item.icon className="h-4 w-4 text-gray-500" />}
-                      <span className="font-medium">{item.label}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </nav>
-            
-            {/* Spacer for user details */}
-            <div className="h-4"></div>
+          {/* Close button for mobile */}
+          <div className="lg:hidden flex justify-end p-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsSidebarOpen(false)}
+              className="p-2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-5 w-5" />
+            </Button>
           </div>
 
-          {/* Compact User Section */}
-          {showUserDetails && (
-            <div className="border-t border-gray-200 bg-gray-50/80 backdrop-blur-sm flex-shrink-0">
-              {/* Always visible user info */}
-              <div className="p-3 flex items-center justify-between">
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <User className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-gray-500 truncate">Signed in as</p>
-                    <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
-                  </div>
+          {/* Logo */}
+          <div className={`flex items-center gap-3 p-6 border-b border-border ${isCollapsed ? 'justify-center' : ''}`}>
+            <div className="p-2 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl backdrop-blur-sm hover:scale-110 transition-transform duration-200">
+              <Brain className="h-6 w-6 text-primary" />
+            </div>
+            {!isCollapsed && (
+              <>
+                <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">TaskMind</span>
+                <div className="ml-auto">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setIsUserDetailsExpanded(!isUserDetailsExpanded)}
-                    className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                    title={isUserDetailsExpanded ? "Collapse" : "Expand"}
+              </>
+            )}
+            {/* Desktop Collapse Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className={`hidden lg:flex p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 ${isCollapsed ? 'ml-0' : 'ml-auto'}`}
+            >
+              {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </Button>
+          </div>
+
+          {/* Navigation Items */}
+          <nav className="flex-1 px-4 py-6 space-y-2">
+            <TooltipProvider>
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.href);
+                
+                const linkContent = (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`group flex items-center ${isCollapsed ? 'justify-center px-3 py-3' : 'gap-3 px-3 py-2'} rounded-xl text-sm font-medium transition-all duration-200 ${
+                      active 
+                        ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-400 border border-purple-500/30 shadow-lg' 
+                        : 'text-gray-300 hover:bg-gray-700/50 hover:text-white hover:shadow-sm'
+                    }`}
                   >
-                    {isUserDetailsExpanded ? (
-                      <ChevronDown className="h-3 w-3" />
-                    ) : (
-                      <ChevronUp className="h-3 w-3" />
+                    <Icon className={`h-4 w-4 transition-colors ${active ? 'text-purple-400' : 'text-gray-400 group-hover:text-white'}`} />
+                    {!isCollapsed && (
+                      <>
+                        <span>{item.name}</span>
+                        {active && (
+                          <Badge variant="outline" className="ml-auto text-xs border-purple-500/30 text-purple-400">
+                            Active
+                          </Badge>
+                        )}
+                      </>
                     )}
-                  </button>
-                  <button
-                    onClick={() => setShowUserDetails(false)}
-                    className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                    title="Hide user details"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
+                  </Link>
+                );
+
+                if (isCollapsed) {
+                  return (
+                    <Tooltip key={item.name} delayDuration={0}>
+                      <TooltipTrigger asChild>
+                        {linkContent}
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="bg-gray-800 border-gray-700 text-white">
+                        <p className="font-medium">{item.name}</p>
+                        <p className="text-xs text-gray-400">{item.description}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                }
+
+                return linkContent;
+              })}
+            </TooltipProvider>
+          </nav>
+
+          {/* Quick Actions */}
+          <div className="px-4 py-4 border-t border-gray-700/50">
+            <div className="space-y-2">
+              <TooltipProvider>
+                {isCollapsed ? (
+                  <>
+                    <Tooltip delayDuration={0}>
+                      <TooltipTrigger asChild>
+                        <Link
+                          to="/support"
+                          className="flex items-center justify-center px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:bg-gray-700/50 hover:text-white transition-all duration-200"
+                        >
+                          <HelpCircle className="h-4 w-4 text-gray-400" />
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="bg-gray-800 border-gray-700 text-white">
+                        <p>Help & Support</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    
+                    <Tooltip delayDuration={0}>
+                      <TooltipTrigger asChild>
+                        <a
+                          href="https://taskmind.dev/documentation"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:bg-gray-700/50 hover:text-white transition-all duration-200"
+                        >
+                          <ExternalLink className="h-4 w-4 text-gray-400" />
+                        </a>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="bg-gray-800 border-gray-700 text-white">
+                        <p>Documentation</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/support"
+                      className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-gray-300 hover:bg-gray-700/50 hover:text-white transition-all duration-200"
+                    >
+                      <HelpCircle className="h-4 w-4 text-gray-400" />
+                      <span>Help & Support</span>
+                    </Link>
+                    
+                    <a
+                      href="https://taskmind.dev/documentation"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-gray-300 hover:bg-gray-700/50 hover:text-white transition-all duration-200"
+                    >
+                      <ExternalLink className="h-4 w-4 text-gray-400" />
+                      <span>Documentation</span>
+                    </a>
+                  </>
+                )}
+              </TooltipProvider>
+            </div>
+          </div>
+
+          {/* User Profile */}
+          <div className="border-t border-gray-700/50 bg-gradient-to-r from-gray-800/30 to-gray-700/20 backdrop-blur-sm flex-shrink-0">
+            {isCollapsed ? (
+              <div className="p-4 flex flex-col items-center space-y-3">
+                <TooltipProvider>
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.email} />
+                              <AvatarFallback className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 text-purple-400 border border-purple-500/30">
+                                {user?.email?.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56 bg-gray-800 border-gray-700" align="end" forceMount>
+                          <DropdownMenuLabel className="font-normal">
+                            <div className="flex flex-col space-y-1">
+                              <p className="text-sm font-medium leading-none text-white">{user?.email}</p>
+                              <p className="text-xs leading-none text-gray-400">Signed in</p>
+                            </div>
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator className="bg-gray-700" />
+                          <DropdownMenuItem onClick={toggleTheme} className="text-gray-300 hover:text-white hover:bg-gray-700">
+                            {theme === 'dark' ? <Zap className="mr-2 h-4 w-4" /> : <TrendingUp className="mr-2 h-4 w-4" />}
+                            <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleSignOut} className="text-red-400 hover:text-red-300 hover:bg-red-500/20">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Log out</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="bg-gray-800 border-gray-700 text-white">
+                      <p className="font-medium">{user?.email}</p>
+                      <p className="text-xs text-gray-400">Click for options</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
-              
-              {/* Expandable quick actions */}
-              {isUserDetailsExpanded && (
-                <div className="px-3 pb-3 space-y-2">
-                  <div className="flex gap-1">
-                    <Button 
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        onTabChange("dashboard");
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="flex-1 h-8 text-xs"
-                    >
-                      <Home className="h-3 w-3 mr-1" />
-                      Dashboard
-                    </Button>
-                    <Button 
-                      size="sm"
-                      variant="outline"
-                      onClick={handleSignOut}
-                      className="h-8 text-xs"
-                    >
-                      <LogOut className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-1 text-xs">
-                    <Link 
-                      to="/support" 
-                      className="flex items-center justify-center gap-1 text-gray-600 hover:text-gray-900 hover:bg-white p-2 rounded-lg transition-colors" 
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <HelpCircle className="h-3 w-3" />
-                      Support
-                    </Link>
-                    <Link 
-                      to="/documentation" 
-                      className="flex items-center justify-center gap-1 text-gray-600 hover:text-gray-900 hover:bg-white p-2 rounded-lg transition-colors" 
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <FileCheck className="h-3 w-3" />
-                      Docs
-                    </Link>
-                    <Link 
-                      to="/privacy-policy" 
-                      className="flex items-center justify-center gap-1 text-gray-600 hover:text-gray-900 hover:bg-white p-2 rounded-lg transition-colors" 
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Shield className="h-3 w-3" />
-                      Privacy
-                    </Link>
+            ) : (
+              <>
+                <div className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.email} />
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 text-purple-400 border border-purple-500/30">
+                        {user?.email?.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{user?.email}</p>
+                      <p className="text-xs text-gray-400">Active</p>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
-          )}
-          
-          {/* Show user details button when hidden */}
-          {!showUserDetails && (
-            <div className="border-t border-gray-200 bg-gray-50/80 backdrop-blur-sm flex-shrink-0">
-              <button
-                onClick={() => setShowUserDetails(true)}
-                className="w-full p-3 flex items-center justify-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-              >
-                <User className="h-4 w-4" />
-                <span className="text-sm font-medium">Show User Details</span>
-              </button>
-            </div>
-          )}
+                
+                <div className="px-4 pb-4 space-y-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleTheme}
+                    className="w-full justify-start text-gray-300 hover:text-white hover:bg-gray-700/50 border-gray-600"
+                  >
+                    {theme === 'dark' ? (
+                      <>
+                        <Zap className="mr-2 h-4 w-4" />
+                        Light Mode
+                      </>
+                    ) : (
+                      <>
+                        <TrendingUp className="mr-2 h-4 w-4" />
+                        Dark Mode
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSignOut}
+                    className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/20 border-red-500/30"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
     </>
   );
 };

@@ -2,13 +2,36 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import DashboardTab from "@/components/DashboardTab";
+import CalendarTab from "@/components/CalendarTab";
 import MeetingsTab from "@/components/MeetingsTab";
 import TasksTab from "@/components/TasksTab";
 import SettingsTab from "@/components/SettingsTab";
+import MemoryTab from "@/components/MemoryTab";
+import SummariesTab from "@/components/SummariesTab";
 
 const Dashboard = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("dashboard");
+
+  // Set active tab based on current route
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === "/" || path === "/dashboard") {
+      setActiveTab("dashboard");
+    } else if (path === "/calendar") {
+      setActiveTab("calendar");
+    } else if (path === "/tasks") {
+      setActiveTab("tasks");
+    } else if (path === "/meetings") {
+      setActiveTab("meetings");
+    } else if (path === "/memory") {
+      setActiveTab("memory");
+    } else if (path === "/summaries") {
+      setActiveTab("summaries");
+    } else if (path === "/settings") {
+      setActiveTab("settings");
+    }
+  }, [location.pathname]);
 
   // Handle navigation state from Resources pages
   useEffect(() => {
@@ -27,10 +50,16 @@ const Dashboard = () => {
     switch (activeTab) {
       case "dashboard":
         return <DashboardTab onTabChange={handleTabChange} />;
+      case "calendar":
+        return <CalendarTab onTabChange={handleTabChange} />;
       case "meetings":
         return <MeetingsTab />;
       case "tasks":
         return <TasksTab />;
+      case "memory":
+        return <MemoryTab />;
+      case "summaries":
+        return <SummariesTab />;
       case "settings":
         return <SettingsTab />;
       default:
@@ -39,7 +68,7 @@ const Dashboard = () => {
   };
 
   return (
-    <AppLayout activeTab={activeTab} onTabChange={handleTabChange}>
+    <AppLayout>
       {renderTabContent()}
     </AppLayout>
   );

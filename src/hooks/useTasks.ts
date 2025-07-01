@@ -1,11 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { slackService } from "@/lib/slackService";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export type Task = {
   id: string;
   task: string;
+  description?: string;
   assignee: string;
   due_date?: string;
   priority: string;
@@ -14,16 +16,15 @@ export type Task = {
   created_at: string;
   updated_at: string;
   user_id: string;
-  status: string;
 };
 
 export type TaskInsert = {
   task: string;
+  description?: string;
   assignee: string;
   due_date?: string;
   priority: string;
   meeting_id?: string;
-  status: string;
 };
 
 type TaskUpdate = TablesUpdate<"tasks">;
@@ -63,12 +64,19 @@ export const useTasks = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (newTask) => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast({
         title: "Success",
         description: "Task created successfully",
       });
+      
+      // Send Slack notification for new task
+      try {
+        slackService.notifyTaskCreated(newTask);
+      } catch (error) {
+        console.error('Failed to send Slack notification for new task:', error);
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -91,12 +99,21 @@ export const useTasks = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (updatedTask) => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast({
         title: "Success",
         description: "Task updated successfully",
       });
+      
+      // Send Slack notification for task completion
+      if (updatedTask.completed) {
+        try {
+          slackService.notifyTaskCompleted(updatedTask);
+        } catch (error) {
+          console.error('Failed to send Slack notification for completed task:', error);
+        }
+      }
     },
     onError: (error: Error) => {
       toast({
