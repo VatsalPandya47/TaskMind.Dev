@@ -4,7 +4,9 @@ import { getSupabase } from '@/lib/supabaseClient';
 
 interface UploadResult {
   success: boolean;
-  url?: string;
+  filePath?: string;
+  fileName?: string;
+  fileSize?: number;
   error?: string;
 }
 
@@ -64,11 +66,6 @@ export const useAudioUpload = () => {
         throw new Error(`Upload failed: ${error.message}`);
       }
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('audio-files')
-        .getPublicUrl(fileName);
-
       setIsUploading(false);
       setUploadProgress(100);
 
@@ -79,7 +76,9 @@ export const useAudioUpload = () => {
 
       return {
         success: true,
-        url: urlData.publicUrl
+        filePath: data.path,
+        fileName: file.name,
+        fileSize: file.size
       };
 
     } catch (error: any) {
