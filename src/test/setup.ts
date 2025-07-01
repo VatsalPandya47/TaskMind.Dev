@@ -1,6 +1,25 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
+// Mock browser environment for SlackService
+Object.defineProperty(window, 'location', {
+  value: {
+    hostname: 'localhost',
+    origin: 'http://localhost:8080',
+  },
+  writable: true,
+});
+
+// Mock import.meta.env for SlackService
+vi.stubGlobal('import', {
+  meta: {
+    env: {
+      VITE_SUPABASE_URL: 'http://127.0.0.1:54321',
+      VITE_SUPABASE_ANON_KEY: 'test-anon-key',
+    },
+  },
+});
+
 // Mock Supabase client
 const mockSupabase = {
   auth: {
@@ -121,8 +140,17 @@ vi.mock('@/integrations/supabase/client', () => ({
   supabase: mockSupabase,
 }));
 
+// Mock with both path styles
+vi.mock('src/integrations/supabase/client', () => ({
+  supabase: mockSupabase,
+}));
+
 // Also mock the lib/supabaseClient for hooks that use getSupabase()
 vi.mock('@/lib/supabaseClient', () => ({
+  getSupabase: vi.fn(() => mockSupabase),
+}));
+
+vi.mock('src/lib/supabaseClient', () => ({
   getSupabase: vi.fn(() => mockSupabase),
 }));
 
@@ -134,30 +162,17 @@ vi.mock('@/hooks/use-toast', () => ({
   }),
 }));
 
+vi.mock('src/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: mockToast,
+  }),
+}));
+
 // Make mockToast available globally for tests
 global.mockToast = mockToast;
 
-// Mock Slack service
-const mockSlackService = {
-  notifyTaskCreated: vi.fn().mockResolvedValue(undefined),
-  notifyTaskCompleted: vi.fn().mockResolvedValue(undefined),
-  notifyTaskReminder: vi.fn().mockResolvedValue(undefined),
-  notifyMeetingCreated: vi.fn().mockResolvedValue(undefined),
-  notifyMeetingUpdated: vi.fn().mockResolvedValue(undefined),
-  notifyMeetingSummary: vi.fn().mockResolvedValue(undefined),
-  notifyMeetingActionItems: vi.fn().mockResolvedValue(undefined),
-  sendDailyDigest: vi.fn().mockResolvedValue(undefined),
-  sendWeeklyReport: vi.fn().mockResolvedValue(undefined),
-  sendCustomNotification: vi.fn().mockResolvedValue(undefined),
-  testConnection: vi.fn().mockResolvedValue(true),
-};
-
-vi.mock('@/lib/slackService', () => ({
-  slackService: mockSlackService,
-}));
-
-// Make slack service available globally for tests
-global.mockSlackService = mockSlackService;
+// Don't mock SlackService - let it use real implementation with mocked fetch
+// This allows testing the actual SlackService logic with mocked HTTP calls
 
 // Mock the user hook for authentication
 vi.mock('@supabase/auth-helpers-react', () => ({
