@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { config, isLandingPageOnly } from "./config";
+import OAuth2Callback from "./components/OAuth2CallBack";
 import "./App.css";
 
 // Import landing page components
@@ -53,6 +54,7 @@ const App = () => {
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />
+                <Route path="/oauth2callback" element={<OAuth2Callback />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
@@ -80,6 +82,7 @@ const App = () => {
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   <Route path="/terms-of-use" element={<TermsOfUse />} />
+                  <Route path="/oauth2callback" element={<OAuth2Callback />} />
                   <Route path="/support" element={
                     <ProtectedRoute>
                       <AppLayout>

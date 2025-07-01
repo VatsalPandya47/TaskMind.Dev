@@ -1,5 +1,5 @@
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const REDIRECT_URI = "http://localhost:8080/oauth2callback";
+const REDIRECT_URI = "https://taskmind.dev/oauth2callback";
 const SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
 
 export function GoogleCalendarConnectButton() {

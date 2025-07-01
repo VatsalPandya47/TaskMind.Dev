@@ -1,33 +1,28 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-// Replace this with your real fetching logic (from backend or Google API)
 export function useGoogleCalendarEvents() {
   const [events, setEvents] = useState<any[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // TODO: Replace with real logic
-    // Simulate fetching events after connecting
-    const connected = localStorage.getItem("google_calendar_connected") === "true";
-    setIsConnected(connected);
+    (async () => {
+      setLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) return;
 
-    if (connected) {
-      setEvents([
-        {
-          id: "1",
-          summary: "Google Event: Project Kickoff",
-          start: { dateTime: new Date(Date.now() + 86400000).toISOString() }, // tomorrow
-          htmlLink: "https://calendar.google.com/",
-        },
-        {
-          id: "2",
-          summary: "Google Event: Team Sync",
-          start: { dateTime: new Date(Date.now() + 2 * 86400000).toISOString() }, // in 2 days
-          htmlLink: "https://calendar.google.com/",
-        },
-      ]);
-    }
+      const { data, error } = await supabase.functions.invoke('google-calendar-events', {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`,
+        }
+      });
+
+      if (data?.items) setEvents(data.items);
+      setLoading(false);
+    })();
   }, []);
 
-  return { events, isConnected };
+  return { events, loading };
 }

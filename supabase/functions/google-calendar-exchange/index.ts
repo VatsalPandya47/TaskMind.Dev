@@ -1,54 +1,93 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// supabase/functions/google-calendar-exchange/index.ts
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const GOOGLE_CLIENT_ID = Deno.env.get("VITE_GOOGLE_CLIENT_ID")!;
-const GOOGLE_CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET")!;
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const GOOGLE_CLIENT_ID = Deno.env.get('VITE_GOOGLE_CLIENT_ID');
+const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET');
+// IMPORTANT: This must be the EXACT same URI as in your Google Cloud Console
+const REDIRECT_URI = Deno.env.get('GOOGLE_REDIRECT_URI'); // e.g., 'http://localhost:8080/oauth2callback'
 
 serve(async (req) => {
-  // You should authenticate the user here (e.g., via JWT in headers)
-  const { user_id } = await req.json();
-
-  // Get refresh token from DB
-  const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
-  const { data, error } = await supabase
-    .from("google_tokens")
-    .select("refresh_token")
-    .eq("user_id", user_id)
-    .single();
-
-  if (error || !data) {
-    return new Response(JSON.stringify({ error: "No refresh token found" }), { status: 400 });
+  // 1. Handle CORS preflight request
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' } });
   }
 
-  // Exchange refresh token for access token
-  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
-      refresh_token: data.refresh_token,
-      grant_type: "refresh_token",
-    }),
-  });
-  const tokenData = await tokenRes.json();
-  const accessToken = tokenData.access_token;
-
-  if (!accessToken) {
-    return new Response(JSON.stringify({ error: "Failed to get access token" }), { status: 400 });
-  }
-
-  // Fetch events from Google Calendar
-  const now = new Date().toISOString();
-  const eventsRes = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=10&orderBy=startTime&singleEvents=true&timeMin=${now}`,
-    {
-      headers: { Authorization: `Bearer ${accessToken}` },
+  try {
+    // 2. Extract code from the incoming request body
+    const { code } = await req.json();
+    if (!code) {
+      console.error('No authorization code provided in the request body.');
+      return new Response(JSON.stringify({ error: 'Authorization code is missing.' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
     }
-  );
-  const events = await eventsRes.json();
+    console.log('Received authorization code:', code);
 
-  return new Response(JSON.stringify(events), { headers: { "Content-Type": "application/json" } });
+    // 3. Exchange the code for a token with Google
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        code: code,
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        redirect_uri: REDIRECT_URI, // <-- Must match exactly
+        grant_type: 'authorization_code',
+      }),
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    if (!tokenResponse.ok) {
+        console.error('Google API Error:', tokenData);
+        throw new Error(tokenData.error_description || 'Failed to fetch token from Google.');
+    }
+    
+    console.log('Received tokens from Google:', tokenData);
+    const { access_token, refresh_token, expiry_date } = tokenData;
+
+    // 4. Securely save the tokens to the database
+    const supabaseAdmin = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+    
+    // Get the user from the incoming request's Authorization header
+    const authHeader = req.headers.get('Authorization')!;
+    const { data: { user } } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''));
+
+    if (!user) {
+        throw new Error('User not found.');
+    }
+
+    const { error: updateError } = await supabaseAdmin
+      .from('user_profiles') // Or your table name
+      .update({
+        google_calendar_access_token: access_token,
+        google_calendar_refresh_token: refresh_token,
+        google_calendar_token_expiry: new Date(expiry_date),
+      })
+      .eq('id', user.id);
+
+    if (updateError) {
+        console.error('DB Update Error:', updateError);
+        throw new Error('Failed to save tokens to the database.');
+    }
+
+    return new Response(JSON.stringify({ success: true, message: 'Tokens stored successfully.' }), {
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
+
+  } catch (error) {
+    console.error('Internal Server Error:', error.message);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
+  }
 });
