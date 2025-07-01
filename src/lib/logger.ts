@@ -357,9 +357,9 @@ class EnhancedLogger {
 
 // Create and export default logger instance
 const logger = new EnhancedLogger({
-  level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+  level: import.meta.env.DEV ? 'debug' : 'info',
   enableConsole: true,
-  enableRemote: process.env.NODE_ENV === 'production',
+  enableRemote: import.meta.env.PROD,
   enablePerformance: true,
   persistToLocalStorage: true,
 });
