@@ -84,6 +84,45 @@ export type Database = {
         }
         Relationships: []
       }
+      asana_tokens: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          refresh_token: string | null
+          scope: string | null
+          updated_at: string
+          user_id: string
+          workspace_id: string | null
+          workspace_name: string | null
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          refresh_token?: string | null
+          scope?: string | null
+          updated_at?: string
+          user_id: string
+          workspace_id?: string | null
+          workspace_name?: string | null
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          refresh_token?: string | null
+          scope?: string | null
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string | null
+          workspace_name?: string | null
+        }
+        Relationships: []
+      }
       slack_tokens: {
         Row: {
           access_token: string

@@ -23,6 +23,7 @@ import MyMeetings from "./pages/My Meetings";
 import SummaryHistory from "./pages/SummaryHistory";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ZoomCallback from "./components/ZoomCallback";
+import AsanaCallback from "./components/AsanaCallback";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
 import Support from "./pages/Support";
@@ -80,6 +81,11 @@ const App = () => {
                   <Route path="/zoom-callback" element={
                     <ProtectedRoute>
                       <ZoomCallback />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/asana-callback" element={
+                    <ProtectedRoute>
+                      <AsanaCallback />
                     </ProtectedRoute>
                   } />
                   <Route path="/my-meetings" element={
