@@ -228,7 +228,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
         `${meetings.length > 0 ? 
           `• Latest Meeting: ${meetings[0].title} (${format(new Date(meetings[0].date), 'MMM dd')})\n` : 
           '• No recent meetings\n'}` +
-        `${pendingTasks.length > 0 ? 
+        `${pendingTasks > 0 ? 
           `• Next Priority: ${pendingTasks[0].task}\n` : 
           '• No pending tasks\n'}` +
         `\n${completionRate >= 80 ? '🎉 Excellent productivity! Keep up the great work!' : 
@@ -394,43 +394,52 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
   const productivityLevel = getProductivityLevel(productivityScore);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden 
+      bg-gradient-to-br 
+      from-gray-200 via-blue-400 to-gray-200 
+      dark:from-gray-900 dark:via-blue-900 dark:to-gray-900"
+    >
       {/* Background decorative elements */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 dark:bg-blue-800/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-800/10 rounded-full blur-3xl"></div>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/5 dark:bg-purple-800/10 rounded-full blur-3xl"></div>
       
       <div className="relative z-10 container mx-auto px-6 py-20 space-y-8">
         {/* Header */}
         <div className="text-center space-y-6">
-          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-white via-blue-200 to-indigo-200 bg-clip-text text-transparent leading-tight">
+          <h1 className="text-5xl md:text-6xl font-bold 
+            bg-gradient-to-r from-black via-blue-600 to-indigo-600 
+            dark:from-white dark:via-blue-200 dark:to-indigo-200
+            bg-clip-text text-transparent leading-tight"
+          >
             Your AI Chief of Staff ⚡
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
             Welcome back! Here's your productivity command center
           </p>
           
           {/* Quick Stats Banner */}
           <div className="flex flex-wrap justify-center gap-4 mt-6">
             <div className="bg-blue-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-blue-500/30">
-              <span className="text-sm font-medium text-blue-400">{completedTasks.length} completed today</span>
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-400">{completedTasks.length} completed today</span>
             </div>
             <div className="bg-green-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-green-500/30">
-              <span className="text-sm font-medium text-green-400">{Math.round(productivityScore)}% productivity</span>
+              <span className="text-sm font-medium text-green-600 dark:text-green-400">{Math.round(productivityScore)}% productivity</span>
             </div>
             <div className="bg-indigo-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-indigo-500/30">
-              <span className="text-sm font-medium text-indigo-400">{meetings.length} meetings</span>
+              <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">{meetings.length} meetings</span>
             </div>
           </div>
           <div className="flex justify-center gap-4 mt-8">
             <Button 
               variant="outline" 
               onClick={handleRefreshData}
-              className="bg-gray-800/60 backdrop-blur-sm border-gray-700/50 text-white hover:bg-gray-700/60 hover:border-gray-600/50 rounded-2xl transition-all duration-200"
+              className="bg-gray-800/50 text-white border-gray-700 rounded-2xl hover:bg-gray-500/50 hover:text-black hover:shadow-sm"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh Data
             </Button>
+
             <Dialog>
               <DialogTrigger asChild>
                 <Button 
@@ -441,13 +450,13 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                   Export Data
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md bg-gray-800/90 backdrop-blur-sm border-gray-700/50">
+              <DialogContent className="sm:max-w-md bg-gray-200 dark:bg-gray-800/90 backdrop-blur-sm border-gray-700/50">
                 <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2 text-white">
-                    <ArrowUpRight className="h-5 w-5 text-blue-400" />
+                  <DialogTitle className="flex items-center gap-2 text-black dark:text-white">
+                    <ArrowUpRight className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     Export Your Data
                   </DialogTitle>
-                  <DialogDescription className="text-gray-300">
+                  <DialogDescription className="text-gray-700 dark:text-gray-300">
                     Choose how you'd like to export your TaskMind data and reports.
                   </DialogDescription>
                 </DialogHeader>
@@ -507,7 +516,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                 <div className={`text-lg font-semibold ${productivityLevel.color}`}>
                   {productivityLevel.level}
                 </div>
-                <Progress value={productivityScore} className="mt-4 h-2" />
+                <Progress value={productivityScore} className="mt-4 h-2 bg-white" />
               </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-gray-700/50 rounded-xl">
@@ -793,7 +802,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                          className="border-red-500/30 text-white hover:bg-red-500/10 bg-red-500/50"
                           onClick={() => onTabChange && onTabChange("tasks")}
                         >
                           View Overdue Tasks
@@ -816,7 +825,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
+                          className="border-yellow-500/30 text-white hover:bg-yellow-500/10 bg-yellow-500/50"
                           onClick={() => onTabChange && onTabChange("tasks")}
                         >
                           Organize Tasks
@@ -839,7 +848,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                          className="border-blue-500/30 text-white hover:bg-blue-500/10 bg-blue-500/50"
                           onClick={() => onTabChange && onTabChange("tasks")}
                         >
                           Set Mini Goals
@@ -961,7 +970,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                   <Button 
                     onClick={() => onTabChange?.('tasks')}
                     variant="outline"
-                    className="w-full mt-3 border-gray-600 text-gray-300 hover:bg-gray-700/50"
+                    className="w-full mt-3 border-gray-600 text-white hover:bg-blue-700/80 bg-blue-600 hover:text-white"
                   >
                     View All Tasks
                   </Button>
@@ -987,7 +996,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                   <p className="text-gray-400">No meetings yet</p>
                   <Button 
                     onClick={handleScheduleMeeting}
-                    className="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl"
+                    className="w-full mt-3 border-gray-600 text-white hover:bg-blue-700/80 bg-blue-600 hover:text-white"
                   >
                     Schedule First Meeting
                   </Button>
@@ -1011,7 +1020,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                   <Button 
                     onClick={() => onTabChange?.('meetings')}
                     variant="outline"
-                    className="w-full mt-3 border-gray-600 text-gray-300 hover:bg-gray-700/50"
+                    className="w-full mt-3 border-gray-600 text-white hover:bg-blue-700/80 bg-blue-600 hover:text-white"
                   >
                     View All Meetings
                   </Button>

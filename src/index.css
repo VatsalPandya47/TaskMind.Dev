@@ -233,9 +233,7 @@ body {
 }
 
 /* Apply ripple effect to all buttons */
-button {
-  @apply ripple-effect;
-}
+
 
 /* Specific styling for different button variants */
 .ripple-effect.bg-black::before,

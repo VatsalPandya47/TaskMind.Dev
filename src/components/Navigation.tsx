@@ -26,7 +26,8 @@ import {
   ExternalLink,
   CalendarDays,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Moon
 } from "lucide-react";
 
 const Navigation = () => {
@@ -105,17 +106,17 @@ const Navigation = () => {
   return (
     <>
       {/* Mobile Header */}
-      <div className="lg:hidden flex items-center justify-between p-4 bg-gradient-to-r from-card/90 to-muted/90 backdrop-blur-sm border-b border-border shadow-sm">
+      <div className={`lg:hidden flex items-center justify-between p-4 bg-gradient-to-r from-card/90 to-muted/90 backdrop-blur-sm border-b border-border shadow-sm ${theme === 'dark' ? 'text-white bg-gray-900' : 'text-black bg-white'}`}>
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            className={`p-2 ${theme === 'dark' ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">TaskMind</span>
+          <span className={`text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent ${theme === 'dark' ? 'text-white' : 'text-black'}`}>TaskMind</span>
         </div>
         
         <div className="flex items-center gap-2">
@@ -123,31 +124,31 @@ const Navigation = () => {
             variant="ghost"
             size="sm"
             onClick={toggleTheme}
-            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            className={`p-2 ${theme === 'dark' ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
           >
             {theme === 'dark' ? <Zap className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />}
           </Button>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Button variant="ghost" className={`relative h-8 w-8 rounded-full ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.email} />
-                  <AvatarFallback className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 text-purple-400 border border-purple-500/30">
+                  <AvatarFallback className={`bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/30 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
                     {user?.email?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 bg-gray-800 border-gray-700" align="end" forceMount>
+            <DropdownMenuContent className={`w-56 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none text-white">{user?.email}</p>
-                  <p className="text-xs leading-none text-gray-400">Signed in</p>
+                  <p className={`text-sm font-medium leading-none ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{user?.email}</p>
+                  <p className={`text-xs leading-none ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Signed in</p>
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-gray-700" />
-              <DropdownMenuItem onClick={handleSignOut} className="text-red-400 hover:text-red-300 hover:bg-red-500/20">
+              <DropdownMenuSeparator className={theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} />
+              <DropdownMenuItem onClick={handleSignOut} className={`${theme === 'dark' ? 'text-red-400 hover:text-red-300 hover:bg-red-500/20' : 'text-red-600 hover:text-red-500 hover:bg-red-100'}`}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>
@@ -165,7 +166,7 @@ const Navigation = () => {
               variant="ghost"
               size="sm"
               onClick={() => setIsSidebarOpen(false)}
-              className="p-2 text-muted-foreground hover:text-foreground"
+              className={`p-2 ${theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-muted-foreground hover:text-foreground'}`}
             >
               <X className="h-5 w-5" />
             </Button>
@@ -209,7 +210,7 @@ const Navigation = () => {
                     className={`group flex items-center ${isCollapsed ? 'justify-center px-3 py-3' : 'gap-3 px-3 py-2'} rounded-xl text-sm font-medium transition-all duration-200 ${
                       active 
                         ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-400 border border-purple-500/30 shadow-lg' 
-                        : 'text-gray-300 hover:bg-gray-700/50 hover:text-white hover:shadow-sm'
+                        : 'text-gray-900 hover:bg-gray-700/50 hover:shadow-sm dark:text-gray-300'
                     }`}
                   >
                     <Icon className={`h-4 w-4 transition-colors ${active ? 'text-purple-400' : 'text-gray-400 group-hover:text-white'}`} />
@@ -246,7 +247,7 @@ const Navigation = () => {
           </nav>
 
           {/* Quick Actions */}
-          <div className="px-4 py-4 border-t border-gray-700/50">
+          <div className={`px-4 py-4 border-t ${theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200'}`}>
             <div className="space-y-2">
               <TooltipProvider>
                 {isCollapsed ? (
@@ -255,12 +256,12 @@ const Navigation = () => {
                       <TooltipTrigger asChild>
                         <Link
                           to="/support"
-                          className="flex items-center justify-center px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:bg-gray-700/50 hover:text-white transition-all duration-200"
+                          className="flex items-center justify-center px-3 py-3 rounded-xl text-sm font-medium text-black dark:text-gray-300 hover:bg-gray-700/50 hover:text-white transition-all duration-200"
                         >
-                          <HelpCircle className="h-4 w-4 text-gray-400" />
+                          <HelpCircle className="h-4 w-4 text-gray-900 dark:text-gray-400" />
                         </Link>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="bg-gray-800 border-gray-700 text-white">
+                      <TooltipContent side="right" className="text-black bg-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                         <p>Help & Support</p>
                       </TooltipContent>
                     </Tooltip>
@@ -273,7 +274,7 @@ const Navigation = () => {
                           rel="noopener noreferrer"
                           className="flex items-center justify-center px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:bg-gray-700/50 hover:text-white transition-all duration-200"
                         >
-                          <ExternalLink className="h-4 w-4 text-gray-400" />
+                          <ExternalLink className="h-4 w-4 text-gray-900 dark:text-gray-400" />
                         </a>
                       </TooltipTrigger>
                       <TooltipContent side="right" className="bg-gray-800 border-gray-700 text-white">
@@ -285,9 +286,9 @@ const Navigation = () => {
                   <>
                     <Link
                       to="/support"
-                      className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-gray-300 hover:bg-gray-700/50 hover:text-white transition-all duration-200"
+                      className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-black dark:text-gray-300 hover:bg-gray-700/50 transition-all duration-200"
                     >
-                      <HelpCircle className="h-4 w-4 text-gray-400" />
+                      <HelpCircle className="h-4 w-4 text-black dark:text-gray-400" />
                       <span>Help & Support</span>
                     </Link>
                     
@@ -295,9 +296,9 @@ const Navigation = () => {
                       href="https://taskmind.dev/documentation"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-gray-300 hover:bg-gray-700/50 hover:text-white transition-all duration-200"
+                      className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-black dark:text-gray-300 hover:bg-gray-700/50 transition-all duration-200"
                     >
-                      <ExternalLink className="h-4 w-4 text-gray-400" />
+                      <ExternalLink className="h-4 w-4 text-gray-600 hover:text-gray-900 dark:hover:text-white dark:text-gray-400" />
                       <span>Documentation</span>
                     </a>
                   </>
@@ -307,7 +308,7 @@ const Navigation = () => {
           </div>
 
           {/* User Profile */}
-          <div className="border-t border-gray-700/50 bg-gradient-to-r from-gray-800/30 to-gray-700/20 backdrop-blur-sm flex-shrink-0">
+          <div className="border-t border-gray-700/50 bg-gray-500/20 backdrop-blur-sm flex-shrink-0">
             {isCollapsed ? (
               <div className="p-4 flex flex-col items-center space-y-3">
                 <TooltipProvider>
@@ -332,8 +333,8 @@ const Navigation = () => {
                             </div>
                           </DropdownMenuLabel>
                           <DropdownMenuSeparator className="bg-gray-700" />
-                          <DropdownMenuItem onClick={toggleTheme} className="text-gray-300 hover:text-white hover:bg-gray-700">
-                            {theme === 'dark' ? <Zap className="mr-2 h-4 w-4" /> : <TrendingUp className="mr-2 h-4 w-4" />}
+                          <DropdownMenuItem onClick={toggleTheme} className="text-black dark:text-gray-300 hover:bg-gray-700">
+                            {theme === 'dark' ? <Zap className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
                             <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={handleSignOut} className="text-red-400 hover:text-red-300 hover:bg-red-500/20">
@@ -355,14 +356,14 @@ const Navigation = () => {
                 <div className="p-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.email} />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 text-purple-400 border border-purple-500/30">
+                      <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.email}/>
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 text-purple-400 border border-purple-500/30 text-black dark:text-white">
                         {user?.email?.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{user?.email}</p>
-                      <p className="text-xs text-gray-400">Active</p>
+                      <p className="text-sm font-medium text-black dark:text-white truncate">{user?.email}</p>
+                      <p className="text-xs text-black dark:text-gray-300">Active</p>
                     </div>
                   </div>
                 </div>
@@ -372,7 +373,7 @@ const Navigation = () => {
                     variant="outline"
                     size="sm"
                     onClick={toggleTheme}
-                    className="w-full justify-start text-gray-300 hover:text-white hover:bg-gray-700/50 border-gray-600"
+                    className="w-full justify-start text-gray-600 hover:text-gray-900 dark:hover:text-white dark:text-gray-300 hover:bg-gray-700/50 border-gray-600"
                   >
                     {theme === 'dark' ? (
                       <>
@@ -381,7 +382,7 @@ const Navigation = () => {
                       </>
                     ) : (
                       <>
-                        <TrendingUp className="mr-2 h-4 w-4" />
+                        <Moon className="mr-2 h-4 w-4" />
                         Dark Mode
                       </>
                     )}
@@ -391,7 +392,7 @@ const Navigation = () => {
                     variant="outline"
                     size="sm"
                     onClick={handleSignOut}
-                    className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/20 border-red-500/30"
+                    className="w-full justify-start text-red-400 hover:text-red-700 hover:bg-red-400/20 border-red-500/30"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
