@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trello Integration Debug & Fix</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .output {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            white-space: pre-wrap;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+        .warning { color: #fbbf24; }
+        .info { color: #60a5fa; }
+        .form-group {
+            margin: 16px 0;
+        }
+        input[type="email"], input[type="password"] {
+            width: 300px;
+            padding: 8px 12px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background: #333;
+            color: #e0e0e0;
+        }
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Trello Integration Debug & Fix Tool</h1>
+        
+        <div class="form-group">
+            <h3>Step 1: Authentication</h3>
+            <button onclick="checkAuth()">Check Current Auth</button>
+            <button onclick="showSignUpForm()">Create Test Account</button>
+            <button onclick="clearOutput()">Clear Output</button>
+        </div>
+
+        <div id="signupForm" style="display: none;">
+            <h4>Create Test Account</h4>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="testEmail" value="testuser@example.test" />
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="testPassword" value="testpassword123" />
+            </div>
+            <button onclick="createAndSignIn()">Create Account & Sign In</button>
+        </div>
+
+        <div class="form-group">
+            <h3>Step 2: Database Testing</h3>
+            <button onclick="checkTable()">Check Trello Table</button>
+            <button onclick="createTable()">Create Table (if missing)</button>
+        </div>
+
+        <div class="form-group">
+            <h3>Step 3: Function Testing</h3>
+            <button onclick="testFunction()">Test Trello Function</button>
+            <button onclick="testFullFlow()">Test Complete Flow</button>
+        </div>
+
+        <div class="form-group">
+            <h3>Step 4: Live Integration Test</h3>
+            <button onclick="testRealCredentials()">Test with Real Credentials</button>
+        </div>
+
+        <div id="output" class="output">Ready to debug Trello integration...\n</div>
+    </div>
+
+    <script>
+        const { createClient } = supabase;
+        
+        const supabaseUrl = 'https://jsxupnogyvfynjgkwdyj.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzeHVwbm9neXZmeW5qZ2t3ZHlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4MDUxODQsImV4cCI6MjA2NTM4MTE4NH0.GM-u3tU60Dy9dZUYbvXrYB-YMypx7f7TOu1-pAgZ62s';
+        
+        const sb = createClient(supabaseUrl, supabaseKey);
+        let currentSession = null;
+        
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info';
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function clearOutput() {
+            document.getElementById('output').innerHTML = 'Output cleared...\n';
+        }
+        
+        function showSignUpForm() {
+            document.getElementById('signupForm').style.display = 'block';
+        }
+        
+        async function checkAuth() {
+            log('🔍 Checking authentication status...', 'info');
+            try {
+                const { data: { session }, error } = await sb.auth.getSession();
+                if (error) {
+                    log('❌ Auth Error: ' + error.message, 'error');
+                } else if (session) {
+                    currentSession = session;
+                    log('✅ User authenticated: ' + session.user.email, 'success');
+                    log('   User ID: ' + session.user.id, 'info');
+                    log('   Access token exists: ' + !!session.access_token, 'info');
+                } else {
+                    log('❌ No session found - need to sign in', 'warning');
+                    showSignUpForm();
+                }
+            } catch (err) {
+                log('❌ Exception: ' + err.message, 'error');
+            }
+        }
+        
+        async function createAndSignIn() {
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            
+            log('🔨 Creating account for: ' + email, 'info');
+            
+            try {
+                // Try to sign up
+                const { data: signUpData, error: signUpError } = await sb.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            first_name: 'Test',
+                            last_name: 'User'
+                        }
+                    }
+                });
+                
+                if (signUpError) {
+                    log('❌ Sign up failed: ' + signUpError.message, 'error');
+                    log('🔄 Trying to sign in instead...', 'info');
+                    
+                    // Try to sign in
+                    const { data: signInData, error: signInError } = await sb.auth.signInWithPassword({
+                        email: email,
+                        password: password,
+                    });
+                    
+                    if (signInError) {
+                        log('❌ Sign in failed: ' + signInError.message, 'error');
+                        return;
+                    }
+                    
+                    currentSession = signInData.session;
+                    log('✅ Successfully signed in!', 'success');
+                    
+                } else {
+                    log('✅ Account created!', 'success');
+                    log('🔄 Trying immediate sign in...', 'info');
+                    
+                    // Try immediate sign in
+                    const { data: signInData, error: signInError } = await sb.auth.signInWithPassword({
+                        email: email,
+                        password: password,
+                    });
+                    
+                    if (signInError) {
+                        log('❌ Sign in failed (email confirmation may be required): ' + signInError.message, 'warning');
+                        log('💡 Try using a different email or disable email confirmation in Supabase', 'info');
+                        return;
+                    }
+                    
+                    currentSession = signInData.session;
+                    log('✅ Successfully signed in!', 'success');
+                }
+                
+                document.getElementById('signupForm').style.display = 'none';
+                
+            } catch (err) {
+                log('❌ Exception: ' + err.message, 'error');
+            }
+        }
+        
+        async function checkTable() {
+            log('🗄️ Checking trello_tokens table...', 'info');
+            try {
+                const { data, error } = await sb
+                    .from('trello_tokens')
+                    .select('count')
+                    .limit(1);
+                
+                if (error) {
+                    log('❌ Table Error: ' + error.message, 'error');
+                    if (error.message.includes('relation') || error.message.includes('does not exist')) {
+                        log('💡 Table does not exist - need to create it', 'warning');
+                    }
+                } else {
+                    log('✅ Table exists and is accessible', 'success');
+                }
+            } catch (err) {
+                log('❌ Exception: ' + err.message, 'error');
+            }
+        }
+        
+        async function createTable() {
+            log('🔨 Attempting to create trello_tokens table...', 'info');
+            
+            if (!currentSession) {
+                log('❌ Need to be authenticated first', 'error');
+                return;
+            }
+            
+            try {
+                // Try using a raw SQL approach via function
+                const { data, error } = await sb.functions.invoke('debug-env', {
+                    body: { 
+                        action: 'create_table',
+                        sql: `
+                            CREATE TABLE IF NOT EXISTS public.trello_tokens (
+                                id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+                                user_id UUID REFERENCES auth.users NOT NULL,
+                                api_key TEXT NOT NULL,
+                                token TEXT NOT NULL,
+                                username TEXT,
+                                full_name TEXT,
+                                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+                                updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+                            );
+                            
+                            ALTER TABLE public.trello_tokens ENABLE ROW LEVEL SECURITY;
+                            
+                            CREATE INDEX IF NOT EXISTS trello_tokens_user_id_idx ON public.trello_tokens USING btree (user_id);
+                        `
+                    }
+                });
+                
+                if (error) {
+                    log('❌ Create table failed: ' + error.message, 'error');
+                } else {
+                    log('✅ Table creation command sent', 'success');
+                    log('🔄 Checking table again...', 'info');
+                    setTimeout(checkTable, 1000);
+                }
+                
+            } catch (err) {
+                log('❌ Exception: ' + err.message, 'error');
+                log('💡 Table might need to be created via Supabase dashboard or migration', 'warning');
+            }
+        }
+        
+        async function testFunction() {
+            log('🧪 Testing save-trello-auth function...', 'info');
+            
+            if (!currentSession) {
+                log('❌ Need to be authenticated first', 'error');
+                return;
+            }
+            
+            try {
+                const { data, error } = await sb.functions.invoke('save-trello-auth', {
+                    body: { 
+                        apiKey: 'test-key-12345',
+                        trelloToken: 'test-token-67890'
+                    }
+                });
+                
+                if (error) {
+                    log('❌ Function Error: ' + error.message, 'error');
+                    
+                    if (error.context) {
+                        log('📄 Error Context: ' + JSON.stringify(error.context, null, 2), 'warning');
+                    }
+                    
+                    // Check specific error types
+                    if (error.message.includes('relation') || error.message.includes('table')) {
+                        log('💡 This is a database table issue', 'warning');
+                        log('🔧 Try clicking "Create Table" above', 'info');
+                    } else if (error.message.includes('Unauthorized')) {
+                        log('💡 This is an authentication issue', 'warning');
+                        log('🔧 Try signing in first', 'info');
+                    } else if (error.message.includes('Invalid Trello credentials')) {
+                        log('✅ Function is working! (Expected error for test credentials)', 'success');
+                    }
+                    
+                } else {
+                    log('✅ Function returned data: ' + JSON.stringify(data, null, 2), 'success');
+                }
+                
+            } catch (err) {
+                log('❌ Function Exception: ' + err.message, 'error');
+            }
+        }
+        
+        async function testRealCredentials() {
+            log('🎯 Testing with your real Trello credentials...', 'info');
+            
+            if (!currentSession) {
+                log('❌ Need to be authenticated first', 'error');
+                return;
+            }
+            
+            try {
+                const { data, error } = await sb.functions.invoke('save-trello-auth', {
+                    body: { 
+                        apiKey: '8b2a1af38906d0952d769fb593892831',
+                        trelloToken: 'ATTA4c33707dd318eb8cce87939838b148d071e88e444b38180641bdb40c9106601403CF00EF'
+                    }
+                });
+                
+                if (error) {
+                    log('❌ Function Error: ' + error.message, 'error');
+                    log('📄 Error Details: ' + JSON.stringify(error, null, 2), 'warning');
+                } else {
+                    log('🎉 SUCCESS! Trello account connected successfully!', 'success');
+                    log('📄 Response: ' + JSON.stringify(data, null, 2), 'success');
+                    log('✅ Integration is now working! Try going back to the settings page.', 'success');
+                }
+                
+            } catch (err) {
+                log('❌ Exception: ' + err.message, 'error');
+            }
+        }
+        
+        async function testFullFlow() {
+            log('🔄 Running complete diagnostic flow...', 'info');
+            
+            await checkAuth();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await checkTable();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testFunction();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            log('🏁 Full flow test completed!', 'info');
+        }
+        
+        // Auto-check auth on load
+        window.onload = function() {
+            setTimeout(checkAuth, 1000);
+        };
+    </script>
+</body>
+</html> 
