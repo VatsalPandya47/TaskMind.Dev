@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMeetings } from "@/hooks/useMeetings";
 import { useZoomMeetings } from "@/hooks/useZoomMeetings";
+import { useGoogleCalendarEvents } from "@/hooks/useGoogleCalendarEvents";
 import { 
   Calendar as CalendarIcon,
   Clock,
@@ -31,6 +32,7 @@ const CalendarTab = ({ onTabChange }: CalendarTabProps) => {
   
   const { meetings, isLoading: meetingsLoading, error: meetingsError } = useMeetings() || {};
   const { zoomMeetings, syncMeetings, isLoading: zoomMeetingsLoading, error: zoomMeetingsError } = useZoomMeetings() || {};
+  const { events: googleEvents, isLoading: googleEventsLoading, isError: googleEventsError } = useGoogleCalendarEvents();
 
   // Transform meetings data into calendar events
   const calendarEvents = useMemo(() => {
@@ -66,10 +68,24 @@ const CalendarTab = ({ onTabChange }: CalendarTabProps) => {
         });
       }
     });
-
+    
+    googleEvents?.forEach(event => {
+      if (event.start?.dateTime || event.start?.date) {
+        const startDate = new Date(event.start.dateTime || event.start.date);
+        events.push({
+          id: event.id,
+          title: event.summary || 'Google Calendar Event',
+          date: format(startDate, 'yyyy-MM-dd'),
+          startTime: event.start.dateTime ? format(startDate, 'HH:mm') : undefined,
+          type: 'google', // Set the type to 'google'
+          attendees: event.attendees ? event.attendees.length : 0,
+        });
+      }
+    }); 
+    
     return events;
   }, [meetings, zoomMeetings]);
-
+  
   // Filter events
   const filteredEvents = useMemo(() => {
     if (filterType === 'all') return calendarEvents;
@@ -101,9 +117,13 @@ const CalendarTab = ({ onTabChange }: CalendarTabProps) => {
     }
   };
 
-  const isLoading = meetingsLoading || zoomMeetingsLoading;
-  const error = meetingsError || zoomMeetingsError;
-
+  const isLoading = meetingsLoading || zoomMeetingsLoading || googleEventsLoading;
+  const error = meetingsError || zoomMeetingsError || googleEventsError;
+  
+  if(googleEventsError) {
+    return <div>Error loading Google Calendar events. Please try again.</div>
+  }
+   
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 relative overflow-hidden">
@@ -168,7 +188,7 @@ const CalendarTab = ({ onTabChange }: CalendarTabProps) => {
           <Card className="bg-red-500/10 backdrop-blur-sm border-red-500/20 shadow-lg">
             <CardContent className="pt-6">
               <p className="text-red-400">
-                Oops! An error occurred: {error.message}
+                Oops! An error occurred: {typeof error === "object" && error !== null && "message" in error ? error.message : String(error)}
               </p>
             </CardContent>
           </Card>

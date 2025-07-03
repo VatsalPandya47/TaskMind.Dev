@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { config, isLandingPageOnly } from "./config";
-import OAuth2Callback from "./components/OAuth2Callback"; // Corrected import casing
+import OAuth2Callback from "./components/OAuth2Callback";
 import "./App.css";
 
 // Import pages and components...
@@ -67,7 +67,6 @@ const LandingPageRoutes = () => (
 );
 
 const App = () => {
-  console.log("isLandingPageOnly returns:", isLandingPageOnly());
 
   return (
     <QueryClientProvider client={queryClient}>

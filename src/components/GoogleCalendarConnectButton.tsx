@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "lucide-react";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const REDIRECT_URI = "https://taskmind.dev/oauth2callback";
+const REDIRECT_URI = `${window.location.origin}/oauth2callback`;
 const SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
 
 export function GoogleCalendarConnectButton() {
@@ -19,8 +19,6 @@ export function GoogleCalendarConnectButton() {
     window.location.href = authUrl.toString();
   };
 
-  // ✅ Correct placement for the console.log
-  console.log("My Google Client ID is:", import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
   return (
     <Button 
