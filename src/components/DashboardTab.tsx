@@ -1,6 +1,8 @@
 import { useMeetings } from "@/hooks/useMeetings";
 import { useTasks } from "@/hooks/useTasks";
 import { useToast } from "@/hooks/use-toast";
+import { useGoogleCalendarEvents } from "@/hooks/useGoogleCalendarEvents";
+
 import {
   Card,
   CardContent,
@@ -75,7 +77,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
   const { meetings, isLoading: meetingsLoading } = useMeetings();
   const { tasks, isLoading: tasksLoading } = useTasks();
   const { toast } = useToast();
-
+  const { events: googleEvents, isConnected: isGoogleConnected } = useGoogleCalendarEvents();
   // Quick action handlers
   const handleAddNewTask = () => {
     if (onTabChange) {
@@ -393,6 +395,34 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
 
   const productivityLevel = getProductivityLevel(productivityScore);
 
+  const unifiedEvents = [
+    ...pendingTasks
+      .filter(task => task.due_date)
+      .map(task => ({
+        id: `task-${task.id}`,
+        title: task.task,
+        datetime: task.due_date,
+        source: "task",
+        link: null,
+      })),
+    ...googleEvents.map(event => ({
+      id: `google-${event.id}`,
+      title: event.summary,
+      datetime: event.start.dateTime || event.start.date,
+      source: "google",
+      link: event.htmlLink,
+    })),
+    ...meetings
+      .filter(m => new Date(m.date) > new Date())
+      .map(m => ({
+        id: `zoom-${m.id}`,
+        title: m.title,
+        datetime: m.date,
+        source: "zoom",
+        link: null,
+      })),
+  ].sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 relative overflow-hidden">
       {/* Background decorative elements */}
@@ -489,6 +519,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
             </Dialog>
           </div>
         </div>
+
 
         {/* Productivity Score */}
         <Card className="bg-gray-800/60 backdrop-blur-sm border-gray-700/50 shadow-2xl hover:border-gray-600/50 transition-all duration-200">
