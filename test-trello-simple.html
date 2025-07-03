@@ -1,4 +1,17 @@
 <!DOCTYPE html>
+<!--
+SECURITY NOTE: This is a test file for Trello integration.
+- Never commit hardcoded credentials to version control
+- Enter your own credentials in the form fields below
+- Use development/test credentials only, never production keys
+- Consider adding test-*.html files to .gitignore
+
+To use this file:
+1. Get your Supabase URL and anon key from your project settings
+2. Get your Trello API key and token from https://trello.com/app-key
+3. Enter all credentials in the form fields below
+4. Click "Test Trello Function" to verify the integration works
+-->
 <html>
 <head>
     <title>Simple Trello Test</title>
@@ -6,9 +19,25 @@
 </head>
 <body>
     <h1>Simple Trello Test</h1>
+    <div style="margin: 10px 0;">
+        <label>Supabase URL:</label>
+        <input type="text" id="supabaseUrl" placeholder="https://your-project.supabase.co" style="width: 300px;" />
+    </div>
+    <div style="margin: 10px 0;">
+        <label>Supabase Anon Key:</label>
+        <input type="password" id="supabaseKey" placeholder="Your Supabase anon key" style="width: 300px;" />
+    </div>
+    <div style="margin: 10px 0;">
+        <label>Trello API Key:</label>
+        <input type="password" id="trelloApiKey" placeholder="Your Trello API key" style="width: 300px;" />
+    </div>
+    <div style="margin: 10px 0;">
+        <label>Trello Token:</label>
+        <input type="password" id="trelloToken" placeholder="Your Trello token" style="width: 300px;" />
+    </div>
     <button onclick="testTrello()">Test Trello Function</button>
     <div style="margin: 10px 0;">
-        <strong>Status:</strong> <span id="status">Loading...</span>
+        <strong>Status:</strong> <span id="status">Enter your credentials above to test</span>
     </div>
     <pre id="output"></pre>
 
@@ -27,11 +56,16 @@
                     return false;
                 }
                 
+                const supabaseUrl = document.getElementById('supabaseUrl').value.trim();
+                const supabaseKey = document.getElementById('supabaseKey').value.trim();
+                
+                if (!supabaseUrl || !supabaseKey) {
+                    updateStatus('❌ Please enter Supabase URL and key');
+                    return false;
+                }
+                
                 const { createClient } = supabase;
-                sb = createClient(
-                    'https://jsxupnogyvfynjgkwdyj.supabase.co',
-                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzeHVwbm9neXZmeW5qZ2t3ZHlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4MDUxODQsImV4cCI6MjA2NTM4MTE4NH0.GM-u3tU60Dy9dZUYbvXrYB-YMypx7f7TOu1-pAgZ62s'
-                );
+                sb = createClient(supabaseUrl, supabaseKey);
                 
                 updateStatus('✅ Ready to test!');
                 isInitialized = true;
@@ -41,25 +75,27 @@
                 return false;
             }
         }
-        
-        // Try to initialize immediately
-        setTimeout(initializeSupabase, 100);
-        
-        // Also try when page loads
-        window.addEventListener('load', initializeSupabase);
-        
-        // And try when DOM is ready
-        document.addEventListener('DOMContentLoaded', initializeSupabase);
 
         async function testTrello() {
             const output = document.getElementById('output');
             output.textContent = 'Starting test...\n';
 
+            // Validate inputs
+            const supabaseUrl = document.getElementById('supabaseUrl').value.trim();
+            const supabaseKey = document.getElementById('supabaseKey').value.trim();
+            const trelloApiKey = document.getElementById('trelloApiKey').value.trim();
+            const trelloToken = document.getElementById('trelloToken').value.trim();
+            
+            if (!supabaseUrl || !supabaseKey || !trelloApiKey || !trelloToken) {
+                output.textContent += '❌ Please fill in all credential fields\n';
+                return;
+            }
+
             // Try to initialize if not already done
             if (!isInitialized) {
                 output.textContent += 'Attempting to initialize Supabase...\n';
                 if (!initializeSupabase()) {
-                    output.textContent += 'Failed to initialize Supabase. Please refresh the page.\n';
+                    output.textContent += 'Failed to initialize Supabase. Please check your credentials.\n';
                     return;
                 }
                 // Wait a moment for initialization
@@ -127,8 +163,8 @@
                 
                 const { data, error } = await sb.functions.invoke('save-trello-auth', {
                     body: {
-                        apiKey: '8b2a1af38906d0952d769fb593892831',
-                        trelloToken: 'ATTA4c33707dd318eb8cce87939838b148d071e88e444b38180641bdb40c9106601403CF00EF'
+                        apiKey: trelloApiKey,
+                        trelloToken: trelloToken
                     }
                 });
 
