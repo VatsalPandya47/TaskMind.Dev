@@ -2,7 +2,6 @@ import { useMeetings } from "@/hooks/useMeetings";
 import { useTasks } from "@/hooks/useTasks";
 import { useToast } from "@/hooks/use-toast";
 import { useGoogleCalendarEvents } from "@/hooks/useGoogleCalendarEvents";
-import { GoogleCalendarConnectButton } from "@/components/GoogleCalendarConnectButton";
 
 import {
   Card,
@@ -521,11 +520,6 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
           </div>
         </div>
 
-        {!isGoogleConnected && (
-          <div className="mb-4">
-            <GoogleCalendarConnectButton />
-          </div>
-        )}
 
         {/* Productivity Score */}
         <Card className="bg-gray-800/60 backdrop-blur-sm border-gray-700/50 shadow-2xl hover:border-gray-600/50 transition-all duration-200">

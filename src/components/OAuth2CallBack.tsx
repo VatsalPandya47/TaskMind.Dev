@@ -1,74 +1,70 @@
-// src/components/OAuth2CallBack.tsx
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext'; // Assuming you have an AuthContext
-import { supabase } from '../integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
-
-const OAuth2CallBack = () => {
-  const { session } = useAuth();
+const OAuth2Callback = () => {
+  const [status, setStatus] = useState("Finalizing connection, please wait...");
+  const location = useLocation();
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // This function will run once when the component mounts
-    const exchangeCodeForToken = async () => {
-      // 1. Extract the authorization code from the URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
+    // This function runs once when the component loads.
+    const processToken = async () => {
+      // Use URLSearchParams to easily get the 'code' from the URL.
+      const params = new URLSearchParams(location.search);
+      const authorizationCode = params.get('code');
 
-      if (!code) {
-        setError('Authorization code not found in URL.');
-        setIsLoading(false);
-        return;
-      }
+      if (authorizationCode) {
+        try {
+          // ------------------------------------------------------------------
+          // TODO: SEND THE `authorizationCode` TO YOUR BACKEND
+          // ------------------------------------------------------------------
+          // Your backend will exchange this code for an access token.
+          // Example:
+          // const response = await fetch('/api/google/exchange-code', {
+          //   method: 'POST',
+          //   headers: { 'Content-Type': 'application/json' },
+          //   body: JSON.stringify({ code: authorizationCode }),
+          // });
+          //
+          // if (!response.ok) {
+          //   throw new Error('Failed to exchange authorization code.');
+          // }
+          // ------------------------------------------------------------------
 
-      if (!session) {
-        setError('User session not found. Please log in again.');
-        setIsLoading(false);
-        return;
-      }
+          // If successful, redirect the user to their calendar or dashboard.
+          setStatus("Connection successful! Redirecting...");
+          setTimeout(() => {
+            navigate('/calendar'); // Redirect to the calendar page
+          }, 2000); // Wait 2 seconds before redirecting
 
-      console.log('Authorization Code:', code);
-      console.log('Using Supabase Access Token:', session.access_token);
-
-      try {
-        // 2. Call the Supabase function, sending the code in the body
-        const { data, error: invokeError } = await supabase.functions.invoke('google-calendar-exchange', {
-          body: JSON.stringify({ code }), // <-- CRITICAL: Send the code here
-        });
-
-        if (invokeError) {
-          // This will catch network errors and 4xx/5xx responses
-          console.error('Error invoking Supabase function:', invokeError);
-          setError(`Failed to connect Google Calendar: ${invokeError.message}`);
-          throw invokeError;
+        } catch (error) {
+          console.error(error);
+          setStatus("An error occurred. Please try again.");
         }
-        
-        console.log('Successfully exchanged code for token:', data);
-
-        // 3. Redirect the user to the dashboard or calendar page
-        navigate('/dashboard/meetings'); // Or wherever they need to go
-
-      } catch (e) {
-        // The error is already set by the 'if (invokeError)' block
-        console.error('An exception occurred during the exchange:', e);
-      } finally {
-        setIsLoading(false);
+      } else {
+        setStatus("Authorization code not found. Please try connecting again.");
       }
     };
 
-    exchangeCodeForToken();
-  }, [session, navigate]);
+    processToken();
+  }, [location, navigate]);
 
   return (
-    <div>
-      {isLoading && <p>Connecting your Google Calendar, please wait...</p>}
-      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
-      {!isLoading && !error && <p>Connection successful! Redirecting...</p>}
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh',
+      backgroundColor: '#111827',
+      color: 'white',
+      fontFamily: 'sans-serif'
+    }}>
+      <div style={{ textAlign: 'center' }}>
+        <p>{status}</p>
+        {/* You can add a spinner or loading animation here */}
+      </div>
     </div>
   );
 };
 
-export default OAuth2CallBack;
+export default OAuth2Callback;
