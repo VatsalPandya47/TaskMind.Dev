@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import SlackIntegration, { SlackSettings } from "@/components/SlackIntegration";
 import AsanaIntegration from "@/components/AsanaIntegration";
+import TrelloIntegration from "@/components/TrelloIntegration";
 import { useTheme } from '../context/ThemeContext';
 import { 
   User, 
@@ -449,6 +450,9 @@ const SettingsTab = () => {
 
       {/* Asana Integration */}
       <AsanaIntegration />
+
+      {/* Trello Integration */}
+      <TrelloIntegration />
 
       {/* Notifications */}
       <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
