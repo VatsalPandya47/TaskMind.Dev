@@ -209,16 +209,16 @@ const Navigation = () => {
                     to={item.href}
                     className={`group flex items-center ${isCollapsed ? 'justify-center px-3 py-3' : 'gap-3 px-3 py-2'} rounded-xl text-sm font-medium transition-all duration-200 ${
                       active 
-                        ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-400 border border-purple-500/30 shadow-lg' 
-                        : 'text-gray-900 hover:bg-gray-700/50 hover:shadow-sm dark:text-gray-300'
+                        ? 'bg-gradient-to-r from-fuchsia-400 to-indigo-400 border border-fuchsia-400/30 dark:from-emerald-400 dark:to-green-600 text-white dark:border-green-500/30 shadow-lg dark:shadow-white/30' 
+                        : 'text-gray-900 hover:bg-gray-700/50 hover:shadow-sm hover:text-white dark:hover:text-white dark:text-gray-300'
                     }`}
                   >
-                    <Icon className={`h-4 w-4 transition-colors ${active ? 'text-purple-400' : 'text-gray-400 group-hover:text-white'}`} />
+                    <Icon className={`h-4 w-4 transition-colors ${active ? 'text-white' : 'text-gray-800 dark:text-gray-400 group-hover:text-white'}`} />
                     {!isCollapsed && (
                       <>
                         <span>{item.name}</span>
                         {active && (
-                          <Badge variant="outline" className="ml-auto text-xs border-purple-500/30 text-purple-400">
+                          <Badge variant="outline" className="ml-auto text-xs border-white text-white">
                             Active
                           </Badge>
                         )}

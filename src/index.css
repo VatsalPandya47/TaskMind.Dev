@@ -38,12 +38,15 @@ body {
   0% {
     transform: translate(0px, 0px) scale(1);
   }
+
   33% {
     transform: translate(30px, -50px) scale(1.1);
   }
+
   66% {
     transform: translate(-20px, 20px) scale(0.9);
   }
+
   100% {
     transform: translate(0px, 0px) scale(1);
   }
@@ -180,9 +183,12 @@ body {
 
 /* Wave animation for footer */
 @keyframes wave {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateX(0px);
   }
+
   50% {
     transform: translateX(-50px);
   }
@@ -202,6 +208,7 @@ body {
     transform: scale(0);
     opacity: 1;
   }
+
   100% {
     transform: scale(4);
     opacity: 0;
@@ -249,4 +256,70 @@ body {
 
 .ripple-effect[class*="bg-blue"]::before {
   background: rgba(255, 255, 255, 0.4);
+}
+
+/* Gradients */
+.heading-gradient {
+  @apply font-bold text-4xl bg-gradient-to-r from-black via-blue-600 to-indigo-600 dark:from-white dark:via-blue-200 dark:to-indigo-200 bg-clip-text text-transparent;
+}
+
+.text-default {
+  @apply text-gray-900 dark:text-gray-300
+}
+
+.bg-default {
+  @apply bg-gray-200 dark:bg-gray-800
+}
+
+.card-surface {
+  @apply bg-gray-800/60 backdrop-blur-sm border-gray-700/50 shadow-lg;
+}
+
+.card-surface-blue {
+  @apply bg-blue-800/60 backdrop-blur-sm border-blue-400/30 shadow-lg;
+}
+
+.hover-elevate {
+  @apply hover:scale-[1.02] hover:shadow-xl transition-transform duration-200
+}
+
+.button-gradient-blue-purple {
+  @apply bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300
+}
+
+.button-solid-primary {
+  border: 1px solid #4B5563;
+  color: #FFFFFF;
+  background-color: #2563eb;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.button-solid-primary:hover {
+  background-color: #1d4ed8cc !important;
+  color: #FFFFFF !important;
+}
+
+.selector-button {
+  background-color: #f3f4f6;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+}
+
+.selector-button:hover {
+  background-color: #e0e7ef;
+}
+
+.dark .selector-button {
+  background-color: #1e293b;
+  color: #e0e7ef;
+  border: 1px solid #334155;
+}
+
+.dark .selector-button:hover {
+  background-color: #334155;
+}
+
+.button-danger {
+  @apply bg-red-600 text-white shadow-lg border-red-500 hover:bg-red-700 !important;
 }
