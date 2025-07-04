@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import MemorySearch from "./MemorySearch";
 import { useMemory } from "@/hooks/useMemory";
+import ThemeGradientWrapper from "./ThemeGradientWrapper";
 
 const MemoryTab = () => {
   const { getMemoryStats } = useMemory();
@@ -97,33 +98,29 @@ const MemoryTab = () => {
   };
 
   return (
-    <div className="space-y-6 relative">
-      {/* Decorative blur elements */}
-      <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl -z-10"></div>
-      
+    <ThemeGradientWrapper>      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-2xl backdrop-blur-sm">
-            <Brain className="h-8 w-8 text-purple-400" />
+            <Brain className="h-8 w-8 text-blue-800 dark:text-white" />
           </div>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-primary bg-clip-text text-transparent">
               Memory
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-default">
               Search across all your meetings, tasks, and decisions
             </p>
           </div>
         </div>
         {stats && (
           <div className="hidden lg:flex items-center gap-6 text-sm">
-            <div className="flex items-center gap-2 bg-purple-500/20 px-3 py-2 rounded-lg border border-purple-500/30">
+            <div className="flex items-center gap-2 bg-purple-800/50 px-3 py-2 rounded-lg border border-purple-500/30">
               <Sparkles className="h-4 w-4 text-purple-400" />
               <span className="font-medium text-white">{stats.embeddingsCount} items indexed</span>
             </div>
-            <div className="flex items-center gap-2 bg-green-500/20 px-3 py-2 rounded-lg border border-green-500/30">
+            <div className="flex items-center gap-2 bg-green-800/50 px-3 py-2 rounded-lg border border-green-500/30">
               <TrendingUp className="h-4 w-4 text-green-400" />
               <span className="font-medium text-white">{stats.searchLogsCount} searches</span>
             </div>
@@ -134,15 +131,15 @@ const MemoryTab = () => {
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3 h-12 bg-gray-800/50 backdrop-blur-sm border border-gray-700/50">
-          <TabsTrigger value="search" className="flex items-center gap-2 data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400 text-gray-300 hover:text-white transition-all duration-200">
+          <TabsTrigger value="search" className="flex items-center gap-2 data-[state=active]:bg-purple-500/40 data-[state=active]:text-white text-gray-300 hover:text-white transition-all duration-200">
             <Search className="h-4 w-4" />
             Search Memory
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2 data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400 text-gray-300 hover:text-white transition-all duration-200">
+          <TabsTrigger value="analytics" className="flex items-center gap-2 data-[state=active]:bg-purple-500/40 data-[state=active]:text-white text-gray-300 hover:text-white transition-all duration-200">
             <BarChart3 className="h-4 w-4" />
             Analytics
           </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2 data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400 text-gray-300 hover:text-white transition-all duration-200">
+          <TabsTrigger value="settings" className="flex items-center gap-2 data-[state=active]:bg-purple-500/40 data-[state=active]:text-white text-gray-300 hover:text-white transition-all duration-200">
             <Settings className="h-4 w-4" />
             Settings
           </TabsTrigger>
@@ -295,21 +292,21 @@ const MemoryTab = () => {
                     <span className="text-sm font-medium text-gray-200">Embeddings</span>
                     <Badge className="bg-green-500/20 text-green-400 border border-green-400/30">✓ Up to date</Badge>
                   </div>
-                  <Progress value={95} className="h-2 bg-gray-700" />
+                  <Progress value={95} className="h-2 bg-gray-200" />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-200">Index Status</span>
                     <Badge className="bg-green-500/20 text-green-400 border border-green-400/30">✓ Optimized</Badge>
                   </div>
-                  <Progress value={88} className="h-2 bg-gray-700" />
+                  <Progress value={88} className="h-2 bg-gray-200" />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-200">Storage</span>
                     <span className="text-sm font-medium text-white">2.3 MB</span>
                   </div>
-                  <Progress value={67} className="h-2 bg-gray-700" />
+                  <Progress value={67} className="h-2 bg-gray-200" />
                 </div>
               </div>
             </CardContent>
@@ -413,7 +410,7 @@ const MemoryTab = () => {
                   <p className="text-sm text-gray-300">
                     Download your memory data
                   </p>
-                  <Button variant="outline" size="sm" className="mt-2 border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white">
+                  <Button variant="outline" size="sm" className="mt-2 button-solid-primary">
                     Export Memory Data
                   </Button>
                 </div>
@@ -440,7 +437,7 @@ const MemoryTab = () => {
                     Regenerate all embeddings (may take several minutes)
                   </p>
                 </div>
-                <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white">
+                <Button variant="outline" size="sm" className="button-solid-primary">
                   Rebuild Index
                 </Button>
               </div>
@@ -452,7 +449,7 @@ const MemoryTab = () => {
                     Remove all search logs and analytics data
                   </p>
                 </div>
-                <Button variant="outline" size="sm" className="text-red-400 hover:text-red-300 border-red-500/30 hover:bg-red-500/20">
+                <Button variant="outline" size="sm" className="button-danger">
                   Clear History
                 </Button>
               </div>
@@ -464,7 +461,7 @@ const MemoryTab = () => {
                     Run system diagnostics and health checks
                   </p>
                 </div>
-                <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white">
+                <Button variant="outline" size="sm" className="button-solid-primary">
                   Run Diagnostics
                 </Button>
               </div>
@@ -472,7 +469,7 @@ const MemoryTab = () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </ThemeGradientWrapper>
   );
 };
 

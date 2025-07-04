@@ -323,3 +323,17 @@ body {
 .button-danger {
   @apply bg-red-600 text-white shadow-lg border-red-500 hover:bg-red-700 !important;
 }
+
+.button-solid-secondary {
+  background-color: #3b82f6;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.button-solid-secondary:hover {
+  background-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 8px 0 rgb(59 130 246 / 0.15);
+  transform: scale(1.02);
+}

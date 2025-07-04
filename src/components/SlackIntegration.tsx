@@ -143,13 +143,13 @@ const SlackIntegration: React.FC<SlackIntegrationProps> = ({ onSettingsChange })
   return (
     <div className="space-y-6">
       {/* Connection Status */}
-      <Card className="shadow-lg">
+      <Card className="shadow-lg card-surface">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-blue-600" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <MessageSquare className="h-5 w-5 text-blue-400" />
             Slack Integration
           </CardTitle>
-          <CardDescription>
+          <CardDescription className='text-gray-300'>
             Connect TaskMind to your Slack workspace for real-time notifications
           </CardDescription>
         </CardHeader>
@@ -157,18 +157,18 @@ const SlackIntegration: React.FC<SlackIntegrationProps> = ({ onSettingsChange })
           <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
             <div className="flex items-center gap-3">
               {isConnected ? (
-                <CheckCircle className="h-5 w-5 text-green-600" />
+                <CheckCircle className="h-5 w-5 text-green-400" />
               ) : (
-                <XCircle className="h-5 w-5 text-red-600" />
+                <XCircle className="h-5 w-5 text-red-400" />
               )}
               <div>
-                <p className="font-medium">Connection Status</p>
-                <p className="text-sm text-gray-600">
+                <p className="font-medium text-gray-300">Connection Status</p>
+                <p className="text-sm text-gray-400">
                   {isConnected ? 'Connected to Slack' : 'Not connected'}
                 </p>
               </div>
             </div>
-            <Badge variant={isConnected ? "default" : "secondary"}>
+            <Badge variant={isConnected ? "default" : "secondary"} className='bg-white/50 text-black'>
               {isConnected ? 'Connected' : 'Disconnected'}
             </Badge>
           </div>
@@ -197,25 +197,25 @@ const SlackIntegration: React.FC<SlackIntegrationProps> = ({ onSettingsChange })
       </Card>
 
       {/* Notification Settings */}
-      <Card className="shadow-lg">
+      <Card className="shadow-lg card-surface">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5 text-purple-600" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Bell className="h-5 w-5 text-purple-400" />
             Notification Preferences
           </CardTitle>
-          <CardDescription>
+          <CardDescription className='text-gray-300'>
             Choose which notifications you want to receive in Slack
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-4 text-gray-300">
             {notificationTypes.map((notification) => (
               <div key={notification.key} className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
                 <div className="flex items-center gap-3">
                   <div className="text-2xl">{notification.emoji}</div>
                   <div>
                     <p className="font-medium">{notification.title}</p>
-                    <p className="text-sm text-gray-600">{notification.description}</p>
+                    <p className="text-sm text-gray-400">{notification.description}</p>
                   </div>
                 </div>
                 <Switch
@@ -230,15 +230,15 @@ const SlackIntegration: React.FC<SlackIntegrationProps> = ({ onSettingsChange })
       </Card>
 
       {/* Integration Info */}
-      <Card className="shadow-lg">
+      <Card className="shadow-lg card-surface">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5 text-gray-600" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Settings className="h-5 w-5 text-gray-400" />
             Integration Details
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3 text-sm text-gray-600">
+          <div className="space-y-3 text-sm text-gray-300">
             <p>• <strong>Channel:</strong> TaskMind notifications will be sent to your configured Slack channel</p>
             <p>• <strong>Bot:</strong> Messages are sent via the TaskMind Notifier bot</p>
             <p>• <strong>Privacy:</strong> Only you and your team members in the channel will see these notifications</p>
@@ -248,13 +248,13 @@ const SlackIntegration: React.FC<SlackIntegrationProps> = ({ onSettingsChange })
       </Card>
 
       {/* Test Notifications */}
-      <Card className="shadow-lg">
+      <Card className="shadow-lg card-surface">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Zap className="h-5 w-5 text-yellow-400" />
             Test Notifications
           </CardTitle>
-          <CardDescription>
+          <CardDescription className='text-gray-300'>
             Test different types of Slack notifications
           </CardDescription>
         </CardHeader>
@@ -456,7 +456,7 @@ const SlackIntegration: React.FC<SlackIntegrationProps> = ({ onSettingsChange })
                   });
                 }
               }}
-              className="w-full bg-green-600 hover:bg-green-700"
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
             >
               Test Connection
             </Button>
@@ -494,7 +494,7 @@ const SlackIntegration: React.FC<SlackIntegrationProps> = ({ onSettingsChange })
                   });
                 }
               }}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             >
               Direct Fetch Test
             </Button>

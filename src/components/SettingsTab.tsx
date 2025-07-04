@@ -32,6 +32,7 @@ import {
   Clock,
   Database
 } from "lucide-react";
+import ThemeGradientWrapper from "./ThemeGradientWrapper";
 
 const SettingsTab = () => {
   const { user } = useAuth();
@@ -168,17 +169,13 @@ const SettingsTab = () => {
   };
 
   return (
-    <div className="space-y-8 relative">
-      {/* Decorative blur elements */}
-      <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl -z-10"></div>
-      
+    <ThemeGradientWrapper>      
       {/* Header */}
       <div className="text-center space-y-4">
-        <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight">
-          Your Command Center ⚙️
+        <h1 className="text-5xl md:text-6xl font-bold text-black dark:text-white leading-tight">
+          ⚙️ Your Command Center 
         </h1>
-        <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+        <p className="text-xl text-default max-w-3xl mx-auto">
           Customize your TaskMind experience and manage your account settings
         </p>
       </div>
@@ -427,7 +424,7 @@ const SettingsTab = () => {
       </Card>
 
       {/* Slack Integration */}
-      <SlackIntegration 
+      <SlackIntegration
         onSettingsChange={(slackSettings: SlackSettings) => {
           // Update the main notifications state when Slack settings change
           setNotifications(prev => ({
@@ -576,7 +573,7 @@ const SettingsTab = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </ThemeGradientWrapper>
   );
 };
 

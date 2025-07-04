@@ -78,19 +78,43 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
   const { toast } = useToast();
 
   // Quick action handlers
-  const handleAddNewTask = () => {
+  // Accepts an optional actionType: "add" | "view"
+  const handleTaskTabNavigation = (mode: "add" | "view" = "add") => {
     if (onTabChange) {
       onTabChange("tasks");
-      toast({
-        title: "Task Master 🎯",
-        description: "Ready to create your next mission!",
-      });
+      // Change the URL to /tasks for clarity in navigation
+      if (window.location.pathname !== "/tasks") {
+        window.history.pushState({}, "", "/tasks");
+      }
+      // Trigger a navigation event so the navigation bar updates its active state
+      const navEvent = new PopStateEvent('popstate');
+      window.dispatchEvent(navEvent);
+
+      if (mode === "add") {
+        toast({
+          title: "Task Master 🎯",
+          description: "Ready to create your next mission!",
+        });
+      } else if (mode === "view") {
+        toast({
+          title: "Viewing All Tasks 📋",
+          description: "Here are all your tasks!",
+        });
+      }
     }
   };
 
   const handleScheduleMeeting = () => {
     if (onTabChange) {
+      // Change the tab
       onTabChange("meetings");
+      // Change the URL to /meetings for clarity in navigation
+      if (window.location.pathname !== "/meetings") {
+        window.history.pushState({}, "", "/meetings");
+      }
+      // Trigger a navigation event so the navigation bar updates its active state
+      const navEvent = new PopStateEvent('popstate');
+      window.dispatchEvent(navEvent);
       toast({
         title: "Meeting Hub 🎤",
         description: "Time to schedule your next meeting!",
@@ -101,6 +125,13 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
   const handleUploadAudio = () => {
     if (onTabChange) {
       onTabChange("meetings");
+       // Change the URL to /meetings for clarity in navigation
+       if (window.location.pathname !== "/meetings") {
+        window.history.pushState({}, "", "/meetings");
+      }
+      // Trigger a navigation event so the navigation bar updates its active state
+      const navEvent = new PopStateEvent('popstate');
+      window.dispatchEvent(navEvent);
       toast({
         title: "Audio Upload 🎵",
         description: "Let's process your meeting audio!",
@@ -126,6 +157,30 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
   const handleViewMeeting = (meetingId: string) => {
     if (onTabChange) {
       onTabChange("meetings");
+      // Change the URL to /meetings for clarity in navigation
+      if (window.location.pathname !== "/meetings") {
+        window.history.pushState({}, "", "/meetings");
+      }
+      // Trigger a navigation event so the navigation bar updates its active state
+      const navEvent = new PopStateEvent('popstate');
+      window.dispatchEvent(navEvent);
+      toast({
+        title: "Meeting Details 📋",
+        description: "Viewing meeting details in the Meeting Hub!",
+      });
+    }
+  };
+
+  const handleViewAllMeetings = () => {
+    if (onTabChange) {
+      onTabChange("meetings");
+      // Change the URL to /meetings for clarity in navigation
+      if (window.location.pathname !== "/meetings") {
+        window.history.pushState({}, "", "/meetings");
+      }
+      // Trigger a navigation event so the navigation bar updates its active state
+      const navEvent = new PopStateEvent('popstate');
+      window.dispatchEvent(navEvent);
       toast({
         title: "Meeting Details 📋",
         description: "Viewing meeting details in the Meeting Hub!",
@@ -540,7 +595,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
       {/* Quick Actions */}
       <div className="flex flex-wrap justify-center gap-4 mt-8">
         <Button 
-          onClick={handleAddNewTask}
+          onClick={() => handleTaskTabNavigation("add")}
           className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 py-3 font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -936,7 +991,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
               <div className="text-center py-8">
                 <p className="text-gray-400">No tasks yet</p>
                 <Button 
-                  onClick={handleAddNewTask}
+                  onClick={() => handleTaskTabNavigation("add")}
                   className="mt-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
                 >
                   Create First Task
@@ -956,7 +1011,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                   </div>
                 ))}
                 <Button 
-                  onClick={() => onTabChange?.('tasks')}
+                  onClick={() => handleTaskTabNavigation("view")}
                   variant="outline"
                   className="w-full mt-3 border-gray-600 text-white hover:bg-blue-700/80 bg-blue-600 hover:text-white"
                 >
@@ -1006,7 +1061,7 @@ const DashboardTab = ({ onTabChange }: DashboardTabProps) => {
                   </div>
                 ))}
                 <Button 
-                  onClick={() => onTabChange?.('meetings')}
+                  onClick={handleViewAllMeetings}
                   variant="outline"
                   className="w-full mt-3 border-gray-600 text-white hover:bg-blue-700/80 bg-blue-600 hover:text-white"
                 >

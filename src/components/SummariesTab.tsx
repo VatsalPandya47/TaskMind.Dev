@@ -21,6 +21,7 @@ import {
   CheckCircle
 } from "lucide-react";
 import { format } from "date-fns";
+import ThemeGradientWrapper from "./ThemeGradientWrapper";
 
 // Utility function to parse and format the summary (same as in TranscriptSummarizer)
 const formatSummary = (summaryText: string) => {
@@ -131,11 +132,7 @@ const SummariesTab = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 relative">
-        {/* Decorative blur elements */}
-        <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl -z-10"></div>
-        
+      <ThemeGradientWrapper>
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-primary bg-clip-text text-transparent">
@@ -155,7 +152,7 @@ const SummariesTab = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </ThemeGradientWrapper>
     );
   }
 
@@ -190,10 +187,7 @@ const SummariesTab = () => {
   const formattedSummary = selectedSummary ? formatSummary(selectedSummary.summary) : null;
 
   return (
-    <div className="space-y-6 relative">
-      {/* Decorative blur elements */}
-      <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl -z-10"></div>
+    <ThemeGradientWrapper>
       
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -398,7 +392,7 @@ const SummariesTab = () => {
           </DialogContent>
         </Dialog>
       )}
-    </div>
+  </ThemeGradientWrapper>
   );
 };
 
