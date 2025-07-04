@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<!--
+SECURITY NOTE: This is a test file for Trello integration.
+- Never commit hardcoded credentials to version control
+- Enter your own credentials in the form fields below
+- Use development/test credentials only, never production keys
+- Consider adding test-*.html files to .gitignore
+
+To use this file:
+1. Get your Supabase URL and anon key from your project settings
+2. Get your Trello API key and token from https://trello.com/app-key
+3. Enter all credentials in the form fields below
+4. Click "Test Trello Function" to verify the integration works
+-->
+<html>
+<head>
+    <title>Simple Trello Test</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Simple Trello Test</h1>
+    <div style="margin: 10px 0;">
+        <label>Supabase URL:</label>
+        <input type="text" id="supabaseUrl" placeholder="https://your-project.supabase.co" style="width: 300px;" />
+    </div>
+    <div style="margin: 10px 0;">
+        <label>Supabase Anon Key:</label>
+        <input type="password" id="supabaseKey" placeholder="Your Supabase anon key" style="width: 300px;" />
+    </div>
+    <div style="margin: 10px 0;">
+        <label>Trello API Key:</label>
+        <input type="password" id="trelloApiKey" placeholder="Your Trello API key" style="width: 300px;" />
+    </div>
+    <div style="margin: 10px 0;">
+        <label>Trello Token:</label>
+        <input type="password" id="trelloToken" placeholder="Your Trello token" style="width: 300px;" />
+    </div>
+    <button onclick="testTrello()">Test Trello Function</button>
+    <div style="margin: 10px 0;">
+        <strong>Status:</strong> <span id="status">Enter your credentials above to test</span>
+    </div>
+    <pre id="output"></pre>
+
+    <script>
+        let sb = null;
+        let isInitialized = false;
+        
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+        
+        function initializeSupabase() {
+            try {
+                if (typeof supabase === 'undefined') {
+                    updateStatus('❌ Supabase library not loaded');
+                    return false;
+                }
+                
+                const supabaseUrl = document.getElementById('supabaseUrl').value.trim();
+                const supabaseKey = document.getElementById('supabaseKey').value.trim();
+                
+                if (!supabaseUrl || !supabaseKey) {
+                    updateStatus('❌ Please enter Supabase URL and key');
+                    return false;
+                }
+                
+                const { createClient } = supabase;
+                sb = createClient(supabaseUrl, supabaseKey);
+                
+                updateStatus('✅ Ready to test!');
+                isInitialized = true;
+                return true;
+            } catch (error) {
+                updateStatus(`❌ Init error: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testTrello() {
+            const output = document.getElementById('output');
+            output.textContent = 'Starting test...\n';
+
+            // Validate inputs
+            const supabaseUrl = document.getElementById('supabaseUrl').value.trim();
+            const supabaseKey = document.getElementById('supabaseKey').value.trim();
+            const trelloApiKey = document.getElementById('trelloApiKey').value.trim();
+            const trelloToken = document.getElementById('trelloToken').value.trim();
+            
+            if (!supabaseUrl || !supabaseKey || !trelloApiKey || !trelloToken) {
+                output.textContent += '❌ Please fill in all credential fields\n';
+                return;
+            }
+
+            // Try to initialize if not already done
+            if (!isInitialized) {
+                output.textContent += 'Attempting to initialize Supabase...\n';
+                if (!initializeSupabase()) {
+                    output.textContent += 'Failed to initialize Supabase. Please check your credentials.\n';
+                    return;
+                }
+                // Wait a moment for initialization
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            if (!sb) {
+                output.textContent += 'ERROR: Supabase client still not available\n';
+                return;
+            }
+
+            try {
+                output.textContent += 'Supabase client ready, testing authentication...\n';
+                
+                // Generate a unique email for this test
+                const timestamp = Date.now();
+                const testEmail = `test${timestamp}@example.com`;
+                const testPassword = 'password123';
+                
+                output.textContent += `Creating account with email: ${testEmail}\n`;
+                
+                // Try to sign up with unique email
+                const { data: signUpData, error: signUpError } = await sb.auth.signUp({
+                    email: testEmail,
+                    password: testPassword
+                });
+                
+                if (signUpError) {
+                    output.textContent += `Sign up failed: ${signUpError.message}\n`;
+                    
+                    // Try to sign in with test@example.com instead
+                    output.textContent += 'Trying to sign in with test@example.com...\n';
+                    const { data: signInData, error: signInError } = await sb.auth.signInWithPassword({
+                        email: 'test@example.com',
+                        password: 'password123'
+                    });
+                    
+                    if (signInError) {
+                        output.textContent += `Sign in also failed: ${signInError.message}\n`;
+                        output.textContent += 'Authentication failed. You may need to sign up manually at http://localhost:8080\n';
+                        return;
+                    } else {
+                        output.textContent += '✅ Signed in successfully!\n';
+                    }
+                } else {
+                    output.textContent += '✅ Account created!\n';
+                    
+                    // Try to sign in immediately
+                    const { data: signInData, error: signInError } = await sb.auth.signInWithPassword({
+                        email: testEmail,
+                        password: testPassword
+                    });
+                    
+                    if (signInError) {
+                        output.textContent += `Sign in failed: ${signInError.message}\n`;
+                        output.textContent += 'Account created but sign-in failed. Email confirmation may be required.\n';
+                        return;
+                    } else {
+                        output.textContent += '✅ Signed in successfully!\n';
+                    }
+                }
+
+                // Now test the Trello function
+                output.textContent += '\n🧪 Testing Trello function with your credentials...\n';
+                
+                const { data, error } = await sb.functions.invoke('save-trello-auth', {
+                    body: {
+                        apiKey: trelloApiKey,
+                        trelloToken: trelloToken
+                    }
+                });
+
+                if (error) {
+                    output.textContent += `❌ FUNCTION ERROR: ${error.message}\n`;
+                    if (error.context) {
+                        output.textContent += `Context: ${JSON.stringify(error.context, null, 2)}\n`;
+                    }
+                    output.textContent += '\n🔧 This error tells us what needs to be fixed.\n';
+                } else {
+                    output.textContent += `🎉 SUCCESS! ${JSON.stringify(data, null, 2)}\n`;
+                    output.textContent += '\n✅ TRELLO INTEGRATION IS WORKING!\n';
+                    output.textContent += '✅ You can now go to http://localhost:8080/settings and connect Trello!\n';
+                }
+
+            } catch (err) {
+                output.textContent += `💥 EXCEPTION: ${err.message}\n`;
+                output.textContent += `Stack: ${err.stack}\n`;
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -24,6 +24,7 @@ import SummaryHistory from "./pages/SummaryHistory";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ZoomCallback from "./components/ZoomCallback";
 import AsanaCallback from "./components/AsanaCallback";
+import MondayCallback from "./components/MondayCallback";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
 import Support from "./pages/Support";
@@ -86,6 +87,11 @@ const App = () => {
                   <Route path="/asana-callback" element={
                     <ProtectedRoute>
                       <AsanaCallback />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/monday-callback" element={
+                    <ProtectedRoute>
+                      <MondayCallback />
                     </ProtectedRoute>
                   } />
                   <Route path="/my-meetings" element={
