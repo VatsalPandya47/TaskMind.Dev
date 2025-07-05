@@ -37,12 +37,20 @@ const Navigation = () => {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 
   // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsSidebarOpen(false);
   }, [location.pathname]);
+
+  // Directly show dashboard on small screens
+  useEffect(() => {
+    if (window.innerWidth < 1024 && location.pathname === '/dashboard') {
+      navigate('/dashboard');
+    }
+  }, [navigate, location.pathname]);
 
   const handleSignOut = async () => {
     try {
@@ -102,10 +110,15 @@ const Navigation = () => {
     return location.pathname === href || location.pathname.startsWith(href + "/");
   };
 
+  // Toggle sidebar visibility
+  const toggleSidebar = () => {
+    setIsSidebarVisible(!isSidebarVisible);
+  };
+
   return (
     <>
       {/* Mobile Header */}
-      <div className="lg:hidden flex items-center justify-between p-4 bg-gradient-to-r from-card/90 to-muted/90 backdrop-blur-sm border-b border-border shadow-sm">
+      {/* <div className="lg:hidden flex items-center justify-between p-4 bg-gradient-to-r from-card/90 to-muted/90 backdrop-blur-sm border-b border-border shadow-sm">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -154,23 +167,26 @@ const Navigation = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div>
+      </div> */}
+
+      {/* Toggle button for small screens */}
+      {!isSidebarVisible && (
+        <div className="lg:hidden fixed top-4 left-4 z-50">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleSidebar}
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 no-overlap border-2 border-primary rounded-full"
+            style={{ zIndex: 100 }}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
+      )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 ${isCollapsed ? 'w-20' : 'w-80'} bg-card/95 backdrop-blur-sm border-r border-border transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:inset-0`}>
-        <div className="flex flex-col h-full">
-          {/* Close button for mobile */}
-          <div className="lg:hidden flex justify-end p-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsSidebarOpen(false)}
-              className="p-2 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-
+      <div className={`fixed inset-y-0 left-0 z-40 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 contain-content min-w-[200px] bg-card/95 backdrop-blur-sm border-r border-border`}>
+        <div className={`flex flex-col h-full overflow-y-auto scrollbar-hide`}>
           {/* Logo */}
           <div className={`flex items-center gap-3 p-6 border-b border-border ${isCollapsed ? 'justify-center' : ''}`}>
             <div className="p-2 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl backdrop-blur-sm hover:scale-110 transition-transform duration-200">
@@ -211,6 +227,7 @@ const Navigation = () => {
                         ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-400 border border-purple-500/30 shadow-lg' 
                         : 'text-gray-300 hover:bg-gray-700/50 hover:text-white hover:shadow-sm'
                     }`}
+                    onClick={() => setIsSidebarVisible(false)}
                   >
                     <Icon className={`h-4 w-4 transition-colors ${active ? 'text-purple-400' : 'text-gray-400 group-hover:text-white'}`} />
                     {!isCollapsed && (
@@ -408,6 +425,14 @@ const Navigation = () => {
         <div 
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Add an overlay to close the sidebar when clicking outside */}
+      {isSidebarVisible && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30"
+          onClick={toggleSidebar}
         />
       )}
     </>

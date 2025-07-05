@@ -24,8 +24,10 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <Navigation />
-      <main className="flex-1 overflow-auto relative">
+      <main className="flex-1 overflow-auto relative min-w-0">
+        <div className="main-container h-full overflow-safe">
         {children}
+        </div>
         
         {/* Floating AI Assistant */}
         <div className="fixed bottom-6 right-6 z-50">
